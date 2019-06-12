@@ -5,29 +5,27 @@
  *  Author: A41450
  */ 
 #include <string.h>
-
 #include "../mptt.h"
 #include "t6.h"
 
 t6_data_t t6_data_status;
-int object_t6_init(u8 rid)
+int object_t6_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem)
 {
 	t6_data_t *ptr = &t6_data_status;
 	memset(ptr, 0, sizeof(*ptr));
 	
 	ptr->rid = rid;
 	ptr->status = MXT_T6_STATUS_RESET; /* Initialized by Reset */
+	ptr->mem = (object_t6_t *)mem;
 	
 	return 0;
 }
 
-int object_t6_start(void)
+void object_t6_start(void)
 {
 	t6_data_t *ptr = &t6_data_status;
 	
 	mpt_chip_get_config_crc(&ptr->crc);
-	
-	return 0;
 }
 
 void object_t6_report_status(void)
@@ -124,46 +122,49 @@ int chip_reportall(u8 arg)
 {
 	if (arg) {
 		/* performance report all */
-		/* ... */
+		mpt_chip_reportall();
 	}
 	
-	return -2;
+	return 0;
 }
 
 int chip_diagnostic(u8 arg)
 {
+	t6_data_t *ptr = &t6_data_status;
+	
 	if (arg) {
 		/* performance report all */
 		switch(arg) {
 			case MXT_DIAGNOSTIC_PAGEUP:
+				ptr->page++;
 			break;
 			case MXT_DIAGNOSTIC_PAGEDOWN:
+				ptr->page--;
 			break;
 			case MXT_DIAGNOSTIC_MC_DELTA:
-			break;
 			case MXT_DIAGNOSTIC_MC_REF:
-			break;
 			case MXT_DIAGNOSTIC_DC_DATA:
-			break;
 			case MXT_DIAGNOSTIC_DEVICE_INFO:
-			break;
 			case MXT_DIAGNOSTIC_PRODUCT_DATA:
-			break;
 			case MXT_DIAGNOSTIC_SC_DELTA:
-			break;
 			case MXT_DIAGNOSTIC_SC_REF:
+				ptr->arg = arg;
+				ptr->page = 0;
 			break;
 			default:
-				;
+				ptr->arg = MXT_DIAGNOSTIC_NONE;
 		}
 	}
 	
-	return -2;
+	return 0;
 }
 
 int object_t6_handle_command(u16 cmd, u8 arg)
 {
+	t6_data_t *ptr = &t6_data_status;
 	int result = 0;
+	
+	ptr->cmd = cmd;
 	
 	switch (cmd) {
 		case MXT_COMMAND_RESET:
@@ -186,4 +187,17 @@ int object_t6_handle_command(u16 cmd, u8 arg)
 	}
 	
 	return result;
+}
+
+u8 object_t6_get_diagnostic_status(u8 *pg)
+{
+	t6_data_t *ptr = &t6_data_status;
+	
+	if (ptr->cmd == MXT_COMMAND_DIAGNOSTIC) {
+		if (pg)
+			*pg = ptr->page;
+		return ptr->arg;
+	}
+	
+	return MXT_DIAGNOSTIC_NONE;
 }

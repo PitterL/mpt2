@@ -11,21 +11,22 @@
 
 t9_data_t t9_status_data[MXT_TOUCH_MULTI_T9_RIDS];
 
-int object_t9_init(u8 rid)
+int object_t9_init(u8 rid, const /*sensor_config_t*/void *cfg, void *mem)
 {
-	t9_data_t *ptr = t9_status_data;
+	t9_data_t *ptr = &t9_status_data[0];
 	int i;
 	
 	for ( i = 0; i < MXT_TOUCH_MULTI_T9_RIDS; i++) {
-		ptr->rid = rid + i;
+		ptr[i].rid = rid + i;
+		ptr[i].mem = (object_t9_t *)mem + i;
 	}
 	
 	return 0;
 }
 
-int object_t9_start(void)
+void object_t9_start(void)
 {
-	return 0;
+	
 }
 
 void t9_report_status(const t9_data_t *ptr)
@@ -45,26 +46,25 @@ void t9_report_status(const t9_data_t *ptr)
 
 void object_t9_report_status(void)
 {
-	t9_data_t *ptr = t9_status_data;
+	t9_data_t *ptr = &t9_status_data[0];
 	int i;
 	
 	for (i = 0; i < MXT_TOUCH_MULTI_T9_RIDS; i++) {
-		t9_report_status(ptr + i);
+		t9_report_status(&ptr[i]);
 	}
 }
 
-int t9_set_pointer_location(u8 id, uint8_t status, uint16_t x, uint16_t y)
+int object_t9_set_pointer_location(u8 id, uint8_t status, uint16_t x, uint16_t y)
 {
-	t9_data_t *ptr = t9_status_data;
+	t9_data_t *ptr = &t9_status_data[0];
 
 	if (id >= MXT_TOUCH_MULTI_T9_RIDS)
 		return -2;
 	
-	ptr = &t9_status_data[id];
-	if (ptr->status != status || ptr->pos.x != x || ptr->pos.y != y) {	
-		ptr->status = status;
-		ptr->pos.x = x;
-		ptr->pos.y = y;
+	if (ptr[id].status != status || ptr[id].pos.x != x || ptr[id].pos.y != y) {	
+		ptr[id].status = status;
+		ptr[id].pos.x = x;
+		ptr[id].pos.y = y;
 		
 		t9_report_status(ptr);
 	}

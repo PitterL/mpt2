@@ -45,7 +45,7 @@ void I2C_address_handler()
 
 void I2C_read_handler()
 { // Master read operation
-	I2C_write(0x0c);
+	I2C_write(I2C_num_reads);
 	I2C_num_reads++;
 }
 

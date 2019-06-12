@@ -9,6 +9,8 @@
 #ifndef T8_H_
 #define T8_H_
 
+#include "../types.h"
+
 /* T8 Memory Space */
 typedef struct object_t8 {
 	u8 chrgtime;
@@ -22,5 +24,10 @@ typedef struct object_t8 {
 	u8 atchfrccalthr;
 	u8 atchfrccalratio;
 } __attribute__ ((packed)) object_t8_t;
+
+#define MXT_T8_MEASALLOW_MUTUALTCH	BIT(0)
+#define MXT_T8_MEASALLOW_SELFTCH	BIT(1)
+#define MXT_T8_MEASALLOW_HOVER	BIT(2)
+#define MXT_T8_MEASALLOW_SELFPROX	BIT(3)
 
 #endif /* T8_H_ */

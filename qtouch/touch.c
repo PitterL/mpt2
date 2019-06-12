@@ -105,6 +105,32 @@ qtm_acq_t161x_node_config_t ptc_seq_node_cfg1[DEF_NUM_CHANNELS] = {NODE_0_PARAMS
 qtm_acquisition_control_t qtlib_acq_set1 = {&ptc_qtlib_acq_gen1, &ptc_seq_node_cfg1[0], &ptc_qtlib_node_stat1[0]};
 
 /**********************************************************/
+/*********** Frequency Hop Auto tune Module **********************/
+/**********************************************************/
+
+/* Buffer used with various noise filtering functions */
+uint16_t noise_filter_buffer[DEF_NUM_SENSORS * NUM_FREQ_STEPS];
+uint8_t  freq_hop_delay_selection[NUM_FREQ_STEPS] = {DEF_MEDIAN_FILTER_FREQUENCIES};
+uint8_t  freq_hop_autotune_counters[NUM_FREQ_STEPS];
+
+/* Configuration */
+qtm_freq_hop_autotune_config_t qtm_freq_hop_autotune_config1 = {DEF_NUM_CHANNELS,
+                                                                NUM_FREQ_STEPS,
+                                                                &ptc_qtlib_acq_gen1.freq_option_select,
+                                                                &freq_hop_delay_selection[0],
+                                                                DEF_FREQ_AUTOTUNE_ENABLE,
+                                                                FREQ_AUTOTUNE_MAX_VARIANCE,
+                                                                FREQ_AUTOTUNE_COUNT_IN};
+
+/* Data */
+qtm_freq_hop_autotune_data_t qtm_freq_hop_autotune_data1
+    = {0, 0, &noise_filter_buffer[0], &ptc_qtlib_node_stat1[0], &freq_hop_autotune_counters[0]};
+
+/* Container */
+qtm_freq_hop_autotune_control_t qtm_freq_hop_autotune_control1
+    = {&qtm_freq_hop_autotune_data1, &qtm_freq_hop_autotune_config1};
+
+/**********************************************************/
 /*********************** Keys Module **********************/
 /**********************************************************/
 
@@ -164,6 +190,39 @@ qtm_surface_contact_data_t qtm_surface_cs_data1;
 qtm_surface_cs_control_t qtm_surface_cs_control1 = {&qtm_surface_cs_data1, &qtm_surface_cs_config1};
 
 /**********************************************************/
+/***************** Gesture Module ********************/
+/**********************************************************/
+
+/* Gesture Configurations */
+qtm_gestures_2d_config_t qtm_gestures_2d_config = {&qtm_surface_cs_data1.h_position,
+                                                   &qtm_surface_cs_data1.v_position,
+                                                   &qtm_surface_cs_data1.qt_surface_status,
+                                                   0,
+                                                   0,
+                                                   0,
+                                                   SCR_RESOLUTION(SURFACE_CS_RESOL_DB),
+                                                   TAP_RELEASE_TIMEOUT,
+                                                   TAP_HOLD_TIMEOUT,
+                                                   SWIPE_TIMEOUT,
+                                                   HORIZONTAL_SWIPE_DISTANCE_THRESHOLD,
+                                                   VERTICAL_SWIPE_DISTANCE_THRESHOLD,
+                                                   0,
+                                                   TAP_AREA,
+                                                   SEQ_TAP_DIST_THRESHOLD,
+                                                   EDGE_BOUNDARY,
+                                                   WHEEL_POSTSCALER,
+                                                   WHEEL_START_QUADRANT_COUNT,
+                                                   WHEEL_REVERSE_QUADRANT_COUNT,
+
+                                                   0
+
+};
+
+qtm_gestures_2d_data_t qtm_gestures_2d_data;
+
+qtm_gestures_2d_control_t qtm_gestures_2d_control1 = {&qtm_gestures_2d_data, &qtm_gestures_2d_config};
+
+/**********************************************************/
 /****************  Binding Layer Module  ******************/
 /**********************************************************/
 #define LIB_MODULES_INIT_LIST                                                                                          \
@@ -173,7 +232,8 @@ qtm_surface_cs_control_t qtm_surface_cs_control1 = {&qtm_surface_cs_data1, &qtm_
 
 #define LIB_MODULES_PROC_LIST                                                                                          \
 	{                                                                                                                  \
-		(module_proc_t) & qtm_key_sensors_process, (module_proc_t)&qtm_surface_cs_process, null                        \
+		(module_proc_t) & qtm_freq_hop_autotune, (module_proc_t)&qtm_key_sensors_process,                              \
+		    (module_proc_t)&qtm_surface_cs_process,  null                      \
 	}
 
 #define LIB_INIT_DATA_MODELS_LIST                                                                                      \
@@ -183,7 +243,8 @@ qtm_surface_cs_control_t qtm_surface_cs_control1 = {&qtm_surface_cs_data1, &qtm_
 
 #define LIB_DATA_MODELS_PROC_LIST                                                                                      \
 	{                                                                                                                  \
-		(void *)&qtlib_key_set1, (void *)&qtm_surface_cs_control1, null                                                \
+		(void *)&qtm_freq_hop_autotune_control1, (void *)&qtlib_key_set1, (void *)&qtm_surface_cs_control1,            \
+		     null                                                                    \
 	}
 
 #define LIB_MODULES_ACQ_ENGINES_LIST                                                                                   \
@@ -324,6 +385,8 @@ static touch_ret_t touch_sensors_config(void)
 	}
 
 	touch_ret |= qtm_init_surface_cs(&qtm_surface_cs_control1);
+
+	touch_ret |= qtm_init_gestures_2d();
 
 	return (touch_ret);
 }
@@ -528,6 +591,9 @@ Notes  :
 void touch_timer_handler(void)
 {
 	interrupt_cnt++;
+	if (interrupt_cnt % DEF_GESTURE_TIME_BASE_MS == 0) {
+		qtm_update_gesture_2d_timer(1);
+	}
 	if (interrupt_cnt >= DEF_TOUCH_MEASUREMENT_PERIOD_MS) {
 		interrupt_cnt = 0;
 		/* Count complete - Measure touch sensors */

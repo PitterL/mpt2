@@ -64,7 +64,7 @@ u32 crc24(u32 crc, u8 firstbyte, u8 secondbyte)
     const u32 crcpoly = 0x80001B;
     u32 data_word;
 
-    data_word = (secondbyte << 8) | firstbyte;
+    data_word = ((u16)secondbyte << 8) | firstbyte;
     crc = ((crc << 1) ^ data_word);
 
     if (crc & 0x1000000)
@@ -102,16 +102,17 @@ u32 calc_blocks_crc24(const crc_data_blocks_t *blk, int count)
 			crc = crc24(crc, firstbyte, secondbyte);
 		}
 
-		if (j < blk[i].size) {
-			if (sum & 0x1) {
-				crc = crc24(crc, odd, *ptr);
-			}else {
-				if (i == count - 1) {	//last block
-					/* if len is odd, fill the last byte with 0 */
-					crc = crc24(crc, *ptr, 0);
-				}else {
-					odd = *ptr;
-				}	
+		if ((blk[i].size + sum) & 0x1) {	//	sum is odd
+			if (blk[i].size & 0x1)	//	only odd will left one
+				odd = *ptr;
+			
+			if (i == count - 1) {	//last block
+				/* if len is odd, fill the last byte with 0 */
+				crc = crc24(crc, odd, 0);
+			}
+		}else {
+			if (sum & 0x1) {	//sum is even, but both blocks are odd
+				crc = crc24(crc, odd, *ptr);		
 			}
 		}
 		

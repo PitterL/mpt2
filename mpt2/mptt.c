@@ -10,6 +10,7 @@
 #include "mptt.h"
 #include "mutex.h"
 #include "crc.h"
+#include "list.h"
 
 typedef struct mxt_info {
 	u8 family_id;
@@ -35,24 +36,30 @@ mxt_info_t ib_id_information = {
 	MPTT_FW_VERSION,	/* version */
 	MPTT_FW_BUILD,	/* build */
 };
+#define MXT_ID_INFORMATION_SIZE (sizeof(ib_id_information))
 
-#define MXT_REPORT_ID_COUNT (MXT_GEN_COMMAND_T6_RIDS + MXT_TOUCH_MULTI_T9_RIDS)
+/* Should add all report count here */
+#define MXT_REPORT_ID_COUNT (MXT_GEN_COMMAND_T6_RIDS + MXT_TOUCH_MULTI_T9_RIDS + MXT_TOUCH_KEYARRAY_T15_RIDS + MXT_SPT_SELFTEST_T25_RIDS)
 #define MXT_MESSAGE_DEPTH_EACH_RID 2
-typedef struct message_buffer {
-	object_t5_t data[MXT_MESSAGE_DEPTH_EACH_RID];
-	u8 curr;
-} message_buffer_t;
+#define MXT_MESSAGE_FIFO_SIZE (MXT_REPORT_ID_COUNT * MXT_MESSAGE_DEPTH_EACH_RID)
+
+typedef struct message_buffer{
+	object_t5_t message;
+	struct list_head node;
+}message_buffer_t;
+message_buffer_t message_cache[MXT_MESSAGE_FIFO_SIZE];
 
 typedef struct mxt_message_fifo {
-	message_buffer_t buffer[MXT_REPORT_ID_COUNT];
-	u8 wpos;
-	u8 rpos;
+	struct list_head fifo;
+	u8 reporter[MXT_REPORT_ID_COUNT];	//message count for each reporter
+	u8 count;	//message sum
 	mutex_t lock;
 } mxt_message_fifo_t;
 
 mxt_message_fifo_t message_fifo;
 
 data_crc24_t ib_info_crc;
+#define MXT_INFOBLOCK_CRC_SIZE (sizeof(ib_info_crc))
 
 typedef struct objects_ram {
 	object_t37_t r37;
@@ -60,16 +67,27 @@ typedef struct objects_ram {
 	object_t5_t t5;
 } __attribute__ ((packed)) objects_ram_t;
 
+#define MXT_OBJECTS_RAM_SIZE (sizeof(struct objects_ram))
+
 typedef struct objects_ctrl {
 	object_t6_t t6;	
 } __attribute__ ((packed)) objects_ctrl_t;
+
+#define MXT_OBJECTS_CTRL_SIZE (sizeof(struct objects_ctrl))
 
 typedef struct objects_config {
 	object_t7_t t7;
 	object_t8_t t8;
 	object_t9_t t9_objs[MXT_TOUCH_MULTI_T9_INST];
+	object_t15_t t15_objs[MXT_TOUCH_KEYARRAY_T15_INST];
+	object_t18_t t18;
+	object_t25_t t25;
+	object_t104_t t104;
+	object_t111_t t111;
 	data_crc24_t crc;
 } __attribute__ ((packed)) objects_config_t;
+
+#define MXT_OBJECTS_CONFIG_SIZE (sizeof(struct objects_config))
 
 typedef struct mxt_objects_reg {
 	objects_ram_t ram;
@@ -77,8 +95,11 @@ typedef struct mxt_objects_reg {
 	objects_config_t cfg;
 } __attribute__ ((packed)) mxt_objects_reg_t;
 
-mxt_objects_reg_t ib_objects_reg;
+mxt_objects_reg_t ib_objects_reg; // The order of the struct must align ib_objects_tables
 
+#define MXT_OBJECTS_SIZE (sizeof(ib_objects_reg))
+
+// The order of the struct must align struct mxt_objects_reg
 mxt_object_t ib_objects_tables[] = {
 	{	MXT_DEBUG_DIAGNOSTIC_T37, /*start_address*/-1, sizeof(struct object_t37) - 1, /*instances_minus_one*/0, /*num_report_ids*/0	},
 	{	MXT_SPT_MESSAGECOUNT_T44, /*start_address*/-1, sizeof(struct object_t44) - 1, /*instances_minus_one*/0, /*num_report_ids*/0	},
@@ -90,51 +111,59 @@ mxt_object_t ib_objects_tables[] = {
 	{	MXT_TOUCH_KEYARRAY_T15, /*start_address*/-1, sizeof(struct object_t15) - 1, /*instances_minus_one*/MXT_TOUCH_KEYARRAY_T15_INST - 1, /*num_report_ids*/MXT_TOUCH_KEYARRAY_T15_RIDS	},
 	{	MXT_SPT_COMMSCONFIG_T18, /*start_address*/-1, sizeof(struct object_t18) - 1, /*instances_minus_one*/0, /*num_report_ids*/0	},
 	{	MXT_SPT_SELFTEST_T25, /*start_address*/-1, sizeof(struct object_t25) - 1, /*instances_minus_one*/0, /*num_report_ids*/MXT_SPT_SELFTEST_T25_RIDS	},
+	{	MXT_SPT_AUXTOUCHCONFIG_T104, /*start_address*/-1, sizeof(struct object_t104) - 1, /*instances_minus_one*/0, /*num_report_ids*/0	},
+	{	MXT_SPT_SELFCAPCONFIG_T111, /*start_address*/-1, sizeof(struct object_t111) - 1, /*instances_minus_one*/MXT_SPT_SELFCAPCONFIG_T111_INST - 1, /*num_report_ids*/0	},
 };
 
 #define MXT_OBJECTS_NUM (ARRAY_SIZE(ib_objects_tables))
+#define MXT_OBJECTS_TABLE_SIZE (sizeof(ib_objects_tables))
 
 typedef struct object_callback {
 	u8 type;
-	int (*init)(u8 rid);
-	int (*start)(void);
+	int (*init)(u8 rid, const /*sensor_config_t*/void *, void *);
+	void (*start)(void);
 	void (*report)(void);
+	void *mem;	// Reg memory pointer
 } object_callback_t;
 
 object_callback_t object_initialize_list[] = {
-	{	MXT_DEBUG_DIAGNOSTIC_T37, NULL, NULL	}, 
-	{	MXT_SPT_MESSAGECOUNT_T44, NULL, NULL	},
-	{	MXT_GEN_MESSAGE_T5, NULL, NULL	},
-	{	MXT_GEN_COMMAND_T6, object_t6_init,	object_t6_start, object_t6_report_status	},	
-	{	MXT_GEN_POWER_T7, NULL, NULL	},	
-	{	MXT_GEN_ACQUIRE_T8, NULL, NULL	},	
-	{	MXT_TOUCH_MULTI_T9, object_t9_init, object_t9_start, object_t9_report_status	},	
-	{	MXT_SPT_COMMSCONFIG_T18, NULL, NULL	},
-	{	MXT_SPT_SELFTEST_T25, NULL, NULL	},	
+	{	MXT_DEBUG_DIAGNOSTIC_T37, object_t37_init, NULL, NULL, (void *)&ib_objects_reg.ram.r37	}, 
+	{	MXT_SPT_MESSAGECOUNT_T44	},
+	{	MXT_GEN_MESSAGE_T5, object_t5_init, NULL, NULL, (void *)&ib_objects_reg.ram.t5	},
+	{	MXT_GEN_COMMAND_T6, object_t6_init,	object_t6_start, object_t6_report_status, (void *)&ib_objects_reg.ctrl.t6	},	
+	{	MXT_GEN_POWER_T7	},	
+	{	MXT_GEN_ACQUIRE_T8	},	
+	{	MXT_TOUCH_MULTI_T9, object_t9_init, /*object_t9_start*/NULL, object_t9_report_status, (void *)ib_objects_reg.cfg.t9_objs	},	
+	{	MXT_SPT_COMMSCONFIG_T18	},
+	{	MXT_SPT_SELFTEST_T25	},	
 };
 #define MXT_OBJECTS_INITIALIZE_LIST_NUM (ARRAY_SIZE(object_initialize_list))
 
 #define MXT_ID_INFORMATION_START 0
-#define MXT_OBJECT_TABLE_START (MXT_ID_INFORMATION_START + sizeof(ib_id_information))
-#define MXT_INFO_CRC_START (MXT_OBJECT_TABLE_START + sizeof(ib_objects_tables))
-#define MXT_OBJECTS_START (MXT_INFO_CRC_START + sizeof(ib_info_crc))
+#define MXT_OBJECT_TABLE_START (MXT_ID_INFORMATION_START + MXT_ID_INFORMATION_SIZE)
+#define MXT_INFO_CRC_START (MXT_OBJECT_TABLE_START + MXT_OBJECTS_TABLE_SIZE)
+#define MXT_OBJECTS_START (MXT_INFO_CRC_START + MXT_INFOBLOCK_CRC_SIZE)
 #define MXT_OBJECTS_RAM_START (MXT_OBJECTS_START + offsetof(mxt_objects_reg_t, ram))
 #define MXT_OBJECTS_CTRL_START (MXT_OBJECTS_START + offsetof(mxt_objects_reg_t, ctrl))
 #define MXT_OBJECTS_CFG_START (MXT_OBJECTS_START + offsetof(mxt_objects_reg_t, cfg))
-#define MXT_MEMORY_END (MXT_OBJECTS_START + sizeof(ib_objects_reg))
+#define MXT_MEMORY_END (MXT_OBJECTS_START + MXT_OBJECTS_SIZE)
 
 hal_interface_info_t hal_interface;
+sensor_config_t sensor_default_config;
 
-u8 get_report_id(mxt_object_t *ibots, u8 regid);
+u8 get_report_id(const mxt_object_t *ibots, u8 regid);
+void init_buffer(message_buffer_t *buf);
 
 int mpt_init(const hal_interface_info_t *hal)
 {
-	mxt_info_t *ibinf = &ib_id_information;;
-	mxt_object_t *ibots = ib_objects_tables;
+	mxt_info_t *ibinf = &ib_id_information;
+	mxt_object_t *ibots = &ib_objects_tables[0];
 	data_crc24_t *ibcrc = &ib_info_crc;
 	mxt_message_fifo_t *msg_fifo = &message_fifo;
-
-	const crc_data_blocks_t dblock[] = { {(u8 *)ibinf, sizeof(*ibinf)}, {(u8 *)ibots, sizeof(*ibots)} };
+	message_buffer_t *msg_cache = message_cache;
+	sensor_config_t *cfg = &sensor_default_config;
+	
+	const crc_data_blocks_t dblocks[] = { {(u8 *)ibinf, sizeof(*ibinf)}, {(u8 *)ibots, MXT_OBJECTS_TABLE_SIZE} };
 	const object_callback_t *ocb = object_initialize_list;
 	u32 crc;
 	u16 offset;
@@ -150,25 +179,31 @@ int mpt_init(const hal_interface_info_t *hal)
 	
 	// Build Objects tables
 	for (i = 0, offset = 0; i < ibinf->object_num; i++) {
-		ibots->start_address = offset;
-		offset += (ibots->size_minus_one + 1) * (ibots->instances_minus_one + 1);
+		ibots[i].start_address = MXT_OBJECTS_START + offset;
+		offset += (ibots[i].size_minus_one + 1) * (ibots[i].instances_minus_one + 1);
 	}
 	
 	// calculate Information Block CRC
-	crc = calc_blocks_crc24(dblock, ARRAY_SIZE(dblock));
+	crc = calc_blocks_crc24(dblocks, ARRAY_SIZE(dblocks));
 	ibcrc->data[0] = crc & 0xff;
 	ibcrc->data[1] = (crc >> 8) & 0xff;
 	ibcrc->data[2] = (crc >> 16) & 0xff;
 	
 	// Set all message invalid
-	memset(msg_fifo->buffer, MXT_RPTID_NOMSG, sizeof(msg_fifo->buffer));	
+	INIT_LIST_HEAD(&msg_fifo->fifo);
 	mutex_init(&msg_fifo->lock);
+	for (i = 0; i < MXT_MESSAGE_FIFO_SIZE; i++)
+		init_buffer(&msg_cache[i]);
 	
 	// Initialize each object
+	memset(cfg, 0, sizeof(*cfg));
+	cfg->matrix_xsize = hal->matrix_xsize;
+	cfg->matrix_ysize = hal->matrix_ysize;
+	cfg->measallow = hal->measallow;
 	for (i = 0; i < MXT_OBJECTS_INITIALIZE_LIST_NUM; i++) {
 		if (ocb[i].init) {
 			reportid = get_report_id(ibots, ocb[i].type);
-			ocb[i].init(reportid);
+			ocb[i].init(reportid, cfg, ocb[i].mem);
 		}
 	}
 	
@@ -256,7 +291,7 @@ void mpt_chip_start(void)
 	// Run each object
 	for (i = 0; i < MXT_OBJECTS_INITIALIZE_LIST_NUM; i++) {
 		if (ocb[i].start)
-			ocb[i].report();
+			ocb[i].start();
 	}
 }
 
@@ -309,9 +344,9 @@ const mxt_object_t *ib_get_object_by_address(const mxt_object_t *ibots, int addr
 	return NULL;
 }
 
-u8 get_report_id(mxt_object_t *ibots, u8 regid)
+u8 get_report_id(const mxt_object_t *ibots, u8 regid)
 {
-	mxt_object_t *obj;
+	const mxt_object_t *obj;
 	u8 reportid = 1;
 	int i;
 	
@@ -329,24 +364,115 @@ u8 get_report_id(mxt_object_t *ibots, u8 regid)
 	return MXT_RPTID_NOMSG;
 }
 
-u8 message_count(const mxt_message_fifo_t *msg_fifo)
-{
-	u16 rpos, wpos;
-	
-	//Make FIFO flat
-	rpos = msg_fifo->rpos;
-	wpos = msg_fifo->wpos;
-	if (wpos < rpos) {
-		wpos += MXT_REPORT_ID_COUNT;
-	}
-	
-	return (u8)(wpos - rpos);
-}
-
-int mpt_get_message_count(void)
+message_buffer_t *pop_message_fifo(u8 rid)
 {
 	mxt_message_fifo_t *msg_fifo = &message_fifo;
-	int count;
+	message_buffer_t *buf = NULL;
+	struct list_head *ptr;
+	
+	if (list_empty(&msg_fifo->fifo))
+		return NULL;
+	
+	if (rid == 0) {
+		buf = list_first_entry(&msg_fifo->fifo, struct message_buffer, node);	
+	}else {
+		list_for_each(ptr, &msg_fifo->fifo) {
+			buf = container_of(ptr, struct message_buffer, node);
+			if (buf->message.reportid == rid)
+				break;
+		}
+		
+		if (ptr->next == &msg_fifo->fifo)
+			buf = NULL;
+	}
+	
+	if (buf->message.reportid == 0)
+		return NULL;
+		
+	if (buf->message.reportid < MXT_REPORT_ID_COUNT)
+		msg_fifo->reporter[buf->message.reportid]--;
+	msg_fifo->count--;
+	//list_del(&buf->node);	
+	
+	return buf;
+}
+
+void push_message_fifo(message_buffer_t *buf)
+{
+	mxt_message_fifo_t *msg_fifo = &message_fifo;
+
+	if (!buf->message.reportid)
+		return;
+		
+	if (buf->message.reportid >= MXT_REPORT_ID_COUNT)
+		return;
+
+	list_add_tail(&buf->node, &msg_fifo->fifo);
+	msg_fifo->count++;
+	msg_fifo->reporter[buf->message.reportid]++;
+}
+
+void init_buffer(message_buffer_t *buf)
+{
+	INIT_LIST_HEAD(&buf->node);
+}
+
+bool buffer_empty(message_buffer_t *buf)
+{
+	if (list_empty(&buf->node))
+		return true;
+	
+	return false;
+}
+
+void destory_buffer(message_buffer_t *buf)
+{
+	list_del_init(&buf->node);
+	memset(&buf->message, 0,  sizeof(buf->message));
+}
+
+message_buffer_t *alloc_message_buffer(void)
+{
+	mxt_message_fifo_t *msg_fifo = &message_fifo;
+	message_buffer_t *buf, *msg_cache = message_cache;
+	int count = 0;
+	u8 rid = 1;
+	int i;
+
+	//First search whether empty buffer
+	for (i = 0; i < MXT_MESSAGE_FIFO_SIZE; i++) {
+		buf = &msg_cache[i];
+		if (buffer_empty(buf))
+		return buf;
+	}
+
+	//No empty, pop max count reporter
+	for (i = 0; i < MXT_REPORT_ID_COUNT; i++) {
+		if (count < msg_fifo->reporter[i]) {
+			count = msg_fifo->reporter[i];
+			rid = i;
+		}
+	}
+	
+	//Pop the rid of first position
+	buf = pop_message_fifo(rid);
+	if (buf) {
+		destory_buffer(buf);
+		return buf;
+	}
+	
+	return NULL;
+}
+
+u8 message_count(const mxt_message_fifo_t *msg_fifo)
+{
+	return msg_fifo->count;
+}
+
+u8 mpt_get_message_count(void)
+{
+	mxt_message_fifo_t *msg_fifo = &message_fifo;
+	u8 count;
 	
 	lock(&msg_fifo->lock);
 	
@@ -361,33 +487,19 @@ int mpt_read_message(object_t5_t *msg)
 {
 	mxt_objects_reg_t * ibreg = &ib_objects_reg;
 	mxt_message_fifo_t *msg_fifo = &message_fifo;
-	message_buffer_t *msg_buf;
-	
-	u16 rpos, curr;
-	int i;
-	
+	message_buffer_t *buf;
+		
 	lock(&msg_fifo->lock);
 	
-	//Get first message from FIFO
-	rpos = msg_fifo->rpos % MXT_REPORT_ID_COUNT;
-	msg_buf = &msg_fifo->buffer[rpos];
-	for (i = msg_buf->curr + 1; i < msg_buf->curr + MXT_MESSAGE_DEPTH_EACH_RID; i++) {
-		curr = i % MXT_MESSAGE_DEPTH_EACH_RID;
-		if (msg_buf->data[curr].reportid && msg_buf->data[curr].reportid != MXT_RPTID_NOMSG)
-		break;
+	//Pop first message from Fifo
+	buf = pop_message_fifo(0);
+	if (buf) {
+		memcpy(msg, &buf->message, sizeof(*msg));
+		destory_buffer(buf);
+	}else {
+		msg->reportid = MXT_RPTID_NOMSG;	
 	}
-	
-	curr = i % MXT_MESSAGE_DEPTH_EACH_RID;
-	memcpy(msg, &msg_buf->data[curr], sizeof(*msg));
-	msg_buf->data[curr].reportid = MXT_RPTID_NOMSG;
-	
-	//Last valid message in this buffer
-	if (curr == msg_buf->curr) {
-		if (msg_buf->data[curr].reportid != MXT_RPTID_NOMSG) {
-			msg_fifo->rpos = (msg_fifo->rpos + 1) % MXT_REPORT_ID_COUNT;
-		}
-	}
-	
+		
 	//Update T44
 	ibreg->ram.t44.count = message_count(msg_fifo);
 	
@@ -400,77 +512,24 @@ int mpt_write_message(const object_t5_t *msg)
 {
 	mxt_objects_reg_t * ibreg = &ib_objects_reg;
 	mxt_message_fifo_t *msg_fifo = &message_fifo;
-	message_buffer_t *msg_buf = NULL;	
-	int i, result = 0;
-	u16 rpos, wpos, pos;
+	message_buffer_t *buf;
 	
 	lock(&msg_fifo->lock);
 	
-	//Make FIFO flat
-	rpos = msg_fifo->rpos;
-	wpos = msg_fifo->wpos;
-	if (wpos < rpos) {
-		wpos += MXT_REPORT_ID_COUNT;
-	}
+	buf = alloc_message_buffer();
+	if (!buf)
+		return -2;
 	
-	//Search current message FIFO
-	for (i = rpos; i < wpos; i++) {
-		pos = i % MXT_REPORT_ID_COUNT;
-		msg_buf = &msg_fifo->buffer[pos];
-		if (msg_buf[msg_buf->curr].data->reportid == msg->reportid)
-			break;
-	}
-	
-	//Not exist, get a new buffer
-	if (i == wpos) {	//Not found in Fifo, alloc new buffer
-		pos = i % MXT_REPORT_ID_COUNT;
-		if (pos < rpos && pos + 1 == rpos) {	//Fifo is full, something must be wrong
-			msg_buf = NULL;
-		}else {	/* Not full, alloc the new buffer */
-			msg_buf = &msg_fifo->buffer[pos];
-		}
-	}
-	
-	//Copy to new buffer
-	if (msg_buf) {
-		msg_buf->curr = (msg_buf->curr + 1) % MXT_MESSAGE_DEPTH_EACH_RID;
-		memcpy(msg_buf[msg_buf->curr].data, msg, sizeof(*msg));
+	memcpy(&buf->message, msg, sizeof(*msg));
+	push_message_fifo(buf);
 		
-		if (wpos - rpos < MXT_REPORT_ID_COUNT)
-			msg_fifo->wpos = (pos + 1) % MXT_REPORT_ID_COUNT;
-	}else {
-		result = -3;
-	}
-	
 	//Update T44
 	ibreg->ram.t44.count = message_count(msg_fifo);
 	
 	unlock(&msg_fifo->lock);
 	
-	return result;
+	return 0;
 }
-
-/*
-enum {
-	CMD_READ_ID_INFORMATION = 0,
-	CMD_READ_INFORMATION_TABLE,
-	CMD_READ_INFO_CRC,
-	CMD_OBJETS,
-};
-
-int address_to_command(u16 addr)
-{
-	if (addr < MXT_OBJECT_TABLE_START) {
-		return CMD_READ_ID_INFORMATION;
-	}else if (addr < MXT_INFO_CRC_START) {
-		return CMD_READ_INFORMATION_TABLE;
-	}else if (addr < MXT_OBJECT_START) {
-		return CMD_READ_INFO_CRC;
-	}else {
-		return CMD_OBJETS;
-	}
-}
-*/
 
 int handle_object_command(const mxt_object_t *obj, u16 offset, u8 cmd)
 {
@@ -490,7 +549,7 @@ int handle_object_command(const mxt_object_t *obj, u16 offset, u8 cmd)
 int mpt_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr) 
 {
 	mxt_info_t *ibinf = &ib_id_information;
-	mxt_object_t *ibots = ib_objects_tables;
+	mxt_object_t *ibots = &ib_objects_tables[0];
 	data_crc24_t *ibcrc = &ib_info_crc;
 	mxt_objects_reg_t * ibreg = &ib_objects_reg;
 	const mxt_object_t *obj_t5 = ib_get_object(ibots, MXT_GEN_MESSAGE_T5);
@@ -514,7 +573,7 @@ int mpt_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 			If T5 ram hasn't get message, pop message data from buffer,
 			After message sent out, mark T5 ram out date 
 		*/
-		if (regaddr == obj_t5->start_address) {
+		if (regaddr == obj_t5->start_address) {	//Reload message if read from at T5 and msg is invalid
 			if (ibreg->ram.t5.reportid == MXT_RPTID_NOMSG) {
 				mpt_read_message(&ibreg->ram.t5);
 			}
@@ -536,7 +595,7 @@ int mpt_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 
 int mpt_mem_write(u16 regaddr, u8 val) 
 {
-	mxt_object_t *ibots = ib_objects_tables;
+	mxt_object_t *ibots = &ib_objects_tables[0];
 	mxt_objects_reg_t * ibreg = &ib_objects_reg;
 	const mxt_object_t *obj;
 	u8 *dst;
@@ -571,7 +630,7 @@ int mpt_mem_write(u16 regaddr, u8 val)
 
 u8 *get_object_address(u8 regid, u8 instance, u16 offset, u8 size)
 {
-	const mxt_object_t *ibots = ib_objects_tables;
+	const mxt_object_t *ibots = &ib_objects_tables[0];
 	const mxt_objects_reg_t * ibreg = &ib_objects_reg;
 	const mxt_object_t *obj;
 	u16 regaddr;
@@ -617,4 +676,18 @@ int mpt_object_write(u8 regid, u8 instance, u16 offset, const u8 *ptr, u8 size)
 	memcpy(dst, ptr, size);
 	
 	return 0;
+}
+
+void mpt_set_sensor_data(u8 channel, u8 state, u16 reference, u16 signal, u16 cap)
+{
+	u8 page;
+	const u8 dbgcmd = object_t6_get_diagnostic_status(&page);
+	
+	object_t37_set_data_page(page);
+	object_t37_set_sensor_data(dbgcmd, channel, reference, signal, cap);
+}
+
+void mpt_set_pointer_location(u8 id, uint8_t status, uint16_t x, uint16_t y)
+{
+	object_t9_set_pointer_location(id, status, x, y);
 }

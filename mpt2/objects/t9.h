@@ -11,35 +11,6 @@
 
 #include "../types.h"
 
-/* MXT_TOUCH_MULTI_T9 field */
-#define MXT_T9_CTRL		0
-#define MXT_T9_ORIENT		9
-#define MXT_T9_RANGE		18
-
-/* MXT_TOUCH_MULTI_T9 status */
-#define MXT_T9_UNGRIP		BIT(0)
-#define MXT_T9_SUPPRESS		BIT(1)
-#define MXT_T9_AMP		BIT(2)
-#define MXT_T9_VECTOR		BIT(3)
-#define MXT_T9_MOVE		BIT(4)
-#define MXT_T9_RELEASE		BIT(5)
-#define MXT_T9_PRESS		BIT(6)
-#define MXT_T9_DETECT		BIT(7)
-
-typedef struct t9_range {
-	u16 x;
-	u16 y;
-}  __attribute__ ((packed)) t9_range_t;
-
-typedef struct t9_data {
-	u8 rid;
-	u8 status;
-	t9_range_t pos; 
-} t9_data_t;
-
-/* MXT_TOUCH_MULTI_T9 orient */
-#define MXT_T9_ORIENT_SWITCH	BIT(0)
-
 /* T9 configure */
 typedef struct object_t9 {
 	u8 ctrl;
@@ -77,12 +48,42 @@ typedef struct object_t9 {
 	u8 nexttchdi;
 } __attribute__ ((packed)) object_t9_t;
 
+/* MXT_TOUCH_MULTI_T9 orient */
+#define MXT_T9_ORIENT_SWITCH	BIT(0)
+
+/* MXT_TOUCH_MULTI_T9 field */
+#define MXT_T9_CTRL		0
+#define MXT_T9_ORIENT		9
+#define MXT_T9_RANGE		18
+
+/* MXT_TOUCH_MULTI_T9 status */
+#define MXT_T9_UNGRIP		BIT(0)
+#define MXT_T9_SUPPRESS		BIT(1)
+#define MXT_T9_AMP		BIT(2)
+#define MXT_T9_VECTOR		BIT(3)
+#define MXT_T9_MOVE		BIT(4)
+#define MXT_T9_RELEASE		BIT(5)
+#define MXT_T9_PRESS		BIT(6)
+#define MXT_T9_DETECT		BIT(7)
+
+typedef struct t9_range {
+	u16 x;
+	u16 y;
+}  __attribute__ ((packed)) t9_range_t;
+
+typedef struct t9_data {
+	u8 rid;
+	u8 status;
+	t9_range_t pos;
+	object_t9_t *mem; 
+} t9_data_t;
+
+int object_t9_init(u8 rid, const /*sensor_config_t*/void *cfg, void *mem);
+void object_t9_start(void);
+void object_t9_report_status(void);
+int object_t9_set_pointer_location(u8 id, uint8_t status, uint16_t x, uint16_t y);
+
 #define MXT_TOUCH_MULTI_T9_INST 1
 #define MXT_TOUCH_MULTI_T9_RIDS 1
-
-int object_t9_init(u8 rid);
-int object_t9_start(void);
-void object_t9_report_status(void);
-int t9_set_pointer_location(u8 id, uint8_t status, uint16_t x, uint16_t y);
 
 #endif /* T9_H_ */

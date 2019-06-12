@@ -33,9 +33,11 @@ extern "C" {
 
 #include "qtm_common_components_api.h"
 #include "qtm_binding_layer_0x0005_api.h"
-#include "qtm_acq_t161x_0x0017_api.h"
+#include "qtm_acq_t321x_0x0017_api.h"
 #include "qtm_touch_key_0x0002_api.h"
+#include "qtm_freq_hop_auto_0x0004_api.h"
 #include "qtm_surface_cs_0x0021_api.h"
+#include "qtm_gestures_2d_0x0023_api.h"
 
 /*----------------------------------------------------------------------------
  *   prototypes

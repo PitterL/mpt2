@@ -166,20 +166,6 @@ void system_init()
 	    // <PORT_PULL_UP"> Pull-up
 	    PORT_PULL_UP);
 
-	/* PORT setting on PB7 */
-
-#if ENABLE_LED
-	// Set pin direction to output
-	led_position_mode_set_dir(PORT_DIR_OUT);
-
-	led_position_mode_set_level(
-	    // <y> Initial level
-	    // <id> pad_initial_level
-	    // <false"> Low
-	    // <true"> High
-	    false);
-#endif
-
 	CLKCTRL_init();
 
 	Timer_init();

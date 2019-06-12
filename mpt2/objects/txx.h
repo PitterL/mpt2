@@ -41,6 +41,8 @@
 #define MXT_PROCI_SYMBOLGESTUREPROCESSOR	92
 #define MXT_PROCI_TOUCHSEQUENCELOGGER	93
 #define MXT_TOUCH_MULTITOUCHSCREEN_T100 100
+#define MXT_SPT_AUXTOUCHCONFIG_T104 104
+#define MXT_SPT_SELFCAPCONFIG_T111 111
 #define MXT_PROCI_ACTIVESTYLUS_T107	107
 
 #include "t44.h"
@@ -53,18 +55,13 @@
 #include "t18.h"
 #include "t25.h"
 #include "t37.h"
+#include "t104.h"
+#include "t111.h"
 
-typedef struct hal_interface_info {
+typedef struct sensor_config {
 	u8 matrix_xsize;
 	u8 matrix_ysize;
-
-	int (*fn_load_cfg)(u8 *cfg, int size);
-	int (*fn_save_cfg)(const u8 *cfg, int size);
-
-	void (*fn_reset)(void);
-	void (*fn_calibrate)(void);
-	int (*fn_mem_write)(u16 address, u8 *data, int len);
-	int (*fn_mem_read)(u16 address, u8 *data, int len);
-} hal_interface_info_t;
+	u8 measallow;
+} sensor_config_t;
 
 #endif /* TXX_H_ */

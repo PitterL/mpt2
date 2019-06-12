@@ -34,8 +34,8 @@
 
 enum {
 	BUS_STOP = 0,
-	BUS_WRITE,
 	BUS_READ,
+	BUS_WRITE,
 	BUS_COLLISION,
 	BUS_ERROR,
 	NUM_BUS_STATES
@@ -50,7 +50,7 @@ typedef struct bus_monitor {
 		} bytes;
 		u8 val[2];
 		u16 value;
-	}regaddr;
+	} regaddr;
 	
 	int state;
 } bus_monitor_t;
@@ -63,7 +63,6 @@ int handle_bus_event(int state, u8 *val)
 	int count;
 	int result = 0;
 	
-	bus->state = state;
 	switch(state) {
 		case BUS_WRITE:
 			count = bus->counter[BUS_WRITE]++;
@@ -78,33 +77,42 @@ int handle_bus_event(int state, u8 *val)
 			result = mpt_mem_read(bus->regaddr.value, count, val);
 		break;
 		case BUS_STOP:
-			memset(bus->counter, 0, sizeof(bus->counter));
+			if (bus->counter[BUS_WRITE] > sizeof(bus->regaddr) || bus->counter[BUS_READ])
+				memset(bus, 0, sizeof(*bus));
+		break;
 		case BUS_COLLISION:
 		case BUS_ERROR:
 		default:
-			;
+			memset(bus, 0, sizeof(*bus));
 	}
+	
 	return result;
 }
 
 void bus_address_handler(void)
 {
-	u8 addr;
+	bus_monitor_t *bus = &data_bus;
+	u8 addr8;
 	
-	addr = I2C_read();
-	if (addr == I2C_SLAVE_ADDRESS)
+	addr8 = I2C_read();
+	if ((addr8 >> 1) == I2C_SLAVE_ADDRESS) {
+		if (addr8 & 0x1) {
+			bus->state = BUS_READ;
+		}else {
+			bus->state = BUS_WRITE;
+		}
 		I2C_send_ack(); // or send_nack() if we don't want to ack the address
+	} else {
+		I2C_send_nack();
+	}
 }
 
-void bus_read_handler(void)
+void bus_read_handler(int flag)
 { 
-	u8 val;
-	int result;
-	
-	result = handle_bus_event(BUS_READ, &val);
-	if (!result) {
-		I2C_write(val);
-	}
+	u8 val = 0xA5;
+
+	handle_bus_event(BUS_READ, &val);
+	I2C_write(val);
 }
 
 void bus_write_handler(void)
@@ -114,13 +122,15 @@ void bus_write_handler(void)
 	
 	val = I2C_read();
 	result = handle_bus_event(BUS_WRITE, &val);
-	if (!result) {
+	if (result) {
+		I2C_send_nack();
+	}else {
 		I2C_send_ack();
 	}
 }
 
 void bus_stop_handler(void)
-{
+{	
 	handle_bus_event(BUS_STOP, NULL);	
 }
 
@@ -153,7 +163,11 @@ int bus_start(void)
 }
 
 //extern qtm_surface_cs_control_t qtm_surface_cs_control1;
-//extern qtm_touch_key_data_t qtlib_key_data_set1[DEF_NUM_SENSORS];
+/* Node status, signal, calibration values */
+extern qtm_acq_node_data_t ptc_qtlib_node_stat1[DEF_NUM_CHANNELS];
+
+/* Key data */
+extern qtm_touch_key_data_t qtlib_key_data_set1[DEF_NUM_SENSORS];
 
 /* Container structure for sensor group */
 extern qtm_acquisition_control_t qtlib_acq_set1;
@@ -174,12 +188,16 @@ void bus_assert_irq(void)
 		
 	if (bus->state == BUS_READ ||
 		bus->state == BUS_WRITE) {
+		CHG_set_pull_mode(PORT_PULL_UP);
 		CHG_set_dir(PORT_DIR_IN);		
 	}else {
 		count = mpt_get_message_count();
 		if (count) {
 			CHG_set_level(0);
 			CHG_set_dir(PORT_DIR_OUT);
+		}else {
+			CHG_set_pull_mode(PORT_PULL_UP);
+			CHG_set_dir(PORT_DIR_IN);
 		}
 	}
 }
@@ -233,10 +251,23 @@ hal_interface_info_t interface_hal;
 int mpt_interface_init(void)
 {
 	const qtm_surface_cs_config_t *qtcfg = &qtm_surface_cs_config1;
+	qtm_acq_node_group_config_t *qtacq = &ptc_qtlib_acq_gen1;
 	hal_interface_info_t *hal = &interface_hal;
 	
+	// Y * X Matrix
 	hal->matrix_xsize = qtcfg->number_of_keys_h;
 	hal->matrix_ysize = qtcfg->number_of_keys_v;
+	switch (qtacq->acq_sensor_type) {
+		case NODE_SELFCAP:
+		case NODE_SELFCAP_SHIELD:
+			hal->measallow = MXT_T8_MEASALLOW_SELFTCH;
+		break;
+		case NODE_MUTUAL:
+		case NODE_MUTUAL_4P:
+		case NODE_MUTUAL_8P:
+		default:
+			hal->measallow = MXT_T8_MEASALLOW_MUTUALTCH;
+	}
 	
 	hal->fn_load_cfg = inf_load_cfg;
 	hal->fn_save_cfg = inf_save_cfg;
@@ -266,7 +297,13 @@ int mpt_start(void)
 void mpt_process(void)
 {
 	const qtm_surface_contact_data_t *qtsf = &qtm_surface_cs_data1;
-
-	t9_set_pointer_location(0, qtsf->qt_surface_status,  qtsf->h_position, qtsf->v_position);
+	const qtm_touch_key_data_t *qtkd = qtlib_key_data_set1;
+	u8 i;
+	
+	for (i = 0; i < DEF_NUM_SENSORS; i++) {
+		mpt_set_sensor_data(i, qtkd->sensor_state, qtkd->channel_reference, qtkd->node_data_struct_ptr->node_acq_signals, qtkd->node_data_struct_ptr->node_comp_caps);
+	}
+	
+	mpt_set_pointer_location(0, qtsf->qt_surface_status,  qtsf->h_position, qtsf->v_position);
 	bus_assert_irq();
 }

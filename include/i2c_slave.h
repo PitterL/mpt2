@@ -34,7 +34,8 @@
 extern "C" {
 #endif
 
-typedef void(I2C_callback)(void);
+typedef void(I2C_callback)();
+typedef void(I2C_callback2)(int flag);
 
 void I2C_init(void);
 
@@ -72,6 +73,6 @@ void I2C_set_bus_error_callback(I2C_callback handler);
 }
 #endif
 
-#define I2C_SLAVE_ADDRESS 0x4C
+#define I2C_SLAVE_ADDRESS 0x4a
 
 #endif /* I2C_SLAVE_H */

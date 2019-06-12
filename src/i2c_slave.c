@@ -53,8 +53,8 @@
 #define Slave_Not_Ack ((TWSR0 & 0xF8) == 0xC0)   // Data Byte has been transmitted and NOT ACK has been received
 
 // Read Event Interrupt Handlers
-void I2C_read_callback(void);
-void (*I2C_read_interrupt_handler)(void);
+void I2C_read_callback(int);
+void (*I2C_read_interrupt_handler)(int);
 
 // Write Event Interrupt Handlers
 void I2C_write_callback(void);
@@ -92,7 +92,7 @@ void I2C_init()
 
 	// TWI0.DBGCTRL = 0 << TWI_DBGRUN_bp; /* Debug Run: disabled */
 
-	TWI0.SADDR = I2C_SLAVE_ADDRESS << TWI_ADDRMASK_gp /* Slave Address: 0x4c */
+	TWI0.SADDR = I2C_SLAVE_ADDRESS << TWI_ADDRMASK_gp /* Slave Address */
 	             | 0 << TWI_ADDREN_bp;   /* General Call Recognition Enable: disabled */
 
 	// TWI0.SADDRMASK = 0 << TWI_ADDREN_bp /* Address Mask Enable: disabled */
@@ -154,8 +154,9 @@ void I2C_isr()
 	if ((TWI0.SSTATUS & TWI_APIF_bm) && (TWI0.SSTATUS & TWI_AP_bm)) {
 		I2C_address_callback();
 		if (TWI0.SSTATUS & TWI_DIR_bm) {
+			// Fuck, stupid who guy called I2C_read_callback here ???, Fuck
 			// Master wishes to read from slave
-			I2C_read_callback();
+			I2C_read_callback(0); 
 			TWI0.SCTRLB = TWI_ACKACT_ACK_gc | TWI_SCMD_RESPONSE_gc;
 		}
 		return;
@@ -165,7 +166,7 @@ void I2C_isr()
 			// Master wishes to read from slave
 			if (!(TWI0.SSTATUS & TWI_RXACK_bm)) {
 				// Received ACK from master
-				I2C_read_callback();
+				I2C_read_callback(1);
 				TWI0.SCTRLB = TWI_ACKACT_ACK_gc | TWI_SCMD_RESPONSE_gc;
 			} else {
 				// Received NACK from master
@@ -268,10 +269,10 @@ void I2C_goto_unaddressed(void)
 }
 
 // Read Event Interrupt Handlers
-void I2C_read_callback(void)
+void I2C_read_callback(int flag)
 {
 	if (I2C_read_interrupt_handler) {
-		I2C_read_interrupt_handler();
+		I2C_read_interrupt_handler(flag);
 	}
 }
 
@@ -280,7 +281,7 @@ void I2C_read_callback(void)
  *
  * \return Nothing
  */
-void I2C_set_read_callback(I2C_callback handler)
+void I2C_set_read_callback(I2C_callback2 handler)
 {
 	I2C_read_interrupt_handler = handler;
 }
