@@ -579,6 +579,8 @@ void touch_process(void)
 }
 
 uint8_t interrupt_cnt;
+/* Put DEF_TOUCH_MEASUREMENT_PERIOD_MS into Global variable so that we could dynamic modify it */
+uint8_t qtlib_time_elapsed_since_update = DEF_TOUCH_MEASUREMENT_PERIOD_MS;
 /*============================================================================
 void touch_timer_handler(void)
 ------------------------------------------------------------------------------
@@ -594,11 +596,11 @@ void touch_timer_handler(void)
 	if (interrupt_cnt % DEF_GESTURE_TIME_BASE_MS == 0) {
 		qtm_update_gesture_2d_timer(1);
 	}
-	if (interrupt_cnt >= DEF_TOUCH_MEASUREMENT_PERIOD_MS) {
+	if (interrupt_cnt >= qtlib_time_elapsed_since_update) {
 		interrupt_cnt = 0;
 		/* Count complete - Measure touch sensors */
 		qtm_control.binding_layer_flags |= (1u << time_to_measure_touch);
-		qtm_update_qtlib_timer(DEF_TOUCH_MEASUREMENT_PERIOD_MS);
+		qtm_update_qtlib_timer(qtlib_time_elapsed_since_update);
 	}
 }
 

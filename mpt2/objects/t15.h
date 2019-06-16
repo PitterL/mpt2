@@ -23,6 +23,12 @@ typedef struct object_t15 {
 	u8 cfg;	
 } __attribute__ ((packed)) object_t15_t;
 
+#include "txx.h"
+typedef struct txx_data t15_data_t;
+
+void object_t15_process(void);
+ssint object_t15_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb);
+
 #define MXT_TOUCH_KEYARRAY_T15_INST 1
 #define MXT_TOUCH_KEYARRAY_T15_RIDS 1
 

@@ -30,4 +30,10 @@ typedef struct object_t8 {
 #define MXT_T8_MEASALLOW_HOVER	BIT(2)
 #define MXT_T8_MEASALLOW_SELFPROX	BIT(3)
 
+#include "txx.h"
+typedef struct txx_data t8_data_t;
+
+void object_t8_process(void);
+ssint object_t8_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb);
+
 #endif /* T8_H_ */

@@ -1,6 +1,6 @@
 #include <atmel_start.h>
-#include "mpt2/mptt.h"
-#include <i2c_slave_example.h>
+#include "mpt2/interface.h"
+//#include <i2c_slave_example.h>
 
 extern volatile uint8_t measurement_done_touch;
 
@@ -10,7 +10,7 @@ int main(void)
 	atmel_start_init();
 
 #if USE_MPTT_WRAPPER
-	mpt_start();
+	mptt_start();
 #endif
 	cpu_irq_enable();
 	
@@ -20,9 +20,10 @@ int main(void)
 		if (measurement_done_touch == 1) {
 			measurement_done_touch = 0;
 
-#if USE_MPTT_WRAPPER			
-			mpt_process();
+#if USE_MPTT_WRAPPER
+			mptt_process();
 #endif
+			
 		}
 	}
 }

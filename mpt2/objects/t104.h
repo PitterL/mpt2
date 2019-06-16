@@ -9,6 +9,10 @@
 #ifndef T104_H_
 #define T104_H_
 
+# define MXT_T104_CTRL 0
+
+#define MXT_T104_CTRL_ENABLE BIT(0)
+
 typedef struct object_t104 {
 	u8 ctrl;
 	u8 xgain;
@@ -23,5 +27,10 @@ typedef struct object_t104 {
 	u8 yinthyst;
 } object_t104_t;
 
+#include "txx.h"
+typedef struct txx_data t104_data_t;
+
+void object_t104_process(void);
+ssint object_t104_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb);
 
 #endif /* T104_H_ */

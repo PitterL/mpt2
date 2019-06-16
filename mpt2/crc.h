@@ -15,11 +15,11 @@ typedef struct data_crc24 {
 
 typedef struct crc_data_blocks {
 	const u8 *base;
-	int size;
+	size_t size;
 } crc_data_blocks_t;
 
-u8 calc_crc8(const u8 *base, int size);
-u32 calc_blocks_crc24(const crc_data_blocks_t *blocks, int count);
-u32 calc_crc24(const u8 *base, int size);
+u8 calc_crc8(const u8 *base, size_t size);
+u32 calc_blocks_crc24(const crc_data_blocks_t *blocks, size_t count);
+u32 calc_crc24(const u8 *base, size_t size);
 
 #endif

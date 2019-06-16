@@ -170,7 +170,9 @@ void system_init()
 
 	Timer_init();
 
+#ifdef FLASH_SAVE_CONFIG
 	FLASH_0_initialization();
+#endif
 
 	CPUINT_init();
 

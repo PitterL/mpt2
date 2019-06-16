@@ -8,7 +8,7 @@
 #include <asm/system.h>
 */
 
-#define prefetch(_x) (0)
+// #define prefetch(_x) 0
 
 /**
  * container_of - cast a member of a structure out to the containing structure
@@ -389,7 +389,7 @@ static inline void list_splice_tail_init(struct list_head *list,
  * @head:	the head for your list.
  */
 #define list_for_each(pos, head) \
-	for (pos = (head)->next; prefetch(pos->next), pos != (head); \
+	for (pos = (head)->next; /*prefetch(pos->next),*/ pos != (head); \
         	pos = pos->next)
 
 /**

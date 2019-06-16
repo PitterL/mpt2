@@ -25,15 +25,15 @@
  *
  */
 
-#include <atmel_start.h>
-#include <atomic.h>
-
-#include <touch.h>
+#include <include/atmel_start_pins.h>
+#include <include/i2c_slave.h>
 #include <nvmctrl_basic.h>
-#include "mptt.h"
+#include "types.h"
+#include "tsl.h"
+#include "interface.h"
 
 enum {
-	BUS_STOP = 0,
+	BUS_STOP = 0,	//Default is STOP status, this is not real STOP signal at BUS
 	BUS_READ,
 	BUS_WRITE,
 	BUS_COLLISION,
@@ -42,7 +42,7 @@ enum {
 };
 
 typedef struct bus_monitor {
-	int counter[NUM_BUS_STATES];
+	size_t counter[NUM_BUS_STATES];
 	union {
 		struct {
 			u8 low;
@@ -51,17 +51,69 @@ typedef struct bus_monitor {
 		u8 val[2];
 		u16 value;
 	} regaddr;
-	
-	int state;
+
+	u8 state;
 } bus_monitor_t;
 
 bus_monitor_t data_bus;
 
-int handle_bus_event(int state, u8 *val)
+#define CHG_DUTY_CYCLES	4
+#define CHG_SET_DUTY_ON_CYCLE 0
+
+u8 current_tick()
+{
+	static u8 ticks = 0;
+	
+	ticks++;
+	if (ticks >= CHG_DUTY_CYCLES)
+	ticks = 0;
+	
+	return ticks;
+}
+
+void bus_assert_chg(void)
+{
+	CHG_set_level(0);
+	CHG_set_dir(PORT_DIR_OUT);
+}
+
+void bus_release_chg(void)
+{
+	CHG_set_pull_mode(PORT_PULL_UP);
+	CHG_set_dir(PORT_DIR_IN);
+}
+
+void bus_set_chg(u8 assert, bool retrigger)
 {
 	bus_monitor_t *bus = &data_bus;
-	int count;
-	int result = 0;
+	const u8 ticks = current_tick();
+	
+	if (!assert)
+		return;
+	
+	if (!bus->state == BUS_STOP)	// THis stop is a state, not mean real STOP signal at bus
+		return;
+	
+	if (ticks == CHG_SET_DUTY_ON_CYCLE) {
+		bus_assert_chg();
+	}else {
+#ifdef OBJECT_T18
+		if (retrigger) {
+			if (ticks == CHG_SET_DUTY_ON_CYCLE + 1) {
+				bus_release_chg();
+				}else if (ticks == CHG_SET_DUTY_ON_CYCLE + 2) {
+				bus_assert_chg();
+			}
+		}
+#endif
+	}
+}
+
+ssint handle_bus_event(u8 state, u8 *val)
+{
+	bus_monitor_t *bus = &data_bus;
+	u16 count;
+	ssint result = 0;
 	
 	switch(state) {
 		case BUS_WRITE:
@@ -69,16 +121,17 @@ int handle_bus_event(int state, u8 *val)
 			if (count < sizeof(bus->regaddr)) {
 				bus->regaddr.val[count] = *val;
 			}else {
-				result = mpt_mem_write(bus->regaddr.value + count - sizeof(bus->regaddr), *val);
+				result = tsl_mem_write(bus->regaddr.value + count - sizeof(bus->regaddr), *val);
 			}
 		break;
 		case BUS_READ:
 			count = bus->counter[BUS_READ]++;
-			result = mpt_mem_read(bus->regaddr.value, count, val);
+			result = tsl_mem_read(bus->regaddr.value, count, val);
 		break;
 		case BUS_STOP:
-			if (bus->counter[BUS_WRITE] > sizeof(bus->regaddr) || bus->counter[BUS_READ])
+			if (bus->counter[BUS_WRITE] > sizeof(bus->regaddr) || bus->counter[BUS_READ]) {
 				memset(bus, 0, sizeof(*bus));
+			}
 		break;
 		case BUS_COLLISION:
 		case BUS_ERROR:
@@ -102,36 +155,39 @@ void bus_address_handler(void)
 			bus->state = BUS_WRITE;
 		}
 		I2C_send_ack(); // or send_nack() if we don't want to ack the address
+		
+		bus_release_chg();
 	} else {
 		I2C_send_nack();
 	}
 }
 
-void bus_read_handler(int flag)
+void bus_read_handler(void)
 { 
-	u8 val = 0xA5;
+	u8 val = 0xA5;	//Initial value for debug only
+	ssint result;
 
-	handle_bus_event(BUS_READ, &val);
-	I2C_write(val);
+	result = handle_bus_event(BUS_READ, &val);
+	if (!result)
+		I2C_write(val);
 }
 
 void bus_write_handler(void)
 {
 	u8 val;
-	int result;
+	ssint result;
 	
 	val = I2C_read();
 	result = handle_bus_event(BUS_WRITE, &val);
-	if (result) {
+	if (result)
 		I2C_send_nack();
-	}else {
+	else
 		I2C_send_ack();
-	}
 }
 
 void bus_stop_handler(void)
-{	
-	handle_bus_event(BUS_STOP, NULL);	
+{
+	handle_bus_event(BUS_STOP, NULL);
 }
 
 void bus_error_handler(void)
@@ -139,7 +195,7 @@ void bus_error_handler(void)
 	handle_bus_event(BUS_ERROR, NULL);
 }
 
-int bus_init(void) 
+void bus_init(void)
 {
 	bus_monitor_t *bus = &data_bus;
 	
@@ -151,159 +207,62 @@ int bus_init(void)
 	I2C_set_stop_callback(bus_stop_handler);
 	I2C_set_collision_callback(bus_error_handler);
 	I2C_set_bus_error_callback(bus_error_handler);
-	
-	return 0;
 }
 
-int bus_start(void) 
+void bus_start(void)
 {
 	I2C_open();
-		
-	return 0;
 }
 
-//extern qtm_surface_cs_control_t qtm_surface_cs_control1;
-/* Node status, signal, calibration values */
-extern qtm_acq_node_data_t ptc_qtlib_node_stat1[DEF_NUM_CHANNELS];
-
-/* Key data */
-extern qtm_touch_key_data_t qtlib_key_data_set1[DEF_NUM_SENSORS];
-
-/* Container structure for sensor group */
-extern qtm_acquisition_control_t qtlib_acq_set1;
-
-/* Acquisition set 1 - General settings */
-extern qtm_acq_node_group_config_t ptc_qtlib_acq_gen1;
-
-/* Surface Config */
-extern qtm_surface_cs_config_t qtm_surface_cs_config1;
-
-/* Surface Data */
-extern qtm_surface_contact_data_t qtm_surface_cs_data1;
-
-void bus_assert_irq(void)
-{
-	bus_monitor_t *bus = &data_bus;
-	int count;
-		
-	if (bus->state == BUS_READ ||
-		bus->state == BUS_WRITE) {
-		CHG_set_pull_mode(PORT_PULL_UP);
-		CHG_set_dir(PORT_DIR_IN);		
-	}else {
-		count = mpt_get_message_count();
-		if (count) {
-			CHG_set_level(0);
-			CHG_set_dir(PORT_DIR_OUT);
-		}else {
-			CHG_set_pull_mode(PORT_PULL_UP);
-			CHG_set_dir(PORT_DIR_IN);
-		}
-	}
-}
-
-void inf_system_reset(void)
+void sys_reset(void)
 {
 	RSTCTRL.SWRR = 0x1;
 }
 
-void inf_read_mem(u16 address, u8 *data, int len)
-{
-	/* Read Memory, Flash or EEPROM */
-}
-
-void inf_write_mem(u16 address, u8 *data, int len)
-{
-	/* Write Memory, Flash or EEPROM */	
-}
-
-int inf_load_cfg(u8 *data, int len)
+#ifdef FLASH_SAVE_CONFIG
+ssint inf_load_cfg(u8 *data, size_t len)
 {
 	if (len > OFFSET_CONFIG_IN_EEPROM + EEPROM_SIZE)
 		return -2;
 
-	/* Read EEPROM */		
+	/* Read EEPROM */
 	FLASH_0_read_eeprom_block(OFFSET_CONFIG_IN_EEPROM, data, len);
 	
 	return 0;
 }
 
-int inf_save_cfg(const u8 *data, int len)
-{	
+ssint inf_save_cfg(const u8 *data, size_t len)
+{
 	if (len > OFFSET_CONFIG_IN_EEPROM + EEPROM_SIZE)
 		return -2;
 
-	/* Write EEPROM */	
+	/* Write EEPROM */
 	return FLASH_0_write_eeprom_block(OFFSET_CONFIG_IN_EEPROM, data, len);
-} 
-
-void tch_calibration(void)
-{
-	qtm_acq_node_group_config_t *qtacq = &ptc_qtlib_acq_gen1;
-	int i;
-	
-	for (i = 0; i < (int)qtacq->num_sensor_nodes; i++) {
-		qtm_calibrate_sensor_node(&qtlib_acq_set1, i);
-	}
 }
+#endif
 
-hal_interface_info_t interface_hal;
-int mpt_interface_init(void)
+const hal_interface_info_t interface_hal = {
+	.fn_set_chg = bus_set_chg,
+	.fn_reset = sys_reset,
+#ifdef FLASH_SAVE_CONFIG
+	.fn_load_cfg = inf_load_cfg,
+	.fn_save_cfg = inf_save_cfg,
+#endif
+};
+
+void mptt_interface_init(void)
 {
-	const qtm_surface_cs_config_t *qtcfg = &qtm_surface_cs_config1;
-	qtm_acq_node_group_config_t *qtacq = &ptc_qtlib_acq_gen1;
-	hal_interface_info_t *hal = &interface_hal;
-	
-	// Y * X Matrix
-	hal->matrix_xsize = qtcfg->number_of_keys_h;
-	hal->matrix_ysize = qtcfg->number_of_keys_v;
-	switch (qtacq->acq_sensor_type) {
-		case NODE_SELFCAP:
-		case NODE_SELFCAP_SHIELD:
-			hal->measallow = MXT_T8_MEASALLOW_SELFTCH;
-		break;
-		case NODE_MUTUAL:
-		case NODE_MUTUAL_4P:
-		case NODE_MUTUAL_8P:
-		default:
-			hal->measallow = MXT_T8_MEASALLOW_MUTUALTCH;
-	}
-	
-	hal->fn_load_cfg = inf_load_cfg;
-	hal->fn_save_cfg = inf_save_cfg;
-	hal->fn_calibrate = tch_calibration;
-	hal->fn_reset = inf_system_reset;
-	//hal->fn_mem_write = inf_write_mem;
-	//hal->fn_mem_read =  inf_read_mem;
-	
-	mpt_init(hal);
-
+	tsl_init(&interface_hal);
 	bus_init();
-
-	return 0;
 }
 
-int mpt_start(void)
+void mptt_start(void)
 {	
-	mpt_chip_start();
-
+	tsl_start();
 	bus_start();
-	
-	mpt_chip_reportall();
-	
-	return 0;
 }
 
-void mpt_process(void)
+void mptt_process(void)
 {
-	const qtm_surface_contact_data_t *qtsf = &qtm_surface_cs_data1;
-	const qtm_touch_key_data_t *qtkd = qtlib_key_data_set1;
-	u8 i;
-	
-	for (i = 0; i < DEF_NUM_SENSORS; i++) {
-		mpt_set_sensor_data(i, qtkd->sensor_state, qtkd->channel_reference, qtkd->node_data_struct_ptr->node_acq_signals, qtkd->node_data_struct_ptr->node_comp_caps);
-	}
-	
-	mpt_set_pointer_location(0, qtsf->qt_surface_status,  qtsf->h_position, qtsf->v_position);
-	bus_assert_irq();
+	tsl_process();
 }

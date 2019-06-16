@@ -45,6 +45,29 @@
 #define MXT_SPT_SELFCAPCONFIG_T111 111
 #define MXT_PROCI_ACTIVESTYLUS_T107	107
 
+typedef struct sensor_config {
+	u8 matrix_xsize;
+	u8 matrix_ysize;
+	u8 measallow;
+} sensor_config_t;
+
+typedef struct txx_data {
+	void *mem;
+	void *cb_write;
+	
+	u8 rid;
+	
+	u8 matrix_xsize;
+	u8 matrix_ysize;
+} txx_data_t;
+
+typedef struct txx_cb_param {
+	u8 type;
+	const void *src; 
+	size_t size;
+} txx_cb_param_t;
+
+
 #include "t44.h"
 #include "t5.h"
 #include "t6.h"
@@ -58,10 +81,7 @@
 #include "t104.h"
 #include "t111.h"
 
-typedef struct sensor_config {
-	u8 matrix_xsize;
-	u8 matrix_ysize;
-	u8 measallow;
-} sensor_config_t;
+ssint object_txx_init(txx_data_t *ptr, u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb);
+void object_txx_process(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index);
 
 #endif /* TXX_H_ */

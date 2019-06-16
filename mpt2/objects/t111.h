@@ -9,6 +9,11 @@
 #ifndef T111_H_
 #define T111_H_
 
+#define T111_INRUSHCFG 15
+#define T111_INRUSHCFG_X_RESISTOR_SHIFT 4
+#define T111_INRUSHCFG_Y_RESISTOR_SHIFT 0
+#define T111_INRUSHCFG_RESISTOR_MASK 0x7
+
 typedef struct object_t111 {
 	u8 ctrl;
 	u8 dbgctrl;
@@ -37,5 +42,11 @@ typedef struct object_t111 {
 } object_t111_t;
 
 #define MXT_SPT_SELFCAPCONFIG_T111_INST 1
+
+#include "txx.h"
+typedef struct txx_data t111_data_t;
+
+ssint object_t111_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb);
+void object_t111_process(void);
 
 #endif /* T111_H_ */

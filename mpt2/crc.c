@@ -38,7 +38,7 @@ Calculate buffer with crc8
     @size: data size
     @returns calculated crc value
 */
-u8 calc_crc8(const u8 *base, int size)
+u8 calc_crc8(const u8 *base, size_t size)
 {
     u8 crc = 0;
     const u8 *ptr = base;
@@ -79,13 +79,13 @@ Calculate multi block crc24
     @size: data size
     @returns calculated crc value, only bit[0~23] is valid
 */
-u32 calc_blocks_crc24(const crc_data_blocks_t *blk, int count)
+u32 calc_blocks_crc24(const crc_data_blocks_t *blk, size_t count)
 {
     const u8 *ptr;
     
 	u8 firstbyte, secondbyte, odd = 0;
 	u32 crc = 0;
-	int i, j, sum;
+	size_t i, j, sum;
 	
 	for (i = 0, sum = 0; i < count; i++) {
 		ptr = blk[i].base;
@@ -131,7 +131,7 @@ Calculate buffer with crc24
     @size: data size
     @returns calculated crc value, only bit[0~23] is valid
 */
-u32 calc_crc24(const u8 *base, int size)
+u32 calc_crc24(const u8 *base, size_t size)
 {
 	crc_data_blocks_t block = {base, size};
 	

@@ -9,6 +9,8 @@
 #ifndef T7_H_
 #define T7_H_
 
+#include "../types.h"
+
 /* MXT_GEN_POWER_T7 field */
 struct t7_config {
 	u8 idle;
@@ -24,5 +26,11 @@ typedef struct object_t7 {
 	u8 actvaqint;
 	u8 actv2idleto;
 } __attribute__ ((packed)) object_t7_t;
+
+#include "txx.h"
+typedef struct txx_data t7_data_t;
+
+void object_t7_process(void);
+ssint object_t7_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb);
 
 #endif /* T7_H_ */

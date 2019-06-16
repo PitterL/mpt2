@@ -8,7 +8,7 @@
 #include "t5.h"
 
 t5_data_t t5_data_status;
-int object_t5_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem)
+ssint object_t5_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb)
 {
 	t5_data_t *ptr = &t5_data_status;
 	memset(ptr, 0, sizeof(*ptr));

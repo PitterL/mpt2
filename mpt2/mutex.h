@@ -9,17 +9,10 @@
 #ifndef MUTEX_H_
 #define MUTEX_H_
 
-#include "types.h"
+#include <atomic.h>
 
-typedef struct mutex {
-	s8 bits;
-	u8 flag;
-} mutex_t;
+#define LOCK() ENTER_CRITICAL(_irqsave);
 
-
-
-void mutex_init (mutex_t *mtx);
-int lock(mutex_t *mtx);
-void unlock(mutex_t *mtx);
+#define UNLOCK() EXIT_CRITICAL(_irqsave);
 
 #endif /* MUTEX_H_ */

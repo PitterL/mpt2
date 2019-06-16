@@ -7,12 +7,14 @@
 #include <string.h>
 #include "../mptt.h"
 #include "t6.h"
+#ifdef OBJECT_T37
+#include "t37.h"
+#endif
 
 t6_data_t t6_data_status;
-int object_t6_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem)
+ssint object_t6_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb)
 {
 	t6_data_t *ptr = &t6_data_status;
-	memset(ptr, 0, sizeof(*ptr));
 	
 	ptr->rid = rid;
 	ptr->status = MXT_T6_STATUS_RESET; /* Initialized by Reset */
@@ -53,13 +55,13 @@ void send_chip_status(u8 cmd, u8 arg)
 			if (arg)
 				ptr->status |= MXT_T6_STATUS_RESET;
 			else
-				ptr->status &= MXT_T6_STATUS_RESET;
+				ptr->status &= ~MXT_T6_STATUS_RESET;
 		break;
 		case MXT_COMMAND_CALIBRATE:
 			if (arg)
 				ptr->status |= MXT_T6_STATUS_CAL;
 			else
-				ptr->status &= MXT_T6_STATUS_CAL;
+				ptr->status &= ~MXT_T6_STATUS_CAL;
 		break;
 		case MXT_COMMAND_BACKUPNV:
 		case MXT_COMMAND_REPORTALL:
@@ -71,7 +73,7 @@ void send_chip_status(u8 cmd, u8 arg)
 	object_t6_report_status();
 }
 
-int chip_reset(u8 arg)
+void chip_reset(u8 arg)
 {
 	if (arg == MXT_BOOT_VALUE) {
 		/* Reboot to bootloader mode */
@@ -88,11 +90,9 @@ int chip_reset(u8 arg)
 		/* Never return since chip will reset */
 		while(1);
 	}
-	
-	return -2;
 }
 
-int chip_backup(u8 arg)
+void chip_backup(u8 arg)
 {	
 	if (arg == MXT_BACKUP_VALUE) {
 		send_chip_status(MXT_COMMAND_BACKUPNV, 1);
@@ -101,11 +101,9 @@ int chip_backup(u8 arg)
 		
 		send_chip_status(MXT_COMMAND_BACKUPNV, 0);
 	}
-	
-	return 0;
 }
 
-int chip_calibrate(u8 arg)
+void chip_calibrate(u8 arg)
 {
 	if (arg) {
 		send_chip_status(MXT_COMMAND_CALIBRATE, 1);
@@ -114,90 +112,78 @@ int chip_calibrate(u8 arg)
 		
 		send_chip_status(MXT_COMMAND_CALIBRATE, 0);
 	}
-	
-	return 0;
 }
 
-int chip_reportall(u8 arg)
+void chip_reportall(u8 arg)
 {
 	if (arg) {
 		/* performance report all */
 		mpt_chip_reportall();
 	}
-	
-	return 0;
 }
 
-int chip_diagnostic(u8 arg)
+#ifdef OBJECT_T37
+void chip_diagnostic(u8 arg)
 {
 	t6_data_t *ptr = &t6_data_status;
 	
 	if (arg) {
-		/* performance report all */
+		/* performance diagnostic */
 		switch(arg) {
 			case MXT_DIAGNOSTIC_PAGEUP:
-				ptr->page++;
+				ptr->dbgpage++;
 			break;
 			case MXT_DIAGNOSTIC_PAGEDOWN:
-				ptr->page--;
+				ptr->dbgpage--;
 			break;
 			case MXT_DIAGNOSTIC_MC_DELTA:
 			case MXT_DIAGNOSTIC_MC_REF:
 			case MXT_DIAGNOSTIC_DC_DATA:
+			case MXT_DIAGNOSTIC_CAL_DATA:
 			case MXT_DIAGNOSTIC_DEVICE_INFO:
 			case MXT_DIAGNOSTIC_PRODUCT_DATA:
 			case MXT_DIAGNOSTIC_SC_DELTA:
 			case MXT_DIAGNOSTIC_SC_REF:
-				ptr->arg = arg;
-				ptr->page = 0;
+			case MXT_DIAGNOSTIC_SC_SIGNAL:
+				ptr->dbgcmd = arg;
+				ptr->dbgpage = 0;
 			break;
 			default:
-				ptr->arg = MXT_DIAGNOSTIC_NONE;
+				ptr->dbgcmd = MXT_DIAGNOSTIC_NONE;
 		}
+		object_t37_set_data_page(ptr->dbgcmd, ptr->dbgpage);
 	}
-	
-	return 0;
 }
+#endif
 
-int object_t6_handle_command(u16 cmd, u8 arg)
+ssint object_t6_handle_command(u16 cmd, u8 arg)
 {
 	t6_data_t *ptr = &t6_data_status;
-	int result = 0;
+	ssint result = 0;
 	
 	ptr->cmd = cmd;
 	
 	switch (cmd) {
 		case MXT_COMMAND_RESET:
-			result = chip_reset(arg);
+			chip_reset(arg);
 		break;
 		case MXT_COMMAND_BACKUPNV:
-			result = chip_backup(arg);
+			chip_backup(arg);
 		break;
 		case MXT_COMMAND_CALIBRATE:
-			result = chip_calibrate(arg);
+			chip_calibrate(arg);
 		break;
 		case MXT_COMMAND_REPORTALL:
-			result = chip_reportall(arg);
+			chip_reportall(arg);
 		break;
+#ifdef OBJECT_T37
 		case MXT_COMMAND_DIAGNOSTIC:
-			result = chip_diagnostic(arg);
+			chip_diagnostic(arg);
 		break;
+#endif
 		default:
 			result = -2;
 	}
 	
 	return result;
-}
-
-u8 object_t6_get_diagnostic_status(u8 *pg)
-{
-	t6_data_t *ptr = &t6_data_status;
-	
-	if (ptr->cmd == MXT_COMMAND_DIAGNOSTIC) {
-		if (pg)
-			*pg = ptr->page;
-		return ptr->arg;
-	}
-	
-	return MXT_DIAGNOSTIC_NONE;
 }

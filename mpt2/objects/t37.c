@@ -13,13 +13,13 @@
 
 t37_data_t t37_status_data;
 
-int object_t37_init(u8 rid, const /*sensor_config_t*/void *cfg, void *mem)
+ssint object_t37_init(u8 rid, const /*sensor_config_t*/void *cfg, void *mem, void *cb)
 {
 	t37_data_t *ptr = &t37_status_data;
 	sensor_config_t *scfg = (sensor_config_t *)cfg;
 	
-	ptr->xsize = scfg->matrix_xsize;
-	ptr->ysize = scfg->matrix_ysize;
+	ptr->matrix_xsize = scfg->matrix_xsize;
+	ptr->matrix_ysize = scfg->matrix_ysize;
 	ptr->measallow = scfg->measallow;
 	ptr->mem = (object_t37_t *)mem;
 	
@@ -56,18 +56,20 @@ void check_and_empty_object_t37(u8 dbgcmd, u8 page)
 	}
 }
 
-void object_t37_set_data_page(u8 page)
+void object_t37_set_data_page(u8 dbgcmd, u8 page)
 {
 	t37_data_t *ptr = &t37_status_data;
+	
+	ptr->cmd = dbgcmd;
 	ptr->page = page;
 }
 
-void object_t37_set_sensor_data(u8 dbgcmd, u8 channel, u16 reference, u16 signal, u16 cap)
+void object_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
 {
 	t37_data_t *ptr = &t37_status_data;
 	s16 pos = -1, data;
 
-	switch(dbgcmd) {
+	switch(ptr->cmd) {
 		case MXT_DIAGNOSTIC_PAGEUP:
 		break;
 		case MXT_DIAGNOSTIC_PAGEDOWN:
@@ -87,24 +89,32 @@ void object_t37_set_sensor_data(u8 dbgcmd, u8 channel, u16 reference, u16 signal
 			data = signal - reference;
 		break;
 		case MXT_DIAGNOSTIC_SC_REF:
-			// Check 144u chip for the order
-			if (channel < ptr->ysize) {
+		case MXT_DIAGNOSTIC_SC_SIGNAL:
+			// re-organize the data order, see protocol
+			if (channel < ptr->matrix_ysize) {
 				pos = channel;
 			}else {
-				pos = channel - ptr->ysize;
+				pos = channel - ptr->matrix_ysize;
 				if (!(pos & 0x1)) //Even
-					pos = ptr->ysize + (pos >> 1);
+					pos = ptr->matrix_ysize + (pos >> 1);
 				else {	//Odd
-					pos = (ptr->ysize << 1) + (pos >> 1);
+					pos = (ptr->matrix_ysize << 1) + (pos >> 1);
 				}
 			}
-			data = reference;
-		break;
+			if (ptr->cmd == MXT_DIAGNOSTIC_SC_REF)
+				data = reference;
+			else {
+				/* cc value formula:
+					 (val & 0x0F)*0.00675 + ((val >> 4) & 0x0F)*0.0675 + ((val >> 8) & 0x0F)*0.675 + ((val >> 12) & 0x3) * 6.75
+				*/
+				// so multiply 1000 here
+				data = (cap & 0x0F) * 7 + ((cap >> 4) & 0x0F) * 68 + ((cap >> 8) & 0x0F) * 675 + ((cap >> 12) & 0x3) * 6750;		
+			}
 		default:
 		;
 	}
 	
-	check_and_empty_object_t37(dbgcmd, ptr->page);
+	check_and_empty_object_t37(ptr->cmd, ptr->page);
 	if (pos >= 0)
-		copy_data_to_buffer(dbgcmd, ptr->page, pos, data);
+		copy_data_to_buffer(ptr->cmd, ptr->page, pos, data);
 }
