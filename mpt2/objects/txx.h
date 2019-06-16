@@ -9,6 +9,8 @@
 #ifndef TXX_H_
 #define TXX_H_
 
+#include "../types.h"
+
 /* Object types */
 #define MXT_DEBUG_DIAGNOSTIC_T37	37
 #define MXT_GEN_MESSAGE_T5		5
@@ -45,25 +47,17 @@
 #define MXT_SPT_SELFCAPCONFIG_T111 111
 #define MXT_PROCI_ACTIVESTYLUS_T107	107
 
-typedef struct sensor_config {
-	u8 matrix_xsize;
-	u8 matrix_ysize;
-	u8 measallow;
-} sensor_config_t;
-
 typedef struct txx_data {
-	void *mem;
-	void *cb_write;
-	
 	u8 rid;
+	void *mem;
 	
-	u8 matrix_xsize;
-	u8 matrix_ysize;
+	const /*mpt_api_callback_t*/void *cb;
+	const /*qtouch_config_t*/void *def;
 } txx_data_t;
 
 typedef struct txx_cb_param {
 	u8 type;
-	const void *src; 
+	void *src; 
 	size_t size;
 } txx_cb_param_t;
 
@@ -79,9 +73,11 @@ typedef struct txx_cb_param {
 #include "t25.h"
 #include "t37.h"
 #include "t104.h"
+#include "t109.h"
 #include "t111.h"
 
-ssint object_txx_init(txx_data_t *ptr, u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb);
+ssint object_txx_init(txx_data_t *ptr, u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
+void object_txx_readback(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index);
 void object_txx_process(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index);
 
 #endif /* TXX_H_ */

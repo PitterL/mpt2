@@ -6,22 +6,16 @@
  */ 
 
 #include <string.h>
-#include "../mptt.h"
-#include "t37.h"
-#include "t6.h"
-#include "t8.h"
+#include "../tslapi.h"
+#include "txx.h"
 
-t37_data_t t37_status_data;
+t37_data_t t37_data_status;
 
-ssint object_t37_init(u8 rid, const /*sensor_config_t*/void *cfg, void *mem, void *cb)
+ssint object_t37_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb)
 {
-	t37_data_t *ptr = &t37_status_data;
-	sensor_config_t *scfg = (sensor_config_t *)cfg;
-	
-	ptr->matrix_xsize = scfg->matrix_xsize;
-	ptr->matrix_ysize = scfg->matrix_ysize;
-	ptr->measallow = scfg->measallow;
-	ptr->mem = (object_t37_t *)mem;
+	t37_data_t *t37_ptr = &t37_data_status;
+
+	object_txx_init(&t37_ptr->common, rid, def, mem, cb);
 	
 	return 0;
 }
@@ -33,8 +27,8 @@ void object_t37_start(void)
 
 void copy_data_to_buffer(u8 cmd, u8 page, u8 relative, u16 data)
 {
-	t37_data_t *ptr = &t37_status_data;
-	object_t37_t *mem = (object_t37_t *)ptr->mem;
+	t37_data_t *ptr = &t37_data_status;
+	object_t37_t *mem = (object_t37_t *)ptr->common.mem;
 	int pos, pagesize;
 	
 	pagesize = sizeof(mem->data);
@@ -46,8 +40,8 @@ void copy_data_to_buffer(u8 cmd, u8 page, u8 relative, u16 data)
 
 void check_and_empty_object_t37(u8 dbgcmd, u8 page)
 {
-	t37_data_t *ptr = &t37_status_data;
-	object_t37_t *mem = (object_t37_t *)ptr->mem;
+	t37_data_t *ptr = &t37_data_status;
+	object_t37_t *mem = (object_t37_t *)ptr->common.mem;
 	
 	if (dbgcmd != mem->mode || page != mem->page) {
 		memset(mem, 0, sizeof(*mem));
@@ -56,20 +50,20 @@ void check_and_empty_object_t37(u8 dbgcmd, u8 page)
 	}
 }
 
-void object_t37_set_data_page(u8 dbgcmd, u8 page)
+void object_t37_set_data_page(u8 cmd, u8 page)
 {
-	t37_data_t *ptr = &t37_status_data;
+	t37_data_t *ptr = &t37_data_status;
 	
-	ptr->cmd = dbgcmd;
-	ptr->page = page;
+	ptr->status.cmd = cmd;
+	ptr->status.page = page;
 }
 
 void object_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
 {
-	t37_data_t *ptr = &t37_status_data;
+	t37_data_t *ptr = &t37_data_status;
 	s16 pos = -1, data;
 
-	switch(ptr->cmd) {
+	switch(ptr->status.cmd) {
 		case MXT_DIAGNOSTIC_PAGEUP:
 		break;
 		case MXT_DIAGNOSTIC_PAGEDOWN:
@@ -91,17 +85,17 @@ void object_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
 		case MXT_DIAGNOSTIC_SC_REF:
 		case MXT_DIAGNOSTIC_SC_SIGNAL:
 			// re-organize the data order, see protocol
-			if (channel < ptr->matrix_ysize) {
+			if (channel < QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize)) {
 				pos = channel;
 			}else {
-				pos = channel - ptr->matrix_ysize;
+				pos = channel - QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
 				if (!(pos & 0x1)) //Even
-					pos = ptr->matrix_ysize + (pos >> 1);
+					pos = QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize) + (pos >> 1);
 				else {	//Odd
-					pos = (ptr->matrix_ysize << 1) + (pos >> 1);
+					pos = (QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize) << 1) + (pos >> 1);
 				}
 			}
-			if (ptr->cmd == MXT_DIAGNOSTIC_SC_REF)
+			if (ptr->status.cmd == MXT_DIAGNOSTIC_SC_REF)
 				data = reference;
 			else {
 				/* cc value formula:
@@ -114,7 +108,7 @@ void object_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
 		;
 	}
 	
-	check_and_empty_object_t37(ptr->cmd, ptr->page);
+	check_and_empty_object_t37(ptr->status.cmd, ptr->status.page);
 	if (pos >= 0)
-		copy_data_to_buffer(ptr->cmd, ptr->page, pos, data);
+		copy_data_to_buffer(ptr->status.cmd, ptr->status.page, pos, data);
 }

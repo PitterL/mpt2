@@ -5,14 +5,14 @@
  *  Author: A41450
  */ 
 
-#include "../mptt.h"
 #include "../tslapi.h"
+#include "../mptt.h"
 #include "t104.h"
 
 t104_data_t t104_data_status;
-ssint object_t104_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb)
+ssint object_t104_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb)
 {
-	return object_txx_init(&t104_data_status, rid, cfg, mem, cb);
+	return object_txx_init(&t104_data_status, rid, def, mem, cb);
 }
 
 void t104_set_unsupport_area(object_t104_t *mem)
@@ -43,11 +43,11 @@ void object_t104_process(void)
 		{ KEY_PARAMS_HYSTERESIS, &mem->ytchhyst, sizeof(mem->ytchhyst) },
 	};
 	
-	for (i = 0; i < ptr->matrix_xsize; i++) {
+	for (i = 0; i < QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize); i++) {
 		object_txx_process(ptr, xparams, ARRAY_SIZE(xparams), i);
 	}
 	
-	for (; i < ptr->matrix_xsize + ptr->matrix_ysize; i++) {
+	for (; i < QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + QTOUCH_CONFIG_VAL(ptr->def, matrix_ysize); i++) {
 		object_txx_process(ptr, yparams, ARRAY_SIZE(yparams), i);
 	}
 	

@@ -34,6 +34,6 @@ typedef struct object_t8 {
 typedef struct txx_data t8_data_t;
 
 void object_t8_process(void);
-ssint object_t8_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb);
+ssint object_t8_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 
 #endif /* T8_H_ */

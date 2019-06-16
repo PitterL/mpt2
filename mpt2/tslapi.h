@@ -9,6 +9,8 @@
 #ifndef TSLAPI_H_
 #define TSLAPI_H_
 
+#include "types.h"
+
 enum {
 	DEF_TOUCH_MEASUREMENT_PERIOD_MS = 0,
 	DEF_SENSOR_TYPE,
@@ -67,7 +69,36 @@ enum {
 	FREQ_AUTOTUNE_COUNT_IN,
 };
 
+typedef ssint (*cb_writeback_t)(u8 type, /*read or write */void *buf, size_t size, u8 index);
+typedef void (*cb_calibrate_t)(void);
 
-typedef ssint (*cb_writeback_t)(u8 type, const void *src, size_t size, u8 index);
+typedef struct qtouch_config {
+	u8 matrix_xsize;
+	u8 matrix_ysize;
+	u8 measallow;
+} qtouch_config_t;
+
+#define QTOUCH_CONFIG_VAL(_p, _n) (((qtouch_config_t *)(_p))->_n)
+
+typedef struct qtouch_api_callback {
+	cb_writeback_t write;
+	cb_writeback_t read;
+	cb_calibrate_t calibrate;
+} qtouch_api_callback_t;
+#define QTOUCH_API_CALLBACK(_cb, _fn) (((qtouch_api_callback_t *)(_cb))->_fn)
+
+typedef struct mpt_api_callback {
+	cb_writeback_t write;
+	cb_writeback_t read;
+	void (*reset)(void);
+	void (*calibrate)(void);
+	ssint (*backup)(void);
+	void (*report_all)(void);
+	void (*cb_get_config_crc)(/*data_crc24_t*/void *crc_ptr);
+	ssint (*cb_write_message)(const /*object_t5_t*/void *msg);
+	ssint (*cb_object_write)(u8 regid, u8 instance, u16 offset, const u8 *ptr, u8 size);
+} mpt_api_callback_t;
+
+#define MPT_API_CALLBACK(_cb, _fn) (((mpt_api_callback_t *)(_cb))->_fn)
 
 #endif /* TSLAPI_H_ */

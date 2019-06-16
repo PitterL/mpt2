@@ -5,14 +5,13 @@
  *  Author: A41450
  */ 
 
-#include "../mptt.h"
 #include "../tslapi.h"
-#include "t15.h"
+#include "txx.h"
 
 t15_data_t t15_data_status;
-ssint object_t15_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb)
+ssint object_t15_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb)
 {
-	return object_txx_init(&t15_data_status, rid, cfg, mem, cb);
+	return object_txx_init(&t15_data_status, rid, def, mem, cb);
 }
 /*
 void t15_report_status(const t15_data_t *ptr)

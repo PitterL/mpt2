@@ -5,14 +5,24 @@
  *  Author: A41450
  */ 
 
-#include "../mptt.h"
 #include "../tslapi.h"
-#include "t7.h"
+#include "txx.h"
 
 t7_data_t t7_data_status;
-ssint object_t7_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb)
+ssint object_t7_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb)
 {
-	return object_txx_init(&t7_data_status, rid, cfg, mem, cb);
+	return object_txx_init(&t7_data_status, rid, def, mem, cb);
+}
+
+void object_t7_start(u8 unused)
+{
+	/*
+	t7_data_t *ptr = &t7_data_status;
+	object_t7_t *mem = (object_t7_t *)ptr->mem;
+	
+	txx_cb_param_t params[] = {
+		{ DEF_TOUCH_MEASUREMENT_PERIOD_MS, &mem->actvaqint, sizeof(mem->actvaqint) },
+	};*/
 }
 
 void t7_set_unsupport_area(object_t7_t *mem)

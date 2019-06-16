@@ -9,8 +9,6 @@
 #ifndef T9_H_
 #define T9_H_
 
-#include "../types.h"
-
 /* T9 configure */
 typedef struct object_t9 {
 	u8 ctrl;
@@ -71,7 +69,7 @@ typedef struct t9_range {
 	u16 y;
 }  __attribute__ ((packed)) t9_range_t;
 
-typedef struct t9_point_status {	
+typedef struct t9_point_status {
 	u8 status;
 	t9_range_t pos;
 }t9_point_status_t;
@@ -79,13 +77,12 @@ typedef struct t9_point_status {
 #define MXT_TOUCH_MULTI_T9_INST 1	/* Only support 1 instance now */
 #define MXT_TOUCH_MULTI_T9_RIDS 1
 
-#include "txx.h"
 typedef struct t9_data {
 	txx_data_t common;
 	t9_point_status_t points[MXT_TOUCH_MULTI_T9_RIDS];
 } t9_data_t;
 
-ssint object_t9_init(u8 rid, const /*sensor_config_t*/void *cfg, void *mem, void *cb);
+ssint object_t9_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_t9_start(void);
 void object_t9_report_status(void);
 ssint object_t9_set_pointer_location(u8 id, u8 status, u16 x, u16 y);

@@ -44,15 +44,15 @@ extern uint8_t qtlib_time_elapsed_since_update;
 #endif
 
 enum {
-	COMMON_WRITE,
-	BIT_WRITE,
-	ARRAY_MEM_WRITE,
-	NUM_WRITEBACK
+	COMMON_RW,
+	BIT_RW,
+	ARRAY_MEM_RW,
+	NUM_RW_OP
 };
 
 typedef struct tch_config_callback {
 	u8 type;
-	void *dst;
+	void *buf;
 	size_t size;	//For common_write, this is data size, for array_member_write, this is struct size
 	u8 trunk_size;
 	u8 mask;
@@ -62,26 +62,26 @@ typedef struct tch_config_callback {
 tch_config_callback_t touch_config_list[] ={
 #ifdef OBJECT_T7
 	/* { DEF_TOUCH_MEASUREMENT_PERIOD_MS } Not support untill put it into a global 'varible qtlib_time_elapsed_since_update' */
-	{DEF_TOUCH_MEASUREMENT_PERIOD_MS, &qtlib_time_elapsed_since_update, sizeof(qtlib_time_elapsed_since_update), 0, 0, COMMON_WRITE },
+	{DEF_TOUCH_MEASUREMENT_PERIOD_MS, &qtlib_time_elapsed_since_update, sizeof(qtlib_time_elapsed_since_update), 0, 0, COMMON_RW },
 #endif
-	{DEF_SEL_FREQ_INIT, &ptc_qtlib_acq_gen1.freq_option_select, sizeof(ptc_qtlib_acq_gen1.freq_option_select), 0, 0, COMMON_WRITE },
+	{DEF_SEL_FREQ_INIT, &ptc_qtlib_acq_gen1.freq_option_select, sizeof(ptc_qtlib_acq_gen1.freq_option_select), 0, 0, COMMON_RW },
 	
-	{NODE_PARAMS_CSD, &ptc_seq_node_cfg1[0].node_csd, sizeof(ptc_seq_node_cfg1[0].node_csd), sizeof(ptc_seq_node_cfg1[0]), 0, ARRAY_MEM_WRITE },
-	{NODE_PARAMS_RESISTOR_PRESCALER, &ptc_seq_node_cfg1[0].node_rsel_prsc, sizeof(ptc_seq_node_cfg1[0].node_rsel_prsc), sizeof(ptc_seq_node_cfg1[0]), 0, ARRAY_MEM_WRITE },
-	{NODE_PARAMS_GAIN, &ptc_seq_node_cfg1[0].node_gain, sizeof(ptc_seq_node_cfg1[0].node_gain), sizeof(ptc_seq_node_cfg1[0]), 0, ARRAY_MEM_WRITE },
-	{NODE_PARAMS_ADC_OVERSAMPLING, &ptc_seq_node_cfg1[0].node_gain, sizeof(ptc_seq_node_cfg1[0].node_gain), sizeof(ptc_seq_node_cfg1[0]), 0, ARRAY_MEM_WRITE },
+	{NODE_PARAMS_CSD, &ptc_seq_node_cfg1[0].node_csd, sizeof(ptc_seq_node_cfg1[0].node_csd), sizeof(ptc_seq_node_cfg1[0]), 0, ARRAY_MEM_RW },
+	{NODE_PARAMS_RESISTOR_PRESCALER, &ptc_seq_node_cfg1[0].node_rsel_prsc, sizeof(ptc_seq_node_cfg1[0].node_rsel_prsc), sizeof(ptc_seq_node_cfg1[0]), 0, ARRAY_MEM_RW },
+	{NODE_PARAMS_GAIN, &ptc_seq_node_cfg1[0].node_gain, sizeof(ptc_seq_node_cfg1[0].node_gain), sizeof(ptc_seq_node_cfg1[0]), 0, ARRAY_MEM_RW },
+	{NODE_PARAMS_ADC_OVERSAMPLING, &ptc_seq_node_cfg1[0].node_gain, sizeof(ptc_seq_node_cfg1[0].node_gain), sizeof(ptc_seq_node_cfg1[0]), 0, ARRAY_MEM_RW },
 	
-	{KEY_PARAMS_THRESHOLD, &qtlib_key_configs_set1[0].channel_threshold, sizeof(qtlib_key_configs_set1[0].channel_threshold), sizeof(qtlib_key_configs_set1[0]), 0, ARRAY_MEM_WRITE},
-	{KEY_PARAMS_HYSTERESIS, &qtlib_key_configs_set1[0].channel_hysteresis, sizeof(qtlib_key_configs_set1[0].channel_hysteresis), sizeof(qtlib_key_configs_set1[0]), 0, ARRAY_MEM_WRITE},
-	{KEY_PARAMS_AKS_GROUP, &qtlib_key_configs_set1[0].channel_aks_group, sizeof(qtlib_key_configs_set1[0].channel_aks_group), sizeof(qtlib_key_configs_set1[0]), 0, ARRAY_MEM_WRITE},
+	{KEY_PARAMS_THRESHOLD, &qtlib_key_configs_set1[0].channel_threshold, sizeof(qtlib_key_configs_set1[0].channel_threshold), sizeof(qtlib_key_configs_set1[0]), 0, ARRAY_MEM_RW},
+	{KEY_PARAMS_HYSTERESIS, &qtlib_key_configs_set1[0].channel_hysteresis, sizeof(qtlib_key_configs_set1[0].channel_hysteresis), sizeof(qtlib_key_configs_set1[0]), 0, ARRAY_MEM_RW},
+	{KEY_PARAMS_AKS_GROUP, &qtlib_key_configs_set1[0].channel_aks_group, sizeof(qtlib_key_configs_set1[0].channel_aks_group), sizeof(qtlib_key_configs_set1[0]), 0, ARRAY_MEM_RW},
 	
-	{DEF_TOUCH_DET_INT, &qtlib_key_grp_config_set1.sensor_touch_di, sizeof(qtlib_key_grp_config_set1.sensor_touch_di), 0, 0, COMMON_WRITE},
-	{DEF_MAX_ON_DURATION, &qtlib_key_grp_config_set1.sensor_max_on_time, sizeof(qtlib_key_grp_config_set1.sensor_max_on_time), 0, 0, COMMON_WRITE},
-	{DEF_ANTI_TCH_DET_INT, &qtlib_key_grp_config_set1.sensor_anti_touch_di, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_di), 0, 0, COMMON_WRITE},
-	{DEF_ANTI_TCH_RECAL_THRSHLD, &qtlib_key_grp_config_set1.sensor_anti_touch_recal_thr, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_recal_thr), 0, 0, COMMON_WRITE},
-	{DEF_TCH_DRIFT_RATE, &qtlib_key_grp_config_set1.sensor_touch_drift_rate, sizeof(qtlib_key_grp_config_set1.sensor_touch_drift_rate), 0, 0, COMMON_WRITE},
-	{DEF_ANTI_TCH_DRIFT_RATE, &qtlib_key_grp_config_set1.sensor_anti_touch_drift_rate, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_drift_rate), 0, 0, COMMON_WRITE},
-	{DEF_DRIFT_HOLD_TIME, &qtlib_key_grp_config_set1.sensor_drift_hold_time, sizeof(qtlib_key_grp_config_set1.sensor_drift_hold_time), 0, 0, COMMON_WRITE},
+	{DEF_TOUCH_DET_INT, &qtlib_key_grp_config_set1.sensor_touch_di, sizeof(qtlib_key_grp_config_set1.sensor_touch_di), 0, 0, COMMON_RW},
+	{DEF_MAX_ON_DURATION, &qtlib_key_grp_config_set1.sensor_max_on_time, sizeof(qtlib_key_grp_config_set1.sensor_max_on_time), 0, 0, COMMON_RW},
+	{DEF_ANTI_TCH_DET_INT, &qtlib_key_grp_config_set1.sensor_anti_touch_di, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_di), 0, 0, COMMON_RW},
+	{DEF_ANTI_TCH_RECAL_THRSHLD, &qtlib_key_grp_config_set1.sensor_anti_touch_recal_thr, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_recal_thr), 0, 0, COMMON_RW},
+	{DEF_TCH_DRIFT_RATE, &qtlib_key_grp_config_set1.sensor_touch_drift_rate, sizeof(qtlib_key_grp_config_set1.sensor_touch_drift_rate), 0, 0, COMMON_RW},
+	{DEF_ANTI_TCH_DRIFT_RATE, &qtlib_key_grp_config_set1.sensor_anti_touch_drift_rate, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_drift_rate), 0, 0, COMMON_RW},
+	{DEF_DRIFT_HOLD_TIME, &qtlib_key_grp_config_set1.sensor_drift_hold_time, sizeof(qtlib_key_grp_config_set1.sensor_drift_hold_time), 0, 0, COMMON_RW},
 				
 };
 
@@ -102,20 +102,30 @@ void array_member_write(void *dst, const void *src, size_t size, u8 struct_size,
 	memcpy(dst + (struct_size * index), src, size);
 }
 
-static inline ssint tch_write(const tch_config_callback_t *param, const void *src, size_t size, u8 index)
+static inline ssint tch_config_rw(const tch_config_callback_t *param, void *buf, size_t size, u8 index, u8 rw)
 {
+	void *dst, *src;
+	
 	if (size != param->size)
 		return -2;
 	
+	if (rw) {	//read: 1, write: 0
+		dst = buf;
+		src = param->buf;	
+	}else {
+		dst = param->buf;
+		src = buf;
+	}
+	
 	switch (param->wbflag) {
-		case COMMON_WRITE:
-			common_write(param->dst, src, param->size);
+		case COMMON_RW:
+			common_write(dst, src, param->size);
 		break;
-		case BIT_WRITE:
-			bit_write(param->dst, src, param->mask);
+		case BIT_RW:
+			bit_write(dst, src, param->mask);
 		break;
-		case ARRAY_MEM_WRITE:
-			array_member_write(param->dst, src, param->size, param->trunk_size, index);
+		case ARRAY_MEM_RW:
+			array_member_write(dst, src, param->size, param->trunk_size, index);
 		break;
 		default:
 		;
@@ -124,7 +134,7 @@ static inline ssint tch_write(const tch_config_callback_t *param, const void *sr
 	return 0;
 }
 
-ssint tch_config_write(u8 type, const void *src, size_t size, u8 index)
+ssint tch_config_op(u8 type, void *buf, size_t size, u8 index, u8 rw)
 {
 	const tch_config_callback_t *tccs = &touch_config_list[0];
 	u8 i;
@@ -132,12 +142,22 @@ ssint tch_config_write(u8 type, const void *src, size_t size, u8 index)
 	
 	for (i = 0; i < TCH_CONFIG_WRITEBACK_NUM; i++) {
 		if (tccs[i].type == type) {
-			result = tch_write(&tccs[i], src, size, index);
+			result = tch_config_rw(&tccs[i], buf, size, index, rw);
 			break;
 		}
 	}
 	
 	return result;
+}
+
+ssint tch_config_write(u8 type, void *src, size_t size, u8 index) 
+{
+	return tch_config_op(type, src, size, index, 0);
+}
+
+ssint tch_config_read(u8 type, void *dst, size_t size, u8 index) 
+{
+	return tch_config_op(type, dst, size, index, 1);
 }
 
 void tch_calibrate(void)
@@ -150,9 +170,16 @@ void tch_calibrate(void)
 	}
 }
 
-tsl_interface_info_t interface_tsl = {
-	.fn_calibrate = tch_calibrate,
-	.fn_writeback = tch_config_write,
+qtouch_api_callback_t tsl_api_info =
+{
+	.write = tch_config_write,
+	.read = tch_config_read,
+	.calibrate = tch_calibrate
+};
+
+tsl_interface_info_t interface_tsl = 
+{
+	.api = &tsl_api_info,
 };
 
 void tsl_init(const hal_interface_info_t *hal)
@@ -162,27 +189,28 @@ void tsl_init(const hal_interface_info_t *hal)
 	tsl_interface_info_t *tsl = &interface_tsl;
 	
 	// Save HAL interface
-	memcpy(&tsl->hal, hal, sizeof(*hal));
+	//memcpy(&tsl->hal, hal, sizeof(*hal));
+	tsl->hal = hal;
 	
 	// x start first, y follow up
 	if (qtcfg->start_key_h < qtcfg->start_key_v) {
-		tsl->matrix_xsize = qtcfg->number_of_keys_h + qtcfg->start_key_h;
-		tsl->matrix_ysize = qtcfg->number_of_keys_v + qtcfg->start_key_v - tsl->matrix_xsize;
+		tsl->qtdef.matrix_xsize = qtcfg->number_of_keys_h + qtcfg->start_key_h;
+		tsl->qtdef.matrix_ysize = qtcfg->number_of_keys_v + qtcfg->start_key_v - tsl->qtdef.matrix_xsize;
 	} else {
-		tsl->matrix_xsize = qtcfg->number_of_keys_v + qtcfg->start_key_v;
-		tsl->matrix_ysize = qtcfg->number_of_keys_h + qtcfg->start_key_h - tsl->matrix_xsize;
+		tsl->qtdef.matrix_xsize = qtcfg->number_of_keys_v + qtcfg->start_key_v;
+		tsl->qtdef.matrix_ysize = qtcfg->number_of_keys_h + qtcfg->start_key_h - tsl->qtdef.matrix_xsize;
 	}
 	
 	switch (qtacq->acq_sensor_type) {
 		case NODE_SELFCAP:
 		case NODE_SELFCAP_SHIELD:
-			tsl->measallow = MXT_T8_MEASALLOW_SELFTCH;
+			tsl->qtdef.measallow = MXT_T8_MEASALLOW_SELFTCH;
 		break;
 		case NODE_MUTUAL:
 		case NODE_MUTUAL_4P:
 		case NODE_MUTUAL_8P:
 		default:
-			tsl->measallow = MXT_T8_MEASALLOW_MUTUALTCH;
+			tsl->qtdef.measallow = MXT_T8_MEASALLOW_MUTUALTCH;
 	}
 
 	mpt_chip_init(tsl);
@@ -191,8 +219,6 @@ void tsl_init(const hal_interface_info_t *hal)
 void tsl_start(void)
 {
 	mpt_chip_start();
-	
-	mpt_chip_reportall();
 }
 
 void tsl_process(void)
@@ -215,7 +241,7 @@ void tsl_process(void)
 
 	mpt_api_set_pointer_location(0, t9_status,  qtsf->h_position, qtsf->v_position);
 	
-	mpt_api_request_irq(tsl->hal.fn_set_chg);
+	mpt_api_request_irq(tsl->hal->fn_set_chg);
 	
 	mpt_api_process();
 }

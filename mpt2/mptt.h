@@ -19,16 +19,11 @@
 #include "objects/txx.h"
 
 ssint mpt_chip_init(const void *tsl_ptr);
+
 void mpt_chip_start(void);
-void mpt_chip_reset(void);
-ssint mpt_chip_backup(void);
-void mpt_chip_calibrate(void);
-void mpt_chip_reportall(void);
-void mpt_chip_get_config_crc(data_crc24_t *ptr);
-ssint mpt_chip_load_config(void);
 
 /* Will lock FIFO in write operation */
-ssint mpt_write_message(const object_t5_t *msg);
+ssint mpt_write_message(const /*object_t5_t*/void *msg_ptr);
 
 /* Will lock FIFO in read operation */
 ssint mpt_read_message(object_t5_t *msg);

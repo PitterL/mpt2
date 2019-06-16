@@ -22,6 +22,6 @@ typedef struct object_t109 {
 typedef struct txx_data t109_data_t;
 
 void object_t109_process(void);
-ssint object_t109_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb);
+ssint object_t109_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 
 #endif /* T109_H_ */

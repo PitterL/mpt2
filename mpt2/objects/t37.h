@@ -24,19 +24,14 @@ typedef struct dbgcache {
 	u16 data[T37_CACHE_PAGE_SIZE];
 }dbgcache_t;
 
+typedef t6_debug_command_t t37_page_status_t;
+
 typedef struct t37_data {
-	u8 measallow;	/* sensor type */
-	u8 matrix_xsize;
-	u8 matrix_ysize;
-	
-	object_t37_t *mem;
-	
-	u8 cmd;
-	u8 page;
-	//dbgcache_t buffer;
+	txx_data_t common;
+	t37_page_status_t status;
 } t37_data_t;
 
-ssint object_t37_init(u8 rid, const /*sensor_config_t*/void *cfg, void *mem, void *cb);
+ssint object_t37_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_t37_start(void);
 
 void object_t37_set_data_page(u8 cmd, u8 page);

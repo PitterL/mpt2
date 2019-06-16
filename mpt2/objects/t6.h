@@ -9,6 +9,8 @@
 #ifndef T6_H_
 #define T6_H_
 
+#include "../crc.h"
+
 /* MXT_GEN_COMMAND_T6 field */
 #define MXT_COMMAND_RESET	0
 #define MXT_COMMAND_BACKUPNV	1
@@ -52,18 +54,22 @@ typedef struct object_t6 {
 	u8 diagnostic;
 } __attribute__ ((packed)) object_t6_t;
 
-typedef struct t6_data {
-	u8 rid;
+typedef struct t6_debug_command {
 	u8 cmd;
-	u8 dbgcmd;
-	u8 dbgpage;
+	u8 page;
+} t6_debug_command_t;
+
+typedef struct t6_data {
 	u8 status;
+	u8 cmd;
+	t6_debug_command_t dbg;
 	data_crc24_t crc;
-	object_t6_t *mem;
+	
+	txx_data_t common;
 } t6_data_t;
 
-ssint object_t6_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb);
-void object_t6_start(void);
+ssint object_t6_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
+void object_t6_start(u8 unused);
 void object_t6_report_status(void);
 
 ssint object_t6_handle_command(u16 cmd, u8 arg);

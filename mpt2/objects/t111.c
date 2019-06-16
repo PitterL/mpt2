@@ -5,14 +5,14 @@
  *  Author: A41450
  */ 
 
-#include "../mptt.h"
 #include "../tslapi.h"
+#include "../mptt.h"
 #include "t111.h"
 
 t111_data_t t111_data_status;
-ssint object_t111_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb)
+ssint object_t111_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb)
 {
-	return object_txx_init(&t111_data_status, rid, cfg, mem, cb);
+	return object_txx_init(&t111_data_status, rid, def, mem, cb);
 }
 
 void t111_set_unsupport_area(object_t111_t *mem)
@@ -42,8 +42,8 @@ void object_t111_process(void)
 		.hi =  (mem->inrushcfg >> T111_INRUSHCFG_X_RESISTOR_SHIFT) & T111_INRUSHCFG_RESISTOR_MASK
 	};
 	
-	const u8 delay_y = mem->delaytime;
-	const u8 delay_x = mem->altdelaytimex ? mem->altdelaytimex : mem->delaytime;
+	u8 delay_y = mem->delaytime;
+	u8 delay_x = mem->altdelaytimex ? mem->altdelaytimex : mem->delaytime;
 	
 	txx_cb_param_t yparams[] = {
 		{ NODE_PARAMS_RESISTOR_PRESCALER, &resprsc_y.value, sizeof(resprsc_y.value)},
@@ -64,11 +64,11 @@ void object_t111_process(void)
 	
 	u8 i;
 		
-	for (i = 0; i < ptr->matrix_xsize; i++) {
+	for (i = 0; i < QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize); i++) {
 		object_txx_process(ptr, xparams, ARRAY_SIZE(xparams), i);
 	}
 	
-	for (; i < ptr->matrix_xsize + ptr->matrix_ysize; i++) {
+	for (; i < QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + QTOUCH_CONFIG_VAL(ptr->def, matrix_ysize); i++) {
 		object_txx_process(ptr, yparams, ARRAY_SIZE(yparams), i);
 	}
 	

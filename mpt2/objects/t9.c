@@ -6,30 +6,23 @@
  */ 
 
 #include <string.h>
-#include "../mptt.h"
 #include "../tslapi.h"
-#include "t9.h"
+#include "txx.h"
 
 t9_data_t t9_data_status;
 
-ssint object_t9_init(u8 rid, const /*sensor_config_t*/void *cfg, void *mem, void *cb)
+ssint object_t9_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb)
 {
 	t9_data_t *t9_ptr = &t9_data_status;
-	object_t9_t *t9_mem = (object_t9_t *) mem;
-	
-	object_txx_init(&t9_ptr->common, rid, cfg, mem, cb);
-	
-	t9_mem->xorigin = 0;
-	t9_mem->yorigin = t9_ptr->common.matrix_xsize;
-	t9_mem->xsize = t9_ptr->common.matrix_xsize;
-	t9_mem->ysize = t9_ptr->common.matrix_ysize;
-	
+
+	object_txx_init(&t9_ptr->common, rid, def, mem, cb);
+
 	return 0;
 }
 
 void object_t9_start(void)
 {
-	
+
 }
 
 void t9_set_unsupport_area(t9_data_t *ptr)
@@ -73,6 +66,8 @@ void object_t9_process(void)
 
 void t9_report_status(u8 rid, const t9_point_status_t *pt)
 {
+	t9_data_t *ptr = &t9_data_status;
+	
 	object_t5_t message;
 	
 	memset(&message, 0, sizeof(message));
@@ -85,7 +80,7 @@ void t9_report_status(u8 rid, const t9_point_status_t *pt)
 	message.data[4] = 1;
 	message.data[5] = 1;
 	
-	mpt_write_message(&message);
+	MPT_API_CALLBACK(ptr->common.cb, cb_write_message)(&message);
 }
 
 void object_t9_report_status(void)

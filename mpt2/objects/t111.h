@@ -46,7 +46,7 @@ typedef struct object_t111 {
 #include "txx.h"
 typedef struct txx_data t111_data_t;
 
-ssint object_t111_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb);
+ssint object_t111_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_t111_process(void);
 
 #endif /* T111_H_ */

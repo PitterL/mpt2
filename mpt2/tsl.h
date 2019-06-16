@@ -23,18 +23,13 @@ typedef struct hal_interface_info {
 
 typedef struct tsl_interface_info {
 	// HW interface
-	hal_interface_info_t hal;
+	const hal_interface_info_t *hal;
 
 	// Touch lib interface
-	u8 matrix_xsize;
-	u8 matrix_ysize;
-	u8 xsize;
-	u8 ysize;
-	u8 measallow;
+	const qtouch_api_callback_t *api;
 	
-	void (*fn_calibrate)(void);
-	cb_writeback_t fn_writeback; // void (*fn_writeback)(u8 type, void *src, size_t size, u8 index);
-	
+	// Touch default config
+	qtouch_config_t qtdef;
 }tsl_interface_info_t;
 
 void tsl_init(const hal_interface_info_t *hal);

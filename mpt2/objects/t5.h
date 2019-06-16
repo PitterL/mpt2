@@ -27,6 +27,6 @@ typedef struct t5_data {
 
 /* MXT_GEN_MESSAGE_T5 object */
 #define MXT_RPTID_NOMSG		0xff
-ssint object_t5_init(u8 rid,  const /*sensor_config_t*/void *cfg, void *mem, void *cb);
+ssint object_t5_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 
 #endif /* T5_H_ */
