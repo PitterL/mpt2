@@ -70,6 +70,7 @@ enum {
 };
 
 typedef ssint (*cb_writeback_t)(u8 type, /*read or write */void *buf, size_t size, u8 index);
+typedef ssint (*cb_sync_op_t)(u8 type, /*read or write */void *buf, size_t size, u8 index, u8 rw);
 typedef void (*cb_calibrate_t)(void);
 
 typedef struct qtouch_config {
@@ -83,13 +84,13 @@ typedef struct qtouch_config {
 typedef struct qtouch_api_callback {
 	cb_writeback_t write;
 	cb_writeback_t read;
+	cb_sync_op_t sync;
 	cb_calibrate_t calibrate;
 } qtouch_api_callback_t;
 #define QTOUCH_API_CALLBACK(_cb, _fn) (((qtouch_api_callback_t *)(_cb))->_fn)
 
 typedef struct mpt_api_callback {
-	cb_writeback_t write;
-	cb_writeback_t read;
+	const qtouch_api_callback_t *qtapi;
 	void (*reset)(void);
 	void (*calibrate)(void);
 	ssint (*backup)(void);
@@ -100,5 +101,6 @@ typedef struct mpt_api_callback {
 } mpt_api_callback_t;
 
 #define MPT_API_CALLBACK(_cb, _fn) (((mpt_api_callback_t *)(_cb))->_fn)
+#define MPT_QTAPI_CALLBACK(_cb, _fn) ((((mpt_api_callback_t *)(_cb))->qtapi)->_fn)
 
 #endif /* TSLAPI_H_ */

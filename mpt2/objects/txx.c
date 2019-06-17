@@ -19,6 +19,7 @@ ssint object_txx_init(txx_data_t *ptr, u8 rid,  const /*qtouch_config_t*/void *d
 	return 0;
 }
 
+/*
 void object_txx_op(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index, u8 rw)
 {
 	cb_writeback_t cb_op;
@@ -32,6 +33,15 @@ void object_txx_op(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count
 	
 	for (i = 0; i < count; i++) {
 		cb_op(params[i].type, params[i].src, params[i].size, index);
+	}
+}*/
+
+void object_txx_op(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index, u8 rw)
+{
+	u8 i;
+	
+	for (i = 0; i < count; i++) {
+		MPT_QTAPI_CALLBACK(ptr->cb, sync)(params[i].type, params[i].src, params[i].size, index, rw);
 	}
 }
 

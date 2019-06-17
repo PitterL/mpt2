@@ -25,7 +25,7 @@ typedef struct tsl_interface_info {
 	// HW interface
 	const hal_interface_info_t *hal;
 
-	// Touch lib interface
+	// QTouch lib interface
 	const qtouch_api_callback_t *api;
 	
 	// Touch default config

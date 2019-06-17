@@ -23,9 +23,8 @@ void t8_set_unsupport_area(object_t8_t *mem)
 	mem->atchfrccalratio = 0;
 }
 
-void object_t8_process(void)
+void t8_data_sync(const txx_data_t *ptr, u8 rw)
 {
-	t8_data_t *ptr = &t8_data_status;
 	object_t8_t *mem = (object_t8_t *)ptr->mem;
 	
 	txx_cb_param_t params[] = {
@@ -36,7 +35,24 @@ void object_t8_process(void)
 		{ DEF_ANTI_TCH_RECAL_THRSHLD, &mem->atchcalsthr, sizeof(mem->atchcalsthr) },
 	};
 	
-	object_txx_process(ptr, params, ARRAY_SIZE(params), 0);
+	object_txx_op(ptr, params, ARRAY_SIZE(params), 0, rw);
 	
 	t8_set_unsupport_area(mem);
+}
+
+void object_t8_start(u8 loaded)
+{
+	t8_data_t *ptr = &t8_data_status;
+	
+	if (loaded)
+	return;
+	
+	t8_data_sync(ptr, 1);
+}
+
+void object_t8_process(void)
+{
+	t8_data_t *ptr = &t8_data_status;
+	
+	t8_data_sync(ptr, 0);
 }

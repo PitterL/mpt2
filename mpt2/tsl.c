@@ -69,7 +69,7 @@ tch_config_callback_t touch_config_list[] ={
 	{NODE_PARAMS_CSD, &ptc_seq_node_cfg1[0].node_csd, sizeof(ptc_seq_node_cfg1[0].node_csd), sizeof(ptc_seq_node_cfg1[0]), 0, ARRAY_MEM_RW },
 	{NODE_PARAMS_RESISTOR_PRESCALER, &ptc_seq_node_cfg1[0].node_rsel_prsc, sizeof(ptc_seq_node_cfg1[0].node_rsel_prsc), sizeof(ptc_seq_node_cfg1[0]), 0, ARRAY_MEM_RW },
 	{NODE_PARAMS_GAIN, &ptc_seq_node_cfg1[0].node_gain, sizeof(ptc_seq_node_cfg1[0].node_gain), sizeof(ptc_seq_node_cfg1[0]), 0, ARRAY_MEM_RW },
-	{NODE_PARAMS_ADC_OVERSAMPLING, &ptc_seq_node_cfg1[0].node_gain, sizeof(ptc_seq_node_cfg1[0].node_gain), sizeof(ptc_seq_node_cfg1[0]), 0, ARRAY_MEM_RW },
+	{NODE_PARAMS_ADC_OVERSAMPLING, &ptc_seq_node_cfg1[0].node_oversampling, sizeof(ptc_seq_node_cfg1[0].node_oversampling), sizeof(ptc_seq_node_cfg1[0]), 0, ARRAY_MEM_RW },
 	
 	{KEY_PARAMS_THRESHOLD, &qtlib_key_configs_set1[0].channel_threshold, sizeof(qtlib_key_configs_set1[0].channel_threshold), sizeof(qtlib_key_configs_set1[0]), 0, ARRAY_MEM_RW},
 	{KEY_PARAMS_HYSTERESIS, &qtlib_key_configs_set1[0].channel_hysteresis, sizeof(qtlib_key_configs_set1[0].channel_hysteresis), sizeof(qtlib_key_configs_set1[0]), 0, ARRAY_MEM_RW},
@@ -97,23 +97,27 @@ void bit_write(void *dst, const void *src, u8 mask)
 	*(u8 *)dst = ((*(u8 *)dst) & ~mask) | ((*(u8 *)src) & mask);
 }
 
-void array_member_write(void *dst, const void *src, size_t size, u8 struct_size, u8 index)
+void array_member_write(void *dst, const void *src, size_t size)
 {
-	memcpy(dst + (struct_size * index), src, size);
+	memcpy(dst, src, size);
 }
 
 static inline ssint tch_config_rw(const tch_config_callback_t *param, void *buf, size_t size, u8 index, u8 rw)
 {
 	void *dst, *src;
+	size_t trunk_size = 0;
 	
 	if (size != param->size)
 		return -2;
 	
+	if (param->wbflag == ARRAY_MEM_RW)
+		trunk_size = param->trunk_size ? param->trunk_size * index : 0;
+		
 	if (rw) {	//read: 1, write: 0
 		dst = buf;
-		src = param->buf;	
+		src = param->buf + trunk_size;
 	}else {
-		dst = param->buf;
+		dst = param->buf + trunk_size;
 		src = buf;
 	}
 	
@@ -125,7 +129,7 @@ static inline ssint tch_config_rw(const tch_config_callback_t *param, void *buf,
 			bit_write(dst, src, param->mask);
 		break;
 		case ARRAY_MEM_RW:
-			array_member_write(dst, src, param->size, param->trunk_size, index);
+			common_write(dst, src, param->size);
 		break;
 		default:
 		;
@@ -174,7 +178,8 @@ qtouch_api_callback_t tsl_api_info =
 {
 	.write = tch_config_write,
 	.read = tch_config_read,
-	.calibrate = tch_calibrate
+	.sync = tch_config_op,
+	.calibrate = tch_calibrate,
 };
 
 tsl_interface_info_t interface_tsl = 

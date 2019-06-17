@@ -172,10 +172,10 @@ object_callback_t object_initialize_list[] = {
 	{	MXT_GEN_COMMAND_T6, object_t6_init,	object_t6_start, NULL, object_t6_report_status, (void *)&ib_objects_reg.ctrl.t6	},	
 #endif
 #ifdef OBJECT_T7
-	{	MXT_GEN_POWER_T7, object_t7_init, NULL, object_t7_process, NULL, (void *)&ib_objects_reg.cfg.t7	},	
+	{	MXT_GEN_POWER_T7, object_t7_init, object_t7_start, object_t7_process, NULL, (void *)&ib_objects_reg.cfg.t7	},	
 #endif
 #ifdef OBJECT_T8	
-	{	MXT_GEN_ACQUIRE_T8,	object_t8_init, NULL, object_t8_process, NULL, (void *)&ib_objects_reg.cfg.t8	},	
+	{	MXT_GEN_ACQUIRE_T8,	object_t8_init, object_t8_start, object_t8_process, NULL, (void *)&ib_objects_reg.cfg.t8	},	
 #endif
 #ifdef OBJECT_T9	
 	{	MXT_TOUCH_MULTI_T9, object_t9_init, /*object_t9_start*/NULL, NULL, object_t9_report_status, (void *)ib_objects_reg.cfg.t9_objs	},	
@@ -190,10 +190,10 @@ object_callback_t object_initialize_list[] = {
 	{	MXT_SPT_SELFTEST_T25	},	
 #endif
 #ifdef OBJECT_T104
-	{	MXT_SPT_AUXTOUCHCONFIG_T104,  object_t104_init, NULL, object_t104_process, NULL, (void *)&ib_objects_reg.cfg.t104	},
+	{	MXT_SPT_AUXTOUCHCONFIG_T104,  object_t104_init, object_t104_start, object_t104_process, NULL, (void *)&ib_objects_reg.cfg.t104	},
 #endif
 #ifdef OBJECT_T111
-	{	MXT_SPT_SELFCAPCONFIG_T111, object_t111_init, NULL, object_t111_process, NULL, (void *)&ib_objects_reg.cfg.t111	},
+	{	MXT_SPT_SELFCAPCONFIG_T111, object_t111_init, object_t111_start, object_t111_process, NULL, (void *)&ib_objects_reg.cfg.t111	},
 #endif
 };
 #define MXT_OBJECTS_INITIALIZE_LIST_NUM (ARRAY_SIZE(object_initialize_list))
@@ -271,9 +271,7 @@ ssint mpt_chip_init(const void *tsl_ptr)
 	//memcpy(&cfm->tsl, tsl, sizeof(*tsl));
 	cfm->tsl = tsl;
 	cfm->api = api;
-	cfm->api->write = cfm->tsl->api->write;
-	cfm->api->read = cfm->tsl->api->read;
-	
+	cfm->api->qtapi = cfm->tsl->api;
 	// Build ID Information
 	ibinf->matrix_xsize = cfm->tsl->qtdef.matrix_xsize;
 	ibinf->matrix_ysize = cfm->tsl->qtdef.matrix_ysize;
@@ -323,7 +321,7 @@ void mpt_chip_start(void)
 	// Run each object
 	for (i = 0; i < MXT_OBJECTS_INITIALIZE_LIST_NUM; i++) {
 		if (ocbs[i].start)
-			ocbs[i].start(result ? false : true);
+			ocbs[i].start(result ? 0 : 1);
 	}
 	
 	mpt_chip_reportall();
