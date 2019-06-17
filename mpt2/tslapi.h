@@ -77,6 +77,8 @@ typedef struct qtouch_config {
 	u8 matrix_xsize;
 	u8 matrix_ysize;
 	u8 measallow;
+	u8 resolution_bit;
+	u8 deadband;
 } qtouch_config_t;
 
 #define QTOUCH_CONFIG_VAL(_p, _n) (((qtouch_config_t *)(_p))->_n)

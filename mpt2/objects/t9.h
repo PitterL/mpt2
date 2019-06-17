@@ -46,9 +46,6 @@ typedef struct object_t9 {
 	u8 nexttchdi;
 } __attribute__ ((packed)) object_t9_t;
 
-/* MXT_TOUCH_MULTI_T9 orient */
-#define MXT_T9_ORIENT_SWITCH	BIT(0)
-
 /* MXT_TOUCH_MULTI_T9 field */
 #define MXT_T9_CTRL		0
 #define MXT_T9_ORIENT		9
@@ -63,6 +60,11 @@ typedef struct object_t9 {
 #define MXT_T9_RELEASE		BIT(5)
 #define MXT_T9_PRESS		BIT(6)
 #define MXT_T9_DETECT		BIT(7)
+
+/* MXT_TOUCH_MULTI_T9 orient */
+#define MXT_T9_ORIENT_SWITCH	BIT(0)
+#define MXT_T9_ORIENT_INVERTX	BIT(1)
+#define MXT_T9_ORIENT_INVERTY	BIT(2)
 
 typedef struct t9_range {
 	u16 x;
@@ -83,7 +85,8 @@ typedef struct t9_data {
 } t9_data_t;
 
 ssint object_t9_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
-void object_t9_start(void);
+void object_t9_start(u8 loaded);
+void object_t9_process(void);
 void object_t9_report_status(void);
 ssint object_t9_set_pointer_location(u8 id, u8 status, u16 x, u16 y);
 

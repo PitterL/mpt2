@@ -43,6 +43,6 @@ ssint tsl_write_message(const void *msg);
 ssint tsl_read_message(void *msg);
 
 ssint tsl_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr);
-ssint tsl_mem_write(u16 regaddr, u8 val);
+ssint tsl_mem_write(u16 baseaddr, u16 offset, u8 val);
 
 #endif /* TSL_H_ */

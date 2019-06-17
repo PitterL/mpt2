@@ -121,7 +121,7 @@ ssint handle_bus_event(u8 state, u8 *val)
 			if (count < sizeof(bus->regaddr)) {
 				bus->regaddr.val[count] = *val;
 			}else {
-				result = tsl_mem_write(bus->regaddr.value + count - sizeof(bus->regaddr), *val);
+				result = tsl_mem_write(bus->regaddr.value, count - sizeof(bus->regaddr), *val);
 			}
 		break;
 		case BUS_READ:

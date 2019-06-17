@@ -81,8 +81,14 @@ tch_config_callback_t touch_config_list[] ={
 	{DEF_ANTI_TCH_RECAL_THRSHLD, &qtlib_key_grp_config_set1.sensor_anti_touch_recal_thr, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_recal_thr), 0, 0, COMMON_RW},
 	{DEF_TCH_DRIFT_RATE, &qtlib_key_grp_config_set1.sensor_touch_drift_rate, sizeof(qtlib_key_grp_config_set1.sensor_touch_drift_rate), 0, 0, COMMON_RW},
 	{DEF_ANTI_TCH_DRIFT_RATE, &qtlib_key_grp_config_set1.sensor_anti_touch_drift_rate, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_drift_rate), 0, 0, COMMON_RW},
-	{DEF_DRIFT_HOLD_TIME, &qtlib_key_grp_config_set1.sensor_drift_hold_time, sizeof(qtlib_key_grp_config_set1.sensor_drift_hold_time), 0, 0, COMMON_RW},
-				
+	{DEF_DRIFT_HOLD_TIME, &qtlib_key_grp_config_set1.sensor_drift_hold_time, sizeof(qtlib_key_grp_config_set1.sensor_drift_hold_time), 0, 0, COMMON_RW},		
+
+	{SURFACE_CS_START_KEY_V, &qtm_surface_cs_config1.start_key_v, sizeof(qtm_surface_cs_config1.start_key_v), 0, 0, COMMON_RW},
+	{SURFACE_CS_START_KEY_H, &qtm_surface_cs_config1.start_key_h, sizeof(qtm_surface_cs_config1.start_key_h), 0, 0, COMMON_RW},
+	{SURFACE_CS_NUM_KEYS_V, &qtm_surface_cs_config1.number_of_keys_v, sizeof(qtm_surface_cs_config1.number_of_keys_v), 0, 0, COMMON_RW},
+	{SURFACE_CS_NUM_KEYS_H, &qtm_surface_cs_config1.number_of_keys_h, sizeof(qtm_surface_cs_config1.number_of_keys_h), 0, 0, COMMON_RW},
+	{SURFACE_CS_POS_HYST, &qtm_surface_cs_config1.position_hysteresis, sizeof(qtm_surface_cs_config1.position_hysteresis), 0, 0, COMMON_RW},
+	{SURFACE_CS_FILT_CFG, &qtm_surface_cs_config1.position_filter, sizeof(qtm_surface_cs_config1.position_filter), 0, 0, COMMON_RW},
 };
 
 #define TCH_CONFIG_WRITEBACK_NUM ARRAY_SIZE(touch_config_list)
@@ -110,7 +116,7 @@ static inline ssint tch_config_rw(const tch_config_callback_t *param, void *buf,
 	if (size != param->size)
 		return -2;
 	
-	if (param->wbflag == ARRAY_MEM_RW)
+	if (param->wbflag == ARRAY_MEM_RW)	//Array offset
 		trunk_size = param->trunk_size ? param->trunk_size * index : 0;
 		
 	if (rw) {	//read: 1, write: 0
@@ -123,13 +129,11 @@ static inline ssint tch_config_rw(const tch_config_callback_t *param, void *buf,
 	
 	switch (param->wbflag) {
 		case COMMON_RW:
+		case ARRAY_MEM_RW:
 			common_write(dst, src, param->size);
 		break;
 		case BIT_RW:
 			bit_write(dst, src, param->mask);
-		break;
-		case ARRAY_MEM_RW:
-			common_write(dst, src, param->size);
 		break;
 		default:
 		;
@@ -197,8 +201,9 @@ void tsl_init(const hal_interface_info_t *hal)
 	//memcpy(&tsl->hal, hal, sizeof(*hal));
 	tsl->hal = hal;
 	
-	// x start first, y follow up
-	if (qtcfg->start_key_h < qtcfg->start_key_v) {
+	// This chip whole x / y channels, so we need add all channel together
+	// For simpling the algorithm, we set v for x, h for y, but must care, v should start first, h follow up
+	if (/*qtcfg->start_key_h < qtcfg->start_key_v*/0) {
 		tsl->qtdef.matrix_xsize = qtcfg->number_of_keys_h + qtcfg->start_key_h;
 		tsl->qtdef.matrix_ysize = qtcfg->number_of_keys_v + qtcfg->start_key_v - tsl->qtdef.matrix_xsize;
 	} else {
@@ -206,6 +211,7 @@ void tsl_init(const hal_interface_info_t *hal)
 		tsl->qtdef.matrix_ysize = qtcfg->number_of_keys_h + qtcfg->start_key_h - tsl->qtdef.matrix_xsize;
 	}
 	
+	// Sensing type
 	switch (qtacq->acq_sensor_type) {
 		case NODE_SELFCAP:
 		case NODE_SELFCAP_SHIELD:
@@ -218,6 +224,11 @@ void tsl_init(const hal_interface_info_t *hal)
 			tsl->qtdef.measallow = MXT_T8_MEASALLOW_MUTUALTCH;
 	}
 
+	// Resolution
+	tsl->qtdef.resolution_bit = (qtm_surface_cs_config1.resol_deadband >> 4) - RESOL_2_BIT;
+	// Deadband percentage
+	tsl->qtdef.deadband = qtm_surface_cs_config1.resol_deadband & 0xf;
+	
 	mpt_chip_init(tsl);
 }
 
@@ -266,7 +277,7 @@ ssint tsl_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 	return mpt_mem_read(baseaddr, offset, out_ptr);
 }
 
-ssint tsl_mem_write(u16 regaddr, u8 val)
+ssint tsl_mem_write(u16 baseaddr, u16 offset, u8 val)
 {
-	return mpt_mem_write(regaddr, val);
+	return mpt_mem_write(baseaddr, offset, val);
 }

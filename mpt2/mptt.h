@@ -29,7 +29,7 @@ ssint mpt_write_message(const /*object_t5_t*/void *msg_ptr);
 ssint mpt_read_message(object_t5_t *msg);
 
 ssint mpt_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr);
-ssint mpt_mem_write(u16 regaddr, u8 val);
+ssint mpt_mem_write(u16 baseaddr, u16 offset, u8 val);
 
 ssint mpt_object_read(u8 regid, u8 instance, u16 offset, u8 *out_ptr, u8 size);
 ssint mpt_object_write(u8 regid, u8 instance, u16 offset, const u8 *ptr, u8 size);

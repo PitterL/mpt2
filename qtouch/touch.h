@@ -283,7 +283,7 @@ extern "C" {
  *  RESOL_2_BIT - RESOL_12_BIT
  *  DB_NONE - DB_15_PERCENT
  */
-#define SURFACE_CS_RESOL_DB SCR_RESOL_DEADBAND(RESOL_8_BIT, DB_10_PERCENT)
+#define SURFACE_CS_RESOL_DB SCR_RESOL_DEADBAND(RESOL_12_BIT, DB_10_PERCENT)
 /* Median filter enable and  IIR filter Config
  * Median Filter <0-1>
  * Enable or Disable Median Filter

@@ -178,7 +178,7 @@ object_callback_t object_initialize_list[] = {
 	{	MXT_GEN_ACQUIRE_T8,	object_t8_init, object_t8_start, object_t8_process, NULL, (void *)&ib_objects_reg.cfg.t8	},	
 #endif
 #ifdef OBJECT_T9	
-	{	MXT_TOUCH_MULTI_T9, object_t9_init, /*object_t9_start*/NULL, NULL, object_t9_report_status, (void *)ib_objects_reg.cfg.t9_objs	},	
+	{	MXT_TOUCH_MULTI_T9, object_t9_init, object_t9_start, object_t9_process, object_t9_report_status, (void *)ib_objects_reg.cfg.t9_objs	},	
 #endif
 #ifdef OBJECT_T15
 	{	MXT_TOUCH_KEYARRAY_T15, object_t15_init, NULL, NULL, /*object_t15_report_status*/NULL, (void *)ib_objects_reg.cfg.t15_objs	},
@@ -212,7 +212,12 @@ typedef struct mxt_message_fifo {
 
 mxt_message_fifo_t message_fifo;
 
-/* Sensor parameters */
+typedef struct dirty_mark {
+#define DIRTY_BIT_WIDTH_SHIFT 3	//8 bit, shift is 3
+	u8 mark[(MXT_OBJECTS_INITIALIZE_LIST_NUM >> 3) + 1];	//Mask the config change each bit
+	u8 cacheid;	//cache the dirty regid before marked at dirty array
+} dirty_marker_t;
+
 typedef struct config_manager {
 	/* Interface from  TSL */
 	const tsl_interface_info_t *tsl;
@@ -223,8 +228,8 @@ typedef struct config_manager {
 	mpt_api_callback_t *api;
 	
 	/* config whether dirty */
-#define DIRTY_BIT_WIDTH_SHIFT 3	//8 bit, shift is 3
-	u8 dirty[(MXT_OBJECTS_INITIALIZE_LIST_NUM >> 3) + 1];	//Mask the config change each bit
+	dirty_marker_t dirty;
+	
 } config_manager_t;
 
 config_manager_t chip_config_manager;
@@ -327,38 +332,45 @@ void mpt_chip_start(void)
 	mpt_chip_reportall();
 }
 
-void mark_object_dirty(u8 regid)
+void mark_object_dirty(u8 regid, u8 first)
 {
-	config_manager_t *cfm = &chip_config_manager;
+	dirty_marker_t *dirty = &chip_config_manager.dirty;
 	const object_callback_t *ocbs = object_initialize_list;
+	
+	if (!first || dirty->cacheid == regid)
+		return;
 	
 	u8 i, j, k;
 	for (i = 0; i < MXT_OBJECTS_INITIALIZE_LIST_NUM; i++) {
 		if (ocbs[i].type == regid) {
 			j = i >> DIRTY_BIT_WIDTH_SHIFT;
 			k = i  - (j << DIRTY_BIT_WIDTH_SHIFT);
-			cfm->dirty[j] |= BIT(k);
+			dirty->mark[j] |= BIT(k);
 			break;
 		}
 	}
+	dirty->cacheid = regid;
 }
 
 void mpt_api_process(void)
 {
-	config_manager_t *cfm = &chip_config_manager;
+	dirty_marker_t *dirty = &chip_config_manager.dirty;
 	const object_callback_t *ocbs = object_initialize_list;
 	u8 i, j, k;
 	
 	LOCK();
 	
+	//clean cached id
+	dirty->cacheid = 0;
+		
 	// Run each object
 	for (i = 0; i < MXT_OBJECTS_INITIALIZE_LIST_NUM; i++) {
 		j = i >> DIRTY_BIT_WIDTH_SHIFT;
 		k = i  - (j << DIRTY_BIT_WIDTH_SHIFT);
-		if ((cfm->dirty[j] >> k) & 0x1) {
+		if ((dirty->mark[j] >> k) & 0x1) {
 			if (ocbs[i].process) {
 				ocbs[i].process();
-				cfm->dirty[j] &= ~BIT(k);
+				dirty->mark[j] &= ~BIT(k);
 			}
 		}
 	}
@@ -774,14 +786,14 @@ ssint mpt_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 	return result;
 }
 
-ssint mpt_mem_write(u16 regaddr, u8 val) 
+ssint mpt_mem_write(u16 baseaddr, u16 offset, u8 val) 
 {
 	mxt_object_t *ibots = &ib_objects_tables[0];
 	mxt_objects_reg_t * ibreg = &ib_objects_reg;
 	const mxt_object_t *obj;
 	u8 *dst;
 	ssint result = 0;
-	
+	const u16 regaddr = baseaddr + offset;
 	LOCK();
 	
 	// Only write config memory area
@@ -805,7 +817,8 @@ ssint mpt_mem_write(u16 regaddr, u8 val)
 		if (obj) {
 			dst = (u8 *)&ibreg->cfg + regaddr - MXT_OBJECTS_CFG_START;
 			dst[0] = val; //memcpy(dst, &val, 1);
-			mark_object_dirty(obj->type);
+			
+			mark_object_dirty(obj->type, (u8)!offset);
 		}
 	}else {
 		/* Address out of range */
