@@ -29,13 +29,16 @@ void copy_data_to_buffer(u8 cmd, u8 page, u8 relative, u16 data)
 {
 	t37_data_t *ptr = &t37_data_status;
 	object_t37_t *mem = (object_t37_t *)ptr->common.mem;
-	int pos, pagesize;
+	u8 pagesize;
 	
-	pagesize = sizeof(mem->data);
-	pos = relative - page * pagesize;
-	if (pos >= 0 && pos < pagesize) {
-		mem->data[pos] = data;	
+	pagesize = T37_DATA_SIZE;
+	while(relative >= pagesize) {
+		relative -= pagesize;
+		page--;
 	}
+	
+	if (page == 0)
+		mem->data[relative] = data;	
 }
 
 void check_and_empty_object_t37(u8 dbgcmd, u8 page)
@@ -61,7 +64,8 @@ void object_t37_set_data_page(u8 cmd, u8 page)
 void object_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
 {
 	t37_data_t *ptr = &t37_data_status;
-	s16 pos = -1, data;
+	s16 data;
+	u8 pos = T37_DATA_SIZE + 1;
 
 	switch(ptr->status.cmd) {
 		case MXT_DIAGNOSTIC_PAGEUP:
@@ -85,23 +89,28 @@ void object_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
 		case MXT_DIAGNOSTIC_SC_REF:
 		case MXT_DIAGNOSTIC_SC_SIGNAL:
 			// re-organize the data order, see protocol
-			if (channel < QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize)) {
-				pos = channel;
+			if (channel >= QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize)) {
+				pos = channel - QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize);
 			}else {
-				pos = channel - QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
-				if (!(pos & 0x1)) //Even
-					pos = QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize) + (pos >> 1);
-				else {	//Odd
-					pos = (QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize) << 1) + (pos >> 1);
+				// FIXME: studio not match with protocol?
+				/*
+				pos = channel >> 1;
+				if (channel & 0x1) {	//Odd
+					pos += QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
 				}
+				pos += QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
+				*/
+				pos = channel + QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
 			}
 			if (ptr->status.cmd == MXT_DIAGNOSTIC_SC_REF)
 				data = reference;
 			else {
-				/* cc value formula:
+				/* 
+					cc value formula:
 					 (val & 0x0F)*0.00675 + ((val >> 4) & 0x0F)*0.0675 + ((val >> 8) & 0x0F)*0.675 + ((val >> 12) & 0x3) * 6.75
+					
+					Here, multiply 1000 for calculation:
 				*/
-				// so multiply 1000 here
 				data = (cap & 0x0F) * 7 + ((cap >> 4) & 0x0F) * 68 + ((cap >> 8) & 0x0F) * 675 + ((cap >> 12) & 0x3) * 6750;		
 			}
 		default:
@@ -109,6 +118,6 @@ void object_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
 	}
 	
 	check_and_empty_object_t37(ptr->status.cmd, ptr->status.page);
-	if (pos >= 0)
-		copy_data_to_buffer(ptr->status.cmd, ptr->status.page, pos, data);
+	if (pos < T37_DATA_SIZE)
+		copy_data_to_buffer(ptr->status.cmd, ptr->status.page, pos, (u16)data);
 }

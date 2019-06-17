@@ -54,8 +54,9 @@ void t9_set_unsupport_area(t9_data_t *ptr)
 
 void t9_data_sync(t9_data_t *ptr, u8 rw)
 {
+	const qtouch_config_t *def = ptr->common.def;
 	object_t9_t *mem = (object_t9_t *) ptr->common.mem;
-	u16 xorigin = mem->xorigin, yorigin = mem->yorigin;
+	u16 xorigin = mem->xorigin, yorigin = mem->yorigin + def->matrix_xsize;
 	u8 end;
 	
 	txx_cb_param_t params_channel[] = {
@@ -109,7 +110,7 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 	if (rw) {	// read
 		mem->movfilter = (movfilter.value << 4);
 		mem->xorigin = (u8)xorigin;
-		mem->yorigin = (u8)yorigin;
+		mem->yorigin = (u8)yorigin - def->matrix_xsize;
 	}
 	
 	t9_set_unsupport_area(ptr);
@@ -188,6 +189,7 @@ void transfer_pos(t9_data_t *ptr, t9_range_t *ppos)
 	
 	// Switch orientation
 	if (mem->orient) {
+		// As protocol , invert first, then switch
 		if (mem->orient & MXT_T9_ORIENT_INVERTX) {
 			point.x = xrange - point.x;
 		}

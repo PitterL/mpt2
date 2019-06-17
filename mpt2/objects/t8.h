@@ -23,6 +23,13 @@ typedef struct object_t8 {
 	u8 atchcalsthr;
 	u8 atchfrccalthr;
 	u8 atchfrccalratio;
+#ifdef	OBJECT_T8_MC_SC
+	u8 measallow;
+	u8 measidledef;
+	u8 measactvdef;
+	u8 refmode;
+	u8 cfg;
+#endif
 } __attribute__ ((packed)) object_t8_t;
 
 #define MXT_T8_MEASALLOW_MUTUALTCH	BIT(0)

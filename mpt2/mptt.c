@@ -807,7 +807,7 @@ ssint mpt_mem_write(u16 baseaddr, u16 offset, u8 val)
 		/* Control command */
 		obj = ib_get_object_by_address(ibots, regaddr);
 		if (obj) {
-			result = handle_object_command(obj, regaddr - obj->start_address, val);
+			/*result =  Not Return error, or QTServer may crash*/handle_object_command(obj, regaddr - obj->start_address, val);
 		}else {
 			result = -4;
 		}

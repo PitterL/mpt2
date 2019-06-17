@@ -21,6 +21,13 @@ void t8_set_unsupport_area(object_t8_t *mem)
 	mem->atchcalst = 0;
 	mem->atchfrccalthr = 0;
 	mem->atchfrccalratio = 0;
+#ifdef OBJECT_T8_MC_SC
+	mem->measallow = 0xf;
+	mem->measidledef = 0x2;
+	mem->measactvdef = 0x2;
+	mem->refmode = 0x1;
+	mem->cfg = 0;
+#endif
 }
 
 void t8_data_sync(const txx_data_t *ptr, u8 rw)
