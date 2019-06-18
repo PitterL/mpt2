@@ -50,7 +50,7 @@ void object_txx_readback(const txx_data_t *ptr, const txx_cb_param_t *params, u8
 	object_txx_op(ptr, params, count, index, 1);
 }
 
-void object_txx_process(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index)
+void object_txx_writeback(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index)
 {
 	object_txx_op(ptr, params, count, index, 0);
 }

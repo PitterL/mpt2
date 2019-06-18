@@ -28,8 +28,12 @@ void t9_set_unsupport_area(t9_data_t *ptr)
 	mem->akscfg = 0;
 
 	//self cap
-	//mem->blen = 0;
-	//mem->tchthr = 0;
+	/*
+	mem->blen = 0;
+	mem->tchthr = 0;
+	mem->tchhyst = 0;
+	*/
+	
 	mem->mrgtimeout = 0;
 	mem->movhystn = 0;
 	//temp
@@ -92,15 +96,17 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 	object_txx_op(&ptr->common, params_channel, ARRAY_SIZE(params_channel), 0, rw);
 	
 	// Mutual only
-	// Sensor channel parameters
-	end = rw ? (u8)xorigin + 1 : (u8)xorigin + mem->xsize;
-	for ( i = (u8)xorigin; i < end; i++ ) {
-		object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
-	}
-	
-	if (!rw) {
-		for ( i = (u8)yorigin; i < (u8)yorigin + mem->ysize; i++ ) {
+	if (object_api_t8_measuring_mutual()) {	//Test Mutual cap
+		// Sensor channel parameters
+		end = rw ? (u8)xorigin + 1 : (u8)xorigin + mem->xsize;
+		for ( i = (u8)xorigin; i < end; i++ ) {
 			object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
+		}
+	
+		if (!rw) {	//write
+			for ( i = (u8)yorigin; i < (u8)yorigin + mem->ysize; i++ ) {
+				object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
+			}
 		}
 	}
 	
@@ -126,11 +132,11 @@ void object_t9_start(u8 loaded)
 	t9_data_sync(ptr, 1);
 }
 
-void object_t9_process(void)
+void object_t9_process(u8 rw)
 {
 	t9_data_t *ptr = &t9_data_status;
 	
-	t9_data_sync(ptr, 0);
+	t9_data_sync(ptr, rw);
 }
 
 void t9_report_status(u8 rid, const t9_point_status_t *pt)

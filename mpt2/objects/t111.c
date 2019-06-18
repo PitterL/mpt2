@@ -62,25 +62,27 @@ void t111_data_sync(const txx_data_t *ptr, u8 rw)
 	
 	u8 i, end;
 	
-	end = rw ? 1 : QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize);
-	for (i = 0; i < end; i++) {
-		object_txx_op(ptr, xparams, ARRAY_SIZE(xparams), i, rw);
-	}
+	if (object_api_t8_measuring_self()) {
+		end = rw ? 1 : QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize);
+		for (i = 0; i < end; i++) {
+			object_txx_op(ptr, xparams, ARRAY_SIZE(xparams), i, rw);
+		}
 	
-	end = rw ? QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + 1 : QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + QTOUCH_CONFIG_VAL(ptr->def, matrix_ysize);
-	for (i = QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize); i < end; i++) {
-		object_txx_op(ptr, yparams, ARRAY_SIZE(yparams), i, rw);
-	}	
+		end = rw ? QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + 1 : QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + QTOUCH_CONFIG_VAL(ptr->def, matrix_ysize);
+		for (i = QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize); i < end; i++) {
+			object_txx_op(ptr, yparams, ARRAY_SIZE(yparams), i, rw);
+		}	
 	
-	object_txx_op(ptr, params, ARRAY_SIZE(params), 0, rw);
+		object_txx_op(ptr, params, ARRAY_SIZE(params), 0, rw);
 	
-	if (rw) {
-		// Update memory
-		mem->inttime = resprsc_y.lo;
-		mem->altinttimex = resprsc_x.lo == resprsc_y.lo ? 0 : resprsc_x.lo;
-		mem->inrushcfg = (resprsc_y.hi << T111_INRUSHCFG_Y_RESISTOR_SHIFT) | (resprsc_x.hi << T111_INRUSHCFG_X_RESISTOR_SHIFT);
-		mem->delaytime = delay_y;
-		mem->altdelaytimex = (delay_x == delay_y) ? 0 : delay_x;
+		if (rw) {
+			// Update memory
+			mem->inttime = resprsc_y.lo;
+			mem->altinttimex = resprsc_x.lo == resprsc_y.lo ? 0 : resprsc_x.lo;
+			mem->inrushcfg = (resprsc_y.hi << T111_INRUSHCFG_Y_RESISTOR_SHIFT) | (resprsc_x.hi << T111_INRUSHCFG_X_RESISTOR_SHIFT);
+			mem->delaytime = delay_y;
+			mem->altdelaytimex = (delay_x == delay_y) ? 0 : delay_x;
+		}
 	}
 	
 	t111_set_unsupport_area(mem);
@@ -96,9 +98,9 @@ void object_t111_start(u8 loaded)
 	t111_data_sync(ptr, 1);
 }
 
-void object_t111_process(void)
+void object_t111_process(u8 rw)
 {
 	t111_data_t *ptr = &t111_data_status;
 	
-	t111_data_sync(ptr, 0);
+	t111_data_sync(ptr, rw);
 }

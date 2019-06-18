@@ -37,6 +37,7 @@ extern "C" {
 #include "qtm_touch_key_0x0002_api.h"
 #include "qtm_freq_hop_auto_0x0004_api.h"
 #include "qtm_surface_cs_0x0021_api.h"
+//#include "qtm_surface_cs2t_0x0025_api.h"
 #include "qtm_gestures_2d_0x0023_api.h"
 
 /*----------------------------------------------------------------------------

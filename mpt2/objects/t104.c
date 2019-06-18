@@ -41,15 +41,16 @@ void t104_data_sync(const txx_data_t *ptr, u8 rw)
 		{ KEY_PARAMS_HYSTERESIS, &mem->ytchhyst, sizeof(mem->ytchhyst) },
 	};
 	
+	if (object_api_t8_measuring_self()) {
+		end = rw ? 1 : QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize);
+		for (i = 0; i < end; i++) {
+			object_txx_op(ptr, xparams, ARRAY_SIZE(xparams), i, rw);
+		}
 	
-	end = rw ? 1 : QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize);
-	for (i = 0; i < end; i++) {
-		object_txx_op(ptr, xparams, ARRAY_SIZE(xparams), i, rw);
-	}
-	
-	end = rw ? QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + 1 : QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + QTOUCH_CONFIG_VAL(ptr->def, matrix_ysize);
-	for (i = QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize); i < end; i++) {
-		object_txx_op(ptr, yparams, ARRAY_SIZE(yparams), i, rw);
+		end = rw ? QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + 1 : QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + QTOUCH_CONFIG_VAL(ptr->def, matrix_ysize);
+		for (i = QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize); i < end; i++) {
+			object_txx_op(ptr, yparams, ARRAY_SIZE(yparams), i, rw);
+		}
 	}
 	
 	t104_set_unsupport_area(mem);
@@ -65,9 +66,9 @@ void object_t104_start(u8 loaded)
 	t104_data_sync(ptr, 1);
 }
 
-void object_t104_process(void)
+void object_t104_process(u8 rw)
 {
 	t104_data_t *ptr = &t104_data_status;
-	
-	t104_data_sync(ptr, 0);
+		
+	t104_data_sync(ptr, rw);
 }

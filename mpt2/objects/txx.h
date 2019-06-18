@@ -78,7 +78,7 @@ typedef struct txx_cb_param {
 
 ssint object_txx_init(txx_data_t *ptr, u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_txx_readback(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index);
-void object_txx_process(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index);
+void object_txx_writeback(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index);
 void object_txx_op(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index, u8 rw);
 
 #endif /* TXX_H_ */

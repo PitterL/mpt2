@@ -46,7 +46,7 @@ void t15_set_unsupport_area(object_t15_t *mem)
 	
 }
 
-void object_t15_process(void)
+void object_t15_process(u8 rw)
 {
 	t15_data_t *ptr = &t15_data_status;
 	object_t15_t *mem = (object_t15_t *)ptr->mem;
@@ -64,11 +64,11 @@ void object_t15_process(void)
 	//Fixme: not finished here, expamle for self cap only
 	//Need verify xstart/xsize
 	for ( i = 0; i < mem->xsize; i++ )
-		object_txx_process(ptr, params, ARRAY_SIZE(params), mem->xorigin + i);
+		object_txx_writeback(ptr, params, ARRAY_SIZE(params), mem->xorigin + i);
 	
 	
 	for ( i = 0; i < mem->ysize; i++ )
-		object_txx_process(ptr, params, ARRAY_SIZE(params), mem->yorigin + i);
+		object_txx_writeback(ptr, params, ARRAY_SIZE(params), mem->yorigin + i);
 	
 	t15_set_unsupport_area(mem);
 }

@@ -82,7 +82,12 @@ extern "C" {
  */
 #define DEF_NUM_CHANNELS (11)
 
-/* Defines node parameter setting
+/* Defines node parameter setting of mutual cap
+ * {X-line, Y-line, Charge Share Delay, NODE_RSEL_PRSC(series resistor, prescaler), NODE_G(Analog Gain , Digital Gain),
+ * filter level}
+ */
+ 
+/* Defines node parameter setting self cap
  * {Shield line, Y-line, Charge Share Delay, NODE_RSEL_PRSC(series resistor, prescaler), NODE_G(Analog Gain , Digital
  * Gain), filter level}
  */
@@ -262,12 +267,12 @@ extern "C" {
  * Start key of horizontal axis
  * Range: 0 to 65534
  */
-#define SURFACE_CS_START_KEY_H 5
+#define SURFACE_CS_START_KEY_H 6
 /* Horizontal Number of Channel <0-255>
  * Number of Channels forming horizontal axis
  * Range: 0 to 255
  */
-#define SURFACE_CS_NUM_KEYS_H 5
+#define SURFACE_CS_NUM_KEYS_H 4
 /* Vertical Start Key <0-65534>
  * Start key of vertical axis
  * Range: 0 to 65534
@@ -277,7 +282,7 @@ extern "C" {
  * Number of Channels forming vertical axis
  * Range: 0 to 255
  */
-#define SURFACE_CS_NUM_KEYS_V 5
+#define SURFACE_CS_NUM_KEYS_V 6
 /*  Position Resolution and Deadband Percentage
  *  Full scale position resolution reported for the axis and the deadband Percentage
  *  RESOL_2_BIT - RESOL_12_BIT
@@ -397,6 +402,15 @@ extern "C" {
  *the direction of rotation, then only after 360 degree, it will be detected as one wheel gesture.
  */
 #define WHEEL_REVERSE_QUADRANT_COUNT 2
+
+/* Pinch Zoom Threshold <0-255>
+ * The PINCH_ZOOM_THRESHOLD limits the allowable distance between the two fingers to detect the pinch and the zoom
+ * gestures. After crossing the PINCH_ZOOM_THRESHOLD, if the distance between the contacts is reducing, then the gesture
+ * is reported as 'PINCH'. After crossing the PINCH_ZOOM_THRESHOLD, if the distance between the contacts is increasing,
+ * then the gesture is reported as 'ZOOM'. Unit: coordinates Example: if PINCH_ZOOM_THRESHOLD is configured as 20, then
+ * after crossing 20 coordinates, it will be reported as the pinch gesture or the zoom gesture.
+ */
+#define PINCH_ZOOM_THRESHOLD 150
 
 #define DEF_GESTURE_TIME_BASE_MS 10u
 

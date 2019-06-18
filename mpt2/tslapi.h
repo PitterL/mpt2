@@ -76,7 +76,6 @@ typedef void (*cb_calibrate_t)(void);
 typedef struct qtouch_config {
 	u8 matrix_xsize;
 	u8 matrix_ysize;
-	u8 measallow;
 	u8 resolution_bit;
 	u8 deadband;
 } qtouch_config_t;

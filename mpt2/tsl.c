@@ -65,6 +65,7 @@ tch_config_callback_t touch_config_list[] ={
 	{DEF_TOUCH_MEASUREMENT_PERIOD_MS, &qtlib_time_elapsed_since_update, sizeof(qtlib_time_elapsed_since_update), 0, 0, COMMON_RW },
 #endif
 	{DEF_SEL_FREQ_INIT, &ptc_qtlib_acq_gen1.freq_option_select, sizeof(ptc_qtlib_acq_gen1.freq_option_select), 0, 0, COMMON_RW },
+	{DEF_SENSOR_TYPE, &ptc_qtlib_acq_gen1.acq_sensor_type, sizeof(ptc_qtlib_acq_gen1.acq_sensor_type), 0, 0, COMMON_RW },
 	
 	{NODE_PARAMS_CSD, &ptc_seq_node_cfg1[0].node_csd, sizeof(ptc_seq_node_cfg1[0].node_csd), sizeof(ptc_seq_node_cfg1[0]), 0, ARRAY_MEM_RW },
 	{NODE_PARAMS_RESISTOR_PRESCALER, &ptc_seq_node_cfg1[0].node_rsel_prsc, sizeof(ptc_seq_node_cfg1[0].node_rsel_prsc), sizeof(ptc_seq_node_cfg1[0]), 0, ARRAY_MEM_RW },
@@ -194,7 +195,7 @@ tsl_interface_info_t interface_tsl =
 void tsl_init(const hal_interface_info_t *hal)
 {
 	const qtm_surface_cs_config_t *qtcfg = &qtm_surface_cs_config1;
-	qtm_acq_node_group_config_t *qtacq = &ptc_qtlib_acq_gen1;
+	//qtm_acq_node_group_config_t *qtacq = &ptc_qtlib_acq_gen1;
 	tsl_interface_info_t *tsl = &interface_tsl;
 	
 	// Save HAL interface
@@ -211,19 +212,6 @@ void tsl_init(const hal_interface_info_t *hal)
 		tsl->qtdef.matrix_ysize = qtcfg->number_of_keys_h + qtcfg->start_key_h - tsl->qtdef.matrix_xsize;
 	}
 	
-	// Sensing type
-	switch (qtacq->acq_sensor_type) {
-		case NODE_SELFCAP:
-		case NODE_SELFCAP_SHIELD:
-			tsl->qtdef.measallow = MXT_T8_MEASALLOW_SELFTCH;
-		break;
-		case NODE_MUTUAL:
-		case NODE_MUTUAL_4P:
-		case NODE_MUTUAL_8P:
-		default:
-			tsl->qtdef.measallow = MXT_T8_MEASALLOW_MUTUALTCH;
-	}
-
 	// Resolution
 	tsl->qtdef.resolution_bit = (qtm_surface_cs_config1.resol_deadband >> 4) - RESOL_2_BIT;
 	// Deadband percentage

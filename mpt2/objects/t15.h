@@ -26,7 +26,7 @@ typedef struct object_t15 {
 #include "txx.h"
 typedef struct txx_data t15_data_t;
 
-void object_t15_process(void);
+void object_t15_process(u8 rw);
 ssint object_t15_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 
 #define MXT_TOUCH_KEYARRAY_T15_INST 1

@@ -152,7 +152,7 @@ typedef struct object_callback {
 	
 	ssint (*init)(u8 rid, const /* (qtouch_config_t *) */const void *, /* mem space */void *, /* (const qtouch_api_callback_t*) */const void *);
 	void (*start)(/* load default config */u8 loaded);
-	void (*process)(void);
+	void (*process)(u8 rw);
 	void (*report)(void);
 	
 	void *mem;	// Reg memory pointer
@@ -177,8 +177,9 @@ object_callback_t object_initialize_list[] = {
 #ifdef OBJECT_T8	
 	{	MXT_GEN_ACQUIRE_T8,	object_t8_init, object_t8_start, object_t8_process, NULL, (void *)&ib_objects_reg.cfg.t8	},	
 #endif
+//The following project should later initialized than t8, since it request sensor scanning mode
 #ifdef OBJECT_T9	
-	{	MXT_TOUCH_MULTI_T9, object_t9_init, object_t9_start, object_t9_process, object_t9_report_status, (void *)ib_objects_reg.cfg.t9_objs	},	
+	{	MXT_TOUCH_MULTI_T9, object_t9_init, object_t9_start, object_t9_process, object_t9_report_status, (void *)ib_objects_reg.cfg.t9_objs	},
 #endif
 #ifdef OBJECT_T15
 	{	MXT_TOUCH_KEYARRAY_T15, object_t15_init, NULL, NULL, /*object_t15_report_status*/NULL, (void *)ib_objects_reg.cfg.t15_objs	},
@@ -267,7 +268,7 @@ ssint mpt_chip_init(const void *tsl_ptr)
 	config_manager_t *cfm = &chip_config_manager;
 	
 	const crc_data_blocks_t dblocks[] = { {(u8 *)ibinf, sizeof(*ibinf)}, {(u8 *)ibots, MXT_OBJECTS_TABLE_SIZE} };
-	const object_callback_t *ocbs = object_initialize_list;
+	const object_callback_t *ocbs = &object_initialize_list[0];
 	u32 crc;
 	u16 offset;
 	u8 reportid, i;
@@ -314,10 +315,10 @@ ssint mpt_chip_init(const void *tsl_ptr)
 
 void mpt_chip_start(void)
 {
-	const object_callback_t *ocbs = object_initialize_list;
+	const object_callback_t *ocbs = &object_initialize_list[0];
 	u8 i;
 	ssint result;
-		
+
 	result = mpt_chip_load_config();
 
 	// Send a calibration
@@ -332,15 +333,29 @@ void mpt_chip_start(void)
 	mpt_chip_reportall();
 }
 
-void mark_object_dirty(u8 regid, u8 first)
+void mem_readback(u8 regid)
+{
+	const object_callback_t *ocbs = &object_initialize_list[0];
+	u8 i;
+		
+	for (i = 0; i < MXT_OBJECTS_INITIALIZE_LIST_NUM; i++) {
+		if (ocbs[i].type == regid) {
+			if (ocbs[i].process)
+				ocbs[i].process(1);
+			break;
+		}
+	}
+}
+
+void mem_mark_dirty(u8 regid, u8 first)
 {
 	dirty_marker_t *dirty = &chip_config_manager.dirty;
-	const object_callback_t *ocbs = object_initialize_list;
+	const object_callback_t *ocbs = &object_initialize_list[0];
+	u8 i, j, k;
 	
 	if (!first || dirty->cacheid == regid)
 		return;
 	
-	u8 i, j, k;
 	for (i = 0; i < MXT_OBJECTS_INITIALIZE_LIST_NUM; i++) {
 		if (ocbs[i].type == regid) {
 			j = i >> DIRTY_BIT_WIDTH_SHIFT;
@@ -355,7 +370,7 @@ void mark_object_dirty(u8 regid, u8 first)
 void mpt_api_process(void)
 {
 	dirty_marker_t *dirty = &chip_config_manager.dirty;
-	const object_callback_t *ocbs = object_initialize_list;
+	const object_callback_t *ocbs = &object_initialize_list[0];
 	u8 i, j, k;
 	
 	LOCK();
@@ -369,7 +384,7 @@ void mpt_api_process(void)
 		k = i  - (j << DIRTY_BIT_WIDTH_SHIFT);
 		if ((dirty->mark[j] >> k) & 0x1) {
 			if (ocbs[i].process) {
-				ocbs[i].process();
+				ocbs[i].process(0);
 				dirty->mark[j] &= ~BIT(k);
 			}
 		}
@@ -449,7 +464,7 @@ ssint mpt_chip_load_config(void)
 
 void mpt_chip_reportall(void)
 {
-	const object_callback_t *ocbs = object_initialize_list;
+	const object_callback_t *ocbs = &object_initialize_list[0];
 	u8 i;
 	
 	// Report each object
@@ -719,7 +734,7 @@ ssint mpt_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 	mxt_object_t *ibots = &ib_objects_tables[0];
 	data_crc24_t *ibcrc = &ib_info_crc;
 	mxt_objects_reg_t * ibreg = &ib_objects_reg;
-	const mxt_object_t *obj_t5 = ib_get_object(ibots, MXT_GEN_MESSAGE_T5);
+	const mxt_object_t *obj, *obj_t5 = ib_get_object(ibots, MXT_GEN_MESSAGE_T5);
 	u8 size = 0, checksum = 0, discard = 0;
 	u16 regaddr;
 	u8 *dst = NULL;
@@ -753,7 +768,8 @@ ssint mpt_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 			If T5 ram hasn't get message, pop message data from buffer,
 			After message sent out, mark T5 ram out date 
 		*/
-		if (size /*baseaddr == obj_t5->start_address*/) {
+		
+		if (baseaddr == obj_t5->start_address) {
 			if (offset == 0) {	// First byte in T5 memory, reload message if read from at T5 and msg is invalid
 				if (ibreg->ram.t5.reportid == MXT_RPTID_NOMSG) {
 					// Read new message to T5 memory
@@ -764,6 +780,15 @@ ssint mpt_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 					ibreg->ram.t5.crc = calc_crc8((u8 *)&ibreg->ram.t5, size -1);
 				}
 				discard = 1;
+			}
+		}else {
+			//Sync data with qtlib
+			if (regaddr >= MXT_OBJECTS_CFG_START) {
+				obj = ib_get_object_by_address(ibots, regaddr);
+				if (obj) {
+					if (obj->start_address == regaddr)
+						mem_readback(obj->type);
+				}
 			}
 		}
 		dst = (u8 *)ibreg + regaddr - MXT_OBJECTS_START;	
@@ -818,7 +843,7 @@ ssint mpt_mem_write(u16 baseaddr, u16 offset, u8 val)
 			dst = (u8 *)&ibreg->cfg + regaddr - MXT_OBJECTS_CFG_START;
 			dst[0] = val; //memcpy(dst, &val, 1);
 			
-			mark_object_dirty(obj->type, (u8)!offset);
+			mem_mark_dirty(obj->type, (u8)!offset);
 		}
 	}else {
 		/* Address out of range */

@@ -43,9 +43,9 @@ void object_t7_start(u8 loaded)
 	t7_data_sync(ptr, 1);
 }
 
-void object_t7_process(void)
+void object_t7_process(u8 rw)
 {
 	t7_data_t *ptr = &t7_data_status;
 	
-	t7_data_sync(ptr, 0);
+	t7_data_sync(ptr, rw);
 }

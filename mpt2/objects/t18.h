@@ -26,7 +26,7 @@ typedef struct object_t18 {
 #include "txx.h"
 typedef struct txx_data t18_data_t;
 
-void object_t18_process(void);
+void object_t18_process(u8 rw);
 ssint object_t18_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 bool object_t18_check_retrigger(void);
 

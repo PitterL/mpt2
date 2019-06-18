@@ -19,7 +19,7 @@ void t18_set_unsupport_area(object_t18_t *mem)
 	mem->cmd = 0;
 }
 
-void object_t18_process(void)
+void object_t18_process(u8 rw)
 {
 	t18_data_t *ptr = &t18_data_status;
 	object_t18_t *mem = (object_t18_t *)ptr->mem;
