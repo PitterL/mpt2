@@ -139,6 +139,7 @@ void I2C_close(void)
  *
  * \return Nothing
  */
+bool send_firstbyte = true;
 void I2C_isr()
 {
 	if (TWI0.SSTATUS & TWI_COLL_bm) {
@@ -153,23 +154,26 @@ void I2C_isr()
 
 	if ((TWI0.SSTATUS & TWI_APIF_bm) && (TWI0.SSTATUS & TWI_AP_bm)) {
 		I2C_address_callback();
-		if (TWI0.SSTATUS & TWI_DIR_bm) {
-			// Master wishes to read from slave
-			I2C_read_callback(); 
-			TWI0.SCTRLB = TWI_ACKACT_ACK_gc | TWI_SCMD_RESPONSE_gc;
-		}
+		send_firstbyte = true;
 		return;
 	}
+
 	if (TWI0.SSTATUS & TWI_DIF_bm) {
 		if (TWI0.SSTATUS & TWI_DIR_bm) {
 			// Master wishes to read from slave
-			if (!(TWI0.SSTATUS & TWI_RXACK_bm)) {
-				// Received ACK from master
+			if(send_firstbyte){
 				I2C_read_callback();
-				TWI0.SCTRLB = TWI_ACKACT_ACK_gc | TWI_SCMD_RESPONSE_gc;
-			} else {
-				// Received NACK from master
-				I2C_goto_unaddressed();
+				send_firstbyte = false;
+			}else{		
+				if (!(TWI0.SSTATUS & TWI_RXACK_bm)) {
+					// Received ACK from master
+					I2C_read_callback();
+				
+					TWI0.SCTRLB = TWI_ACKACT_ACK_gc | TWI_SCMD_RESPONSE_gc;
+				} else {
+					// Received NACK from master
+					I2C_goto_unaddressed();
+				}
 			}
 		} else // Master wishes to write to slave
 		{
