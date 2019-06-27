@@ -81,6 +81,7 @@ typedef struct t9_point_status {
 
 typedef struct t9_data {
 	txx_data_t common;
+	const /*qsurface_config_t*/void *surdef;
 	t9_point_status_t points[MXT_TOUCH_MULTI_T9_RIDS];
 } t9_data_t;
 
@@ -88,6 +89,6 @@ ssint object_t9_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, con
 void object_t9_start(u8 loaded);
 void object_t9_process(u8 rw);
 void object_t9_report_status(void);
-ssint object_t9_set_pointer_location(u8 id, u8 status, u16 x, u16 y);
+ssint object_t9_set_pointer_location(u8 inst, u8 id, u8 status, u16 x, u16 y);
 
 #endif /* T9_H_ */

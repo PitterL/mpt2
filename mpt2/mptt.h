@@ -36,7 +36,8 @@ ssint mpt_object_write(u8 regid, u8 instance, u16 offset, const u8 *ptr, u8 size
 
 void mpt_api_process(void);
 void mpt_api_set_sensor_data(u8 channel, u8 state, u16 reference, u16 signal, u16 cap);
-void mpt_api_set_pointer_location(u8 id, u8 status, u16 x, u16 y);
+void mpt_api_set_button_status(u8 id, u8 status);
+void mpt_api_set_pointer_location(u8 type, u8 id, u8 status, u16 x, u16 y);
 
 typedef void (* message_cb_t)(u8/* message_count*/ , bool /*retrigger*/);
 /* Will lock FIFO get count operation */

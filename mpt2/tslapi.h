@@ -73,11 +73,32 @@ typedef ssint (*cb_writeback_t)(u8 type, /*read or write */void *buf, size_t siz
 typedef ssint (*cb_sync_op_t)(u8 type, /*read or write */void *buf, size_t size, u8 index, u8 rw);
 typedef void (*cb_calibrate_t)(void);
 
+typedef union {
+	struct {
+		u8 origin: 4;
+		u8 size: 4;
+	};
+	u8 value;
+} nodes_desc_t;
+
+typedef struct qbutton_config {
+	nodes_desc_t node;
+} qbutton_config_t;
+
+typedef struct qsurface_config {
+	nodes_desc_t xnode;
+	nodes_desc_t ynode;
+	u8 resolution_bit;
+} qsurface_config_t;
+
 typedef struct qtouch_config {
 	u8 matrix_xsize;
 	u8 matrix_ysize;
-	u8 resolution_bit;
-	u8 deadband;
+	u8 num_sensor_params;
+	qbutton_config_t *buttons;
+	u8 num_buttons;
+	qsurface_config_t *surface_sliders;
+	u8 num_surfaces_slider;
 } qtouch_config_t;
 
 #define QTOUCH_CONFIG_VAL(_p, _n) (((qtouch_config_t *)(_p))->_n)

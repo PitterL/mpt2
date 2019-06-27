@@ -126,7 +126,11 @@ mxt_object_t ib_objects_tables[] = {
 
 /* Should add all report count here */
 #define MXT_REPORT_ID_START 1
-#define MXT_REPORT_ID_COUNT (MXT_GEN_COMMAND_T6_RIDS + MXT_TOUCH_MULTI_T9_RIDS + MXT_TOUCH_KEYARRAY_T15_RIDS + MXT_SPT_SELFTEST_T25_RIDS)
+#define MXT_REPORT_ID_COUNT (MXT_GEN_COMMAND_T6_RIDS + \
+								MXT_TOUCH_MULTI_T9_RIDS * MXT_TOUCH_MULTI_T9_INST + \
+								MXT_TOUCH_KEYARRAY_T15_RIDS * MXT_TOUCH_KEYARRAY_T15_INST +\
+								MXT_SPT_SELFTEST_T25_RIDS)
+								
 #if MXT_REPORT_ID_COUNT > 254
 #error "Report id count too large, varible may overflow"
 #endif
@@ -182,7 +186,7 @@ object_callback_t object_initialize_list[] = {
 	{	MXT_TOUCH_MULTI_T9, object_t9_init, object_t9_start, object_t9_process, object_t9_report_status, (void *)ib_objects_reg.cfg.t9_objs	},
 #endif
 #ifdef OBJECT_T15
-	{	MXT_TOUCH_KEYARRAY_T15, object_t15_init, NULL, NULL, /*object_t15_report_status*/NULL, (void *)ib_objects_reg.cfg.t15_objs	},
+	{	MXT_TOUCH_KEYARRAY_T15, object_t15_init, object_t15_start, object_t15_process, object_t15_report_status, (void *)ib_objects_reg.cfg.t15_objs	},
 #endif
 #ifdef OBJECT_T18
 	{	MXT_SPT_COMMSCONFIG_T18, object_t18_init, NULL, NULL, NULL, (void *)&ib_objects_reg.cfg.t18},
@@ -279,8 +283,8 @@ ssint mpt_chip_init(const void *tsl_ptr)
 	cfm->api = api;
 	cfm->api->qtapi = cfm->tsl->api;
 	// Build ID Information
-	ibinf->matrix_xsize = cfm->tsl->qtdef.matrix_xsize;
-	ibinf->matrix_ysize = cfm->tsl->qtdef.matrix_ysize;
+	ibinf->matrix_xsize = cfm->tsl->qtdef->matrix_xsize;
+	ibinf->matrix_ysize = cfm->tsl->qtdef->matrix_ysize;
 	ibinf->object_num = MXT_OBJECTS_NUM;
 	
 	// Build Objects tables
@@ -306,7 +310,7 @@ ssint mpt_chip_init(const void *tsl_ptr)
 	for (i = 0; i < MXT_OBJECTS_INITIALIZE_LIST_NUM; i++) {
 		if (ocbs[i].init) {
 			reportid = get_report_id(ibots, ocbs[i].type);
-			ocbs[i].init(reportid, &cfm->tsl->qtdef, ocbs[i].mem, cfm->api);
+			ocbs[i].init(reportid, cfm->tsl->qtdef, ocbs[i].mem, cfm->api);
 		}
 	}
 		
@@ -912,9 +916,16 @@ void mpt_api_set_sensor_data(u8 channel, u8 state, u16 reference, u16 signal, u1
 #endif
 }
 
-void mpt_api_set_pointer_location(u8 id, u8 status, u16 x, u16 y)
+void mpt_api_set_button_status(u8 id, u8 status)
+{
+#ifdef OBJECT_T15
+	object_t15_set_button_status(id, status);
+#endif
+}
+
+void mpt_api_set_pointer_location(u8 type, u8 id, u8 status, u16 x, u16 y)
 {
 #ifdef OBJECT_T9
-	object_t9_set_pointer_location(id, status, x, y);
+	object_t9_set_pointer_location(type, id, status, x, y);
 #endif
 }

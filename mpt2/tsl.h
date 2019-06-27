@@ -29,7 +29,7 @@ typedef struct tsl_interface_info {
 	const qtouch_api_callback_t *api;
 	
 	// Touch default config
-	qtouch_config_t qtdef;
+	const qtouch_config_t *qtdef;
 }tsl_interface_info_t;
 
 void tsl_init(const hal_interface_info_t *hal);

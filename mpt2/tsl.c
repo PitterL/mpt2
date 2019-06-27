@@ -179,6 +179,70 @@ void tch_calibrate(void)
 	}
 }
 
+void tch_ref_signal_update(void)
+{
+	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
+	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
+	u8 i;
+	
+	for (i = 0; i < qttkg->num_key_sensors; i++) {
+		mpt_api_set_sensor_data(i, qtkds->sensor_state, qtkds[i].channel_reference, qtkds[i].node_data_struct_ptr->node_acq_signals, qtkds[i].node_data_struct_ptr->node_comp_caps);
+	}
+}
+
+void tch_button_press_report(void)
+{
+	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
+	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
+	u8 i, status;
+	
+	for (i = 0; i < qttkg->num_key_sensors; i++) {
+		if (qtkds[i].sensor_state & KEY_TOUCHED_MASK) {
+			status = 1;
+		}else {
+			status = 0;
+		}
+		mpt_api_set_button_status(i, status);
+	}
+}
+
+void tch_touch_location_report(void)
+{
+	const qtm_surface_contact_data_t *qtsf = &qtm_surface_cs_data1;
+	u8 t9_status = 0;
+	
+	if (qtsf->qt_surface_status & TOUCH_ACTIVE)
+		t9_status = MXT_T9_DETECT | MXT_T9_PRESS;
+	else if(qtsf->qt_surface_status & POSITION_CHANGE)
+		t9_status = MXT_T9_DETECT | MXT_T9_MOVE;
+
+#define SURFACE_INST_ID 0
+#define SURFACE_FINGER_ID 0
+	mpt_api_set_pointer_location(SURFACE_INST_ID, SURFACE_FINGER_ID, t9_status,  qtsf->h_position, qtsf->v_position);	
+}
+
+qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
+
+};
+
+qsurface_config_t surfaces_sliders_config[MXT_TOUCH_MULTI_T9_INST] = {
+
+};
+
+qtouch_config_t tsl_qtouch_def = {
+	//ATTiny3217, sensor channel is 7 * 7
+	.matrix_xsize = 7,
+	.matrix_ysize = 7,
+	
+	//If define num_surfaces_slider, should filled the surfaces_sliders_config
+	.surface_sliders = &surfaces_sliders_config[0],
+	.num_surfaces_slider = ARRAY_SIZE(surfaces_sliders_config),
+	
+	//If define num_buttons, should filled the buttons_config
+	.buttons = &buttons_config[0],
+	.num_buttons = ARRAY_SIZE(buttons_config),
+};
+
 qtouch_api_callback_t tsl_api_info =
 {
 	.write = tch_config_write,
@@ -190,32 +254,47 @@ qtouch_api_callback_t tsl_api_info =
 tsl_interface_info_t interface_tsl = 
 {
 	.api = &tsl_api_info,
+	.qtdef = &tsl_qtouch_def,
 };
+
+void tch_assert_irq(void)
+{
+	const tsl_interface_info_t *tsl = &interface_tsl;
+
+	mpt_api_request_irq(tsl->hal->fn_set_chg);
+}
 
 void tsl_init(const hal_interface_info_t *hal)
 {
 	const qtm_surface_cs_config_t *qtcfg = &qtm_surface_cs_config1;
 	//qtm_acq_node_group_config_t *qtacq = &ptc_qtlib_acq_gen1;
 	tsl_interface_info_t *tsl = &interface_tsl;
+	qtouch_config_t *qdef = (qtouch_config_t *)tsl->qtdef;
 	
 	// Save HAL interface
-	//memcpy(&tsl->hal, hal, sizeof(*hal));
 	tsl->hal = hal;
 	
-	// This chip whole x / y channels, so we need add all channel together
-	// For simpling the algorithm, we set v for x, h for y, but must care, v should start first, h follow up
-	if (/*qtcfg->start_key_h < qtcfg->start_key_v*/0) {
-		tsl->qtdef.matrix_xsize = qtcfg->number_of_keys_h + qtcfg->start_key_h;
-		tsl->qtdef.matrix_ysize = qtcfg->number_of_keys_v + qtcfg->start_key_v - tsl->qtdef.matrix_xsize;
-	} else {
-		tsl->qtdef.matrix_xsize = qtcfg->number_of_keys_v + qtcfg->start_key_v;
-		tsl->qtdef.matrix_ysize = qtcfg->number_of_keys_h + qtcfg->start_key_h - tsl->qtdef.matrix_xsize;
+	qdef->num_sensor_params = ptc_qtlib_acq_gen1.num_sensor_nodes;
+	if (!qdef->buttons[0].node.size) {
+		qdef->num_buttons = ARRAY_SIZE(buttons_config);
+		qdef->buttons[0].node.origin = 0;
+		qdef->buttons[0].node.size = qdef->num_sensor_params; 
 	}
 	
-	// Resolution
-	tsl->qtdef.resolution_bit = (qtm_surface_cs_config1.resol_deadband >> 4) - RESOL_2_BIT;
-	// Deadband percentage
-	tsl->qtdef.deadband = qtm_surface_cs_config1.resol_deadband & 0xf;
+	// For simpling the algorithm, we set v for x, h for y, but must care, v should start first, h follow up
+	if (!qdef->surface_sliders[0].xnode.size) {
+		// Maxtrix
+		qdef->surface_sliders[0].xnode.origin = qtcfg->start_key_v;
+		qdef->surface_sliders[0].xnode.size = qtcfg->number_of_keys_v;
+		qdef->surface_sliders[0].ynode.origin = qtcfg->start_key_h;
+		qdef->surface_sliders[0].ynode.size = qtcfg->number_of_keys_h;
+		
+		// Resolution
+		qdef->surface_sliders[0].resolution_bit = (qtm_surface_cs_config1.resol_deadband >> 4) - RESOL_2_BIT;
+		
+		// Deadband percentage
+		// qdef->surface_sliders[0].deadband = qtm_surface_cs_config1.resol_deadband & 0xf;
+	}
 	
 	mpt_chip_init(tsl);
 }
@@ -226,26 +305,12 @@ void tsl_start(void)
 }
 
 void tsl_process(void)
-{
-	const qtm_surface_contact_data_t *qtsf = &qtm_surface_cs_data1;
-	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
-	const tsl_interface_info_t *tsl = &interface_tsl;
-	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
-	u8 i, t9_status = 0;
-	
-	
-	for (i = 0; i < qttkg->num_key_sensors; i++) {
-		mpt_api_set_sensor_data(i, qtkds->sensor_state, qtkds[i].channel_reference, qtkds[i].node_data_struct_ptr->node_acq_signals, qtkds[i].node_data_struct_ptr->node_comp_caps);
-	}
-	
-	if (qtsf->qt_surface_status & TOUCH_ACTIVE)
-		t9_status = MXT_T9_DETECT | MXT_T9_PRESS;
-	else if(qtsf->qt_surface_status & POSITION_CHANGE)
-		t9_status = MXT_T9_DETECT | MXT_T9_MOVE;
+{	
+	tch_ref_signal_update();
+	tch_touch_location_report();
+	tch_button_press_report();
 
-	mpt_api_set_pointer_location(0, t9_status,  qtsf->h_position, qtsf->v_position);
-	
-	mpt_api_request_irq(tsl->hal->fn_set_chg);
+	tch_assert_irq();
 	
 	mpt_api_process();
 }
