@@ -47,7 +47,7 @@ void copy_node_data_to_buffer(u8 cmd, u8 page, u8 relative, u16 data, u8 mode)
 			mem->data[relative] = data;
 		else {
 			if (mem->data[relative] & DATA_DIRTY_MAGIC_MASK)	//MASK bit mean it has filled data before
-				mem->data[relative] = (data + mem->data[relative]) >> 1;
+				mem->data[relative] = (((s16)data >> 1) + ((s16)mem->data[relative] >> 1)) | DATA_DIRTY_MAGIC_MASK;	//avg
 			else
 				mem->data[relative] = data | DATA_DIRTY_MAGIC_MASK;
 		}
@@ -71,8 +71,8 @@ void copy_col_data_to_buffer(u8 cmd, u8 page, u8 col, u16 data)
 	u8 pos = col;
 	
 	for ( i = 0; i < QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize); i++ ) {
-		pos += QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
 		copy_node_data_to_buffer(cmd, page, pos, data, DATA_AVE);
+		pos += QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
 	}
 }
 
@@ -128,10 +128,10 @@ void object_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
 				data = signal- reference;
 			else
 				data = reference;
-			if (channel < QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize)) {
+			if (channel < QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize)) {
 				copy_row_data_to_buffer(ptr->status.cmd, ptr->status.page, channel, data);
 			}else {
-				copy_col_data_to_buffer(ptr->status.cmd, ptr->status.page, channel - QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize), data);
+				copy_col_data_to_buffer(ptr->status.cmd, ptr->status.page, channel - QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize), data);
 			}
 		break;
 		case MXT_DIAGNOSTIC_DC_DATA:
@@ -162,6 +162,7 @@ void object_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
 					pos = channel + QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
 				}
 			}
+			
 			if (ptr->status.cmd == MXT_DIAGNOSTIC_SC_REF)
 				data = reference;
 			else {
@@ -173,6 +174,7 @@ void object_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
 				data = (cap & 0x0F) * 7 + ((cap >> 4) & 0x0F) * 68 + ((cap >> 8) & 0x0F) * 675 + ((cap >> 12) & 0x3) * 6750;		
 			}
 			copy_node_data_to_buffer(ptr->status.cmd, ptr->status.page, pos, (u16)data, DATA_NEW);
+		break;
 		default:
 		;
 	}

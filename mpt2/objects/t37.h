@@ -10,7 +10,7 @@
 #define T37_H_
 
 /* T37 Memory space */
-#define T37_DATA_SIZE 16	//More than 128 will careful for object_t37_set_sensor_data pos overflow
+#define T37_DATA_SIZE 32	//More than 128 will careful for object_t37_set_sensor_data pos overflow
 #define T37_CACHE_PAGES_NUM 3
 #define T37_CACHE_PAGE_SIZE (T37_DATA_SIZE * T37_CACHE_PAGES_NUM)
 

@@ -23,6 +23,9 @@ typedef struct object_t15 {
 	u8 rsv;	
 } __attribute__ ((packed)) object_t15_t;
 
+/* MXT_TOUCH_KEYARRAY_T15 status */
+#define MXT_T15_DETECT		BIT(7)
+
 #define BTN_COUNT_EACH_INSTANCE 32	//Limited max key counts in each instance to 32, if need more, object_t15_set_button_status()
 
 typedef union t15_button_status {
@@ -30,7 +33,7 @@ typedef union t15_button_status {
 	u32 status;
 }t15_button_status_t;
 
-#define MXT_TOUCH_KEYARRAY_T15_INST 1
+#define MXT_TOUCH_KEYARRAY_T15_INST 3
 #define MXT_TOUCH_KEYARRAY_T15_RIDS 1	// Must be 1
 
 typedef struct t15_data {

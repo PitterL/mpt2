@@ -115,7 +115,7 @@ void t8_data_sync(const txx_data_t *ptr, u8 rw)
 	
 	txx_cb_param_t params[] = {
 		{ DEF_TCH_DRIFT_RATE, &mem->tchdrift, sizeof(mem->tchdrift) },
-		{ DEF_ANTI_TCH_DRIFT_RATE, &mem->tchdrift, sizeof(mem->tchdrift) },
+		{ DEF_ANTI_TCH_DRIFT_RATE, &mem->rsv, sizeof(mem->rsv) },	//Use rsv for anti touch drift
 		{ DEF_DRIFT_HOLD_TIME, &mem->driftst, sizeof(mem->driftst) },
 		{ DEF_MAX_ON_DURATION, &mem->tchautocal, sizeof(mem->tchautocal) },
 		{ DEF_ANTI_TCH_RECAL_THRSHLD, &mem->atchcalsthr, sizeof(mem->atchcalsthr) },

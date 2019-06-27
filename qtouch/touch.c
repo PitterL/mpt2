@@ -99,7 +99,7 @@ qtm_acq_t161x_node_config_t ptc_seq_node_cfg1[DEF_NUM_CHANNELS] = {NODE_0_PARAMS
                                                                    NODE_7_PARAMS,
                                                                    NODE_8_PARAMS,
                                                                    NODE_9_PARAMS,
-                                                                   NODE_10_PARAMS};
+                                                                   };
 
 /* Container */
 qtm_acquisition_control_t qtlib_acq_set1 = {&ptc_qtlib_acq_gen1, &ptc_seq_node_cfg1[0], &ptc_qtlib_node_stat1[0]};
@@ -161,7 +161,7 @@ qtm_touch_key_config_t qtlib_key_configs_set1[DEF_NUM_SENSORS] = {KEY_0_PARAMS,
                                                                   KEY_7_PARAMS,
                                                                   KEY_8_PARAMS,
                                                                   KEY_9_PARAMS,
-                                                                  KEY_10_PARAMS};
+                                                                  };
 
 /* Container */
 qtm_touch_key_control_t qtlib_key_set1

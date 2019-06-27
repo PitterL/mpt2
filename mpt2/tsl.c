@@ -212,9 +212,12 @@ void tch_touch_location_report(void)
 	u8 t9_status = 0;
 	
 	if (qtsf->qt_surface_status & TOUCH_ACTIVE)
-		t9_status = MXT_T9_DETECT | MXT_T9_PRESS;
-	else if(qtsf->qt_surface_status & POSITION_CHANGE)
-		t9_status = MXT_T9_DETECT | MXT_T9_MOVE;
+		t9_status = MXT_T9_DETECT;
+	
+	if(qtsf->qt_surface_status & POSITION_CHANGE)
+		t9_status |= MXT_T9_MOVE;
+	else
+		t9_status |= MXT_T9_PRESS;
 
 #define SURFACE_INST_ID 0
 #define SURFACE_FINGER_ID 0
@@ -222,7 +225,9 @@ void tch_touch_location_report(void)
 }
 
 qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
-
+	{ .node = {	.origin = 0, .size = 7 } },
+	{ .node = {	.origin = 7, .size = 1 } },
+	{ .node = {	.origin = 8, .size = 2 } },
 };
 
 qsurface_config_t surfaces_sliders_config[MXT_TOUCH_MULTI_T9_INST] = {
@@ -230,9 +235,8 @@ qsurface_config_t surfaces_sliders_config[MXT_TOUCH_MULTI_T9_INST] = {
 };
 
 qtouch_config_t tsl_qtouch_def = {
-	//ATTiny3217, sensor channel is 7 * 7
-	.matrix_xsize = 7,
-	.matrix_ysize = 7,
+	.matrix_xsize = 5,
+	.matrix_ysize = 5,
 	
 	//If define num_surfaces_slider, should filled the surfaces_sliders_config
 	.surface_sliders = &surfaces_sliders_config[0],
@@ -290,7 +294,7 @@ void tsl_init(const hal_interface_info_t *hal)
 		qdef->surface_sliders[0].ynode.size = qtcfg->number_of_keys_h;
 		
 		// Resolution
-		qdef->surface_sliders[0].resolution_bit = (qtm_surface_cs_config1.resol_deadband >> 4) - RESOL_2_BIT;
+		qdef->surface_sliders[0].resolution_bit = (qtm_surface_cs_config1.resol_deadband >> 4);
 		
 		// Deadband percentage
 		// qdef->surface_sliders[0].deadband = qtm_surface_cs_config1.resol_deadband & 0xf;

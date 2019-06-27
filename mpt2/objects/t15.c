@@ -16,7 +16,7 @@ ssint object_t15_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, co
 	u8 i;
 
 	for (i = 0; i < MXT_TOUCH_KEYARRAY_T15_INST; i++) {
-		object_txx_init(&ptr[i].common, rid, def, mem, cb);
+		object_txx_init(&ptr[i].common, rid, def, (object_t15_t *)mem + i, cb);
 		ptr[i].btndef = &qdef->buttons[i];
 		rid += MXT_TOUCH_KEYARRAY_T15_RIDS;
 	}
@@ -102,7 +102,11 @@ void t15_report_status(u8 rid, const t15_button_status_t *btn, const mpt_api_cal
 	memset(&message, 0, sizeof(message));
 		
 	message.reportid = rid;
-	memcpy(message.data, btn->data, sizeof(btn->data));
+	message.data[0] = btn->status ? MXT_T15_DETECT : 0;
+	message.data[1] = btn->data[0];
+	message.data[2] = btn->data[2];
+	message.data[3] = btn->data[3];
+	message.data[4] = btn->data[4];
 	
 	MPT_API_CALLBACK(cb, cb_write_message)(&message);
 }

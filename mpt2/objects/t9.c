@@ -18,7 +18,7 @@ ssint object_t9_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, con
 	u8 i;
 
 	for (i = 0; i < MXT_TOUCH_MULTI_T9_INST; i++) {
-		object_txx_init(&ptr[i].common, rid, def, mem, cb);
+		object_txx_init(&ptr[i].common, rid, def, (object_t9_t *)mem + i, cb);
 		ptr[i].surdef = &qdef->surface_sliders[i];
 		rid += MXT_TOUCH_MULTI_T9_RIDS;
 	}
@@ -31,7 +31,7 @@ void t9_set_unsupport_area(t9_data_t *ptr)
 	const qsurface_config_t *surdef = (qsurface_config_t *)ptr->surdef;
 	object_t9_t *mem = (object_t9_t *) ptr->common.mem;
 	
-	mem->xorigin = surdef->xnode.origin;
+	mem->xorigin = /*surdef->xnode.origin*/0;
 	mem->xsize = surdef->xnode.size;
 	mem->yorigin = /*surdef->ynode.origin*/0;
 	mem->ysize = surdef->ynode.size;
@@ -217,7 +217,7 @@ void transfer_pos(t9_data_t *ptr, t9_range_t *ppos)
 		}
 		
 		if (mem->orient & MXT_T9_ORIENT_INVERTY) {
-			point.y = xrange - point.y;
+			point.y = yrange - point.y;
 		}
 		
 		if (mem->orient & MXT_T9_ORIENT_SWITCH) {
