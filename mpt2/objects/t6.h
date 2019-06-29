@@ -79,6 +79,7 @@ void object_t6_report_status(void);
 
 ssint object_t6_handle_command(u16 cmd, u8 arg);
 u8 object_t6_get_diagnostic_status(u8 *pg);
+void object_t6_set_status(u16 status_new, u8 mask);
 
 #define MXT_GEN_COMMAND_T6_RIDS 1
 

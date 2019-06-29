@@ -171,6 +171,7 @@
             <Value>libm</Value>
             <Value>libqtm_freq_hop_auto_t3217_0x0004.a</Value>
             <Value>libqtm_surface_gestures_t3217_0x0023.a</Value>
+            <Value>libqtm_scroller_t3217_0x000b.a</Value>
           </ListValues>
         </avrgcc.linker.libraries.Libraries>
         <avrgcc.linker.libraries.LibrarySearchPaths>
@@ -255,6 +256,7 @@
             <Value>libm</Value>
             <Value>libqtm_freq_hop_auto_t3217_0x0004.a</Value>
             <Value>libqtm_surface_gestures_t3217_0x0023.a</Value>
+            <Value>libqtm_scroller_t3217_0x000b.a</Value>
           </ListValues>
         </avrgcc.linker.libraries.Libraries>
         <avrgcc.linker.libraries.LibrarySearchPaths>
@@ -328,6 +330,12 @@
       <SubType>compile</SubType>
     </None>
     <None Include="qtouch\lib\gcc\libqtm_freq_hop_auto_t3217_0x0004.a">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="qtouch\lib\gcc\libqtm_scroller_t3217_0x000b.a">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="qtouch\lib\gcc\libqtm_surface_cs_2t_t3217_0x0025.a">
       <SubType>compile</SubType>
     </None>
     <None Include="qtouch\lib\gcc\libqtm_surface_cs_t3217_0x0021.a">
@@ -536,10 +544,25 @@
     <Compile Include="qtouch\include\qtm_acq_t161x_0x0017_api.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="qtouch\include\qtm_acq_t321x_0x0017_api.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="qtouch\include\qtm_binding_layer_0x0005_api.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="qtouch\include\qtm_common_components_api.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="qtouch\include\qtm_freq_hop_auto_0x0004_api.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="qtouch\include\qtm_gestures_2d_0x0023_api.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="qtouch\include\qtm_scroller_0x000b_api.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="qtouch\include\qtm_surface_cs2t_0x0025_api.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="qtouch\include\qtm_surface_cs_0x0021_api.h">

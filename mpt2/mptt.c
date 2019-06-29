@@ -393,7 +393,7 @@ void mpt_api_process(void)
 			}
 		}
 	}
-	
+		
 	UNLOCK();
 }
 
@@ -638,7 +638,7 @@ u8 message_count(const mxt_message_fifo_t *msg_fifo)
 	struct list_head *ptr;
 	u8 count = 0;
 
-	//Walk list for count of direct get? return msg_fifo->count;
+	//FIXME: Walk list for count of direct get? return msg_fifo->count;
 	
 	list_for_each(ptr, head)
 		count++;
@@ -673,7 +673,7 @@ ssint mpt_read_message(object_t5_t *msg)
 		
 	LOCK();
 	
-	//Pop first message from Fifo
+	//Pop first message from FIFO
 	buf = pop_message_fifo(0);
 	if (buf) {
 		memcpy(msg, &buf->message, sizeof(*msg));
@@ -681,9 +681,12 @@ ssint mpt_read_message(object_t5_t *msg)
 
 		//Update T44
 		ibreg->ram.t44.count = message_count(msg_fifo);
+		if (ibreg->ram.t44.count == MXT_MESSAGE_FIFO_SIZE - 1) {	//If FIFO is full, we need send a overflow message
+			object_t6_set_status(MXT_T6_STATUS_OFL, MXT_T6_STATUS_OFL);
+		}
 	}else {
 		msg->reportid = MXT_RPTID_NOMSG;
-		result = -2;	
+		result = -2;
 	}
 
 	UNLOCK();
@@ -927,5 +930,12 @@ void mpt_api_set_pointer_location(u8 type, u8 id, u8 status, u16 x, u16 y)
 {
 #ifdef OBJECT_T9
 	object_t9_set_pointer_location(type, id, status, x, y);
+#endif
+}
+
+void mpt_api_set_t6_status(u8 status, u8 mask)
+{
+#ifdef OBJECT_T6
+	object_t6_set_status(status, mask);
 #endif
 }

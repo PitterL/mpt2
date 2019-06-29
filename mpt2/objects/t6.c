@@ -109,11 +109,11 @@ void chip_calibrate(u8 arg)
 	t6_data_t *ptr = &t6_data_status;
 	
 	if (arg) {
-		send_chip_status(MXT_COMMAND_CALIBRATE, 1);
+		//send_chip_status(MXT_COMMAND_CALIBRATE, 1);
 		/* performance calibration */
 		MPT_API_CALLBACK(ptr->common.cb, calibrate)();
 		
-		send_chip_status(MXT_COMMAND_CALIBRATE, 0);
+		//send_chip_status(MXT_COMMAND_CALIBRATE, 0);
 	}
 }
 
@@ -194,4 +194,18 @@ ssint object_t6_handle_command(u16 cmd, u8 arg)
 	}
 	
 	return result;
+}
+
+void object_t6_set_status(u16 status_new, u8 mask)
+{
+	t6_data_t *ptr = &t6_data_status;
+	u8 status = ptr->status;
+	
+	status &= ~mask;
+	status |= status_new;
+	
+	if (status != ptr->status) {
+		ptr->status = status;	
+		object_t6_report_status();
+	}
 }

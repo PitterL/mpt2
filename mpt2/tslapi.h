@@ -40,6 +40,13 @@ enum {
 	DEF_REBURST_MODE,
 	DEF_MAX_ON_DURATION,
 	
+	SLIDER_START_KEY,
+	SLIDER_NUM_KEYS,
+	SLIDER_RESOL_DB,
+	//SLIDER_FILT_CFG,
+	SLIDER_POS_HYST,
+	SLIDER_MIN_CONTACT,
+	
 	SURFACE_CS_START_KEY_H,
 	SURFACE_CS_NUM_KEYS_H,
 	SURFACE_CS_START_KEY_V,
@@ -94,11 +101,12 @@ typedef struct qsurface_config {
 typedef struct qtouch_config {
 	u8 matrix_xsize;
 	u8 matrix_ysize;
-	u8 num_sensor_params;
 	qbutton_config_t *buttons;
 	u8 num_buttons;
 	qsurface_config_t *surface_sliders;
 	u8 num_surfaces_slider;
+	u8 num_surfaces;
+	u8 num_slider;
 } qtouch_config_t;
 
 #define QTOUCH_CONFIG_VAL(_p, _n) (((qtouch_config_t *)(_p))->_n)
