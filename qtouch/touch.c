@@ -89,20 +89,8 @@ qtm_acq_node_group_config_t ptc_qtlib_acq_gen1
 qtm_acq_node_data_t ptc_qtlib_node_stat1[DEF_NUM_CHANNELS];
 
 /* Node configurations */
-qtm_acq_t321x_node_config_t ptc_seq_node_cfg1[DEF_NUM_CHANNELS] = {NODE_0_PARAMS,
-                                                                   NODE_1_PARAMS,
-                                                                   NODE_2_PARAMS,
-                                                                   NODE_3_PARAMS,
-                                                                   NODE_4_PARAMS,
-                                                                   NODE_5_PARAMS,
-                                                                   NODE_6_PARAMS,
-                                                                   NODE_7_PARAMS,
-                                                                   NODE_8_PARAMS,
-                                                                   NODE_9_PARAMS,
-                                                                   NODE_10_PARAMS,
-                                                                   NODE_11_PARAMS,
-                                                                   NODE_12_PARAMS,
-                                                                   NODE_13_PARAMS};
+qtm_acq_t321x_node_config_t ptc_seq_node_cfg1[DEF_NUM_CHANNELS]
+    = {NODE_0_PARAMS, NODE_1_PARAMS, NODE_2_PARAMS, NODE_3_PARAMS, NODE_4_PARAMS};
 
 /* Container */
 qtm_acquisition_control_t qtlib_acq_set1 = {&ptc_qtlib_acq_gen1, &ptc_seq_node_cfg1[0], &ptc_qtlib_node_stat1[0]};
@@ -154,20 +142,8 @@ qtm_touch_key_group_data_t qtlib_key_grp_data_set1;
 qtm_touch_key_data_t qtlib_key_data_set1[DEF_NUM_SENSORS];
 
 /* Key Configurations */
-qtm_touch_key_config_t qtlib_key_configs_set1[DEF_NUM_SENSORS] = {KEY_0_PARAMS,
-                                                                  KEY_1_PARAMS,
-                                                                  KEY_2_PARAMS,
-                                                                  KEY_3_PARAMS,
-                                                                  KEY_4_PARAMS,
-                                                                  KEY_5_PARAMS,
-                                                                  KEY_6_PARAMS,
-                                                                  KEY_7_PARAMS,
-                                                                  KEY_8_PARAMS,
-                                                                  KEY_9_PARAMS,
-                                                                  KEY_10_PARAMS,
-                                                                  KEY_11_PARAMS,
-                                                                  KEY_12_PARAMS,
-                                                                  KEY_13_PARAMS};
+qtm_touch_key_config_t qtlib_key_configs_set1[DEF_NUM_SENSORS]
+    = {KEY_0_PARAMS, KEY_1_PARAMS, KEY_2_PARAMS, KEY_3_PARAMS, KEY_4_PARAMS};
 
 /* Container */
 qtm_touch_key_control_t qtlib_key_set1
@@ -187,7 +163,7 @@ qtm_scroller_group_config_t qtm_scroller_group_config1 = {&qtlib_key_data_set1[0
 /* scroller Configurations */
 qtm_scroller_config_t qtm_scroller_config1[DEF_NUM_SCROLLERS] = {
 
-    SCROLLER_0_PARAMS, SCROLLER_1_PARAMS
+    SCROLLER_0_PARAMS
 
 };
 

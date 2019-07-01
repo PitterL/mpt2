@@ -66,7 +66,7 @@ u8 current_tick()
 	
 	ticks++;
 	if (ticks >= CHG_DUTY_CYCLES)
-	ticks = 0;
+		ticks = 0;
 	
 	return ticks;
 }
@@ -216,6 +216,7 @@ void bus_start(void)
 
 void sys_reset(void)
 {
+	//FIXME: this is working
 	RSTCTRL.SWRR = 0x1;
 }
 

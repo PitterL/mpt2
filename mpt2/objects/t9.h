@@ -88,7 +88,7 @@ typedef struct t9_data {
 ssint object_t9_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_t9_start(u8 loaded);
 void object_t9_process(u8 rw);
-void object_t9_report_status(void);
+void object_t9_report_status(u8 force);
 ssint object_t9_set_pointer_location(u8 inst, u8 id, u8 status, u16 x, u16 y);
 
 #endif /* T9_H_ */

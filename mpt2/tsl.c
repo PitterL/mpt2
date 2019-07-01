@@ -10,9 +10,9 @@
 #include "mptt.h"
 #include "tsl.h"
 
-//extern qtm_surface_cs_control_t qtm_surface_cs_control1;
-/* Node status, signal, calibration values */
-//extern qtm_acq_node_data_t ptc_qtlib_node_stat1[DEF_NUM_CHANNELS];
+#ifdef OBJECT_T15
+#define TOUCH_API_BUTTON
+#endif
 
 /* Node configure parameters */
 extern qtm_acq_t161x_node_config_t ptc_seq_node_cfg1[];
@@ -39,7 +39,8 @@ extern qtm_acq_node_data_t ptc_qtlib_node_stat1[];
 extern qtm_touch_key_control_t qtlib_key_set1;
 
 /* scroller Configurations */
-#ifdef qtm_scroller_config_t
+#ifdef TOUCH_API_SCROLLER_H
+#define TOUCH_API_SCROLLER
 extern qtm_scroller_config_t qtm_scroller_config1[];
 
 /* Group Configuration */
@@ -53,7 +54,8 @@ extern qtm_scroller_control_t qtm_scroller_control1;
 #endif
 
 /* Surface Config */
-#ifdef qtm_surface_cs_config_t
+#if defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H)
+#define TOUCH_API_SURFACE
 extern qtm_surface_cs_config_t qtm_surface_cs_config1;
 
 /* Surface Data */
@@ -109,14 +111,14 @@ tch_config_callback_t touch_config_list[] ={
 	{DEF_ANTI_TCH_DRIFT_RATE, &qtlib_key_grp_config_set1.sensor_anti_touch_drift_rate, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_drift_rate), 0, 0, COMMON_RW},
 	{DEF_DRIFT_HOLD_TIME, &qtlib_key_grp_config_set1.sensor_drift_hold_time, sizeof(qtlib_key_grp_config_set1.sensor_drift_hold_time), 0, 0, COMMON_RW},		
 
-#ifdef qtm_scroller_config_t
+#ifdef TOUCH_API_SCROLLER
 	{SLIDER_START_KEY, &qtm_scroller_config1[0].start_key, sizeof(qtm_scroller_config1[0].start_key), sizeof(qtm_scroller_config1[0]), 0, ARRAY_MEM_RW},
 	{SLIDER_NUM_KEYS, &qtm_scroller_config1[0].number_of_keys, sizeof(qtm_scroller_config1[0].number_of_keys), sizeof(qtm_scroller_config1[0]), 0, ARRAY_MEM_RW},
 	{SLIDER_POS_HYST, &qtm_scroller_config1[0].position_hysteresis, sizeof(qtm_scroller_config1[0].position_hysteresis), sizeof(qtm_scroller_config1[0]), 0, ARRAY_MEM_RW},
 	{SLIDER_MIN_CONTACT, &qtm_scroller_config1[0].contact_min_threshold, sizeof(qtm_scroller_config1[0].contact_min_threshold), sizeof(qtm_scroller_config1[0]), 0, ARRAY_MEM_RW},
 #endif
 
-#ifdef qtm_surface_cs_config_t
+#ifdef TOUCH_API_SURFACE
 	{SURFACE_CS_START_KEY_V, &qtm_surface_cs_config1.start_key_v, sizeof(qtm_surface_cs_config1.start_key_v), 0, 0, COMMON_RW},
 	{SURFACE_CS_START_KEY_H, &qtm_surface_cs_config1.start_key_h, sizeof(qtm_surface_cs_config1.start_key_h), 0, 0, COMMON_RW},
 	{SURFACE_CS_NUM_KEYS_V, &qtm_surface_cs_config1.number_of_keys_v, sizeof(qtm_surface_cs_config1.number_of_keys_v), 0, 0, COMMON_RW},
@@ -136,14 +138,14 @@ void force_init_sensor_key(u8 sensor_node, u8 cal)
 		qtm_calibrate_sensor_node(&qtlib_acq_set1, sensor_node);
 }
 
-#ifdef qtm_scroller_config_t
+#ifdef TOUCH_API_SCROLLER
 void force_init_slider(void)
 {
 	qtm_init_scroller_module(&qtm_scroller_control1);
 }
 #endif
 
-#ifdef qtm_surface_cs_config_t
+#ifdef TOUCH_API_SURFACE
 void force_init_surface(void)
 {
 	//FIXME: need achieve this
@@ -174,7 +176,7 @@ void force_parameters(u8 type, u8 index)
 		case DEF_DRIFT_HOLD_TIME:
 			force_init_sensor_key(index, 0);
 			break;
-#ifdef qtm_scroller_config_t
+#ifdef TOUCH_API_SCROLLER
 		case SLIDER_START_KEY:
 		case SLIDER_NUM_KEYS:
 		case SLIDER_RESOL_DB:
@@ -184,7 +186,7 @@ void force_parameters(u8 type, u8 index)
 			force_init_slider();
 			break;
 #endif
-#ifdef qtm_surface_cs_config_t
+#ifdef TOUCH_API_SURFACE
 		case SURFACE_CS_START_KEY_H:
 		case SURFACE_CS_NUM_KEYS_H:
 		case SURFACE_CS_START_KEY_V:
@@ -293,99 +295,24 @@ void tch_calibrate(void)
 	u8 i;
 	
 	for (i = 0; i < (u8)qtacq->num_sensor_nodes; i++) {
-		calibrate_node(i);
+		/* Calibrate Node */
+		
+		//calibrate_node(i);
+		qtm_calibrate_sensor_node(&qtlib_acq_set1, i);
 	}
 }
 
-void tch_ref_signal_update(void)
-{
-	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
-	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
-	u8 i, t6_status=0;
-	
-	for (i = 0; i < qttkg->num_key_sensors; i++) {
-		if (qtkds->sensor_state & QTM_KEY_STATE_CAL) {
-			t6_status |= MXT_T6_STATUS_CAL;
-		}
-		if (qtkds->sensor_state & QTM_KEY_STATE_CAL_ERR) {
-			t6_status |= MXT_T6_STATUS_CFGERR;
-		}
-		mpt_api_set_sensor_data(i, qtkds->sensor_state, qtkds[i].channel_reference, qtkds[i].node_data_struct_ptr->node_acq_signals, qtkds[i].node_data_struct_ptr->node_comp_caps);
-	}
-	
-	mpt_api_set_t6_status(t6_status, MXT_T6_STATUS_CAL | MXT_T6_STATUS_CFGERR);
-}
-
-void tch_button_press_report(void)
-{
-	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
-	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
-	u8 i, status;
-	
-	for (i = 0; i < qttkg->num_key_sensors; i++) {
-		if (qtkds[i].sensor_state & KEY_TOUCHED_MASK) {
-			status = 1;
-		}else {
-			status = 0;
-		}
-		mpt_api_set_button_status(i, status);
-	}
-}
-
-#ifdef qtm_scroller_data_t
-void tch_surface_location_report(void)
-{
-	const tsl_interface_info_t *tsl = &interface_tsl;
-	const qtouch_config_t *qdef = (qtouch_config_t *)tsl->qtdef;
-	const qtm_scroller_data_t * qtsd = &qtm_scroller_data1[0];
-	u8 t9_status = 0;
-	u8 i;
-	
-	for ( i = 0; i < qdef->num_slider; i++ ) {
-		if (qtsd->scroller_status & TOUCH_ACTIVE)
-			t9_status = MXT_T9_DETECT;
-	
-		if(qtsd->scroller_status & POSITION_CHANGE)
-			t9_status |= MXT_T9_MOVE;
-		else
-			t9_status |= MXT_T9_PRESS;
-
-#define SLIDER_FINGER_ID 0
-		mpt_api_set_pointer_location(i, SLIDER_FINGER_ID, t9_status,  0, qtsd->position/*, qtsd->contact_size*/);	
-	}
-}
-#endif
-
-#ifdef qtm_surface_contact_data_t
-void tch_surface_location_report(void)
-{
-	const qtm_surface_contact_data_t *qtsf = &qtm_surface_cs_data1;
-	u8 t9_status = 0;
-	
-	if (qtsf->qt_surface_status & TOUCH_ACTIVE)
-		t9_status = MXT_T9_DETECT;
-	
-	if(qtsf->qt_surface_status & POSITION_CHANGE)
-		t9_status |= MXT_T9_MOVE;
-	else
-		t9_status |= MXT_T9_PRESS;
-
-#define SURFACE_INST_ID 0
-#define SURFACE_FINGER_ID 0
-	mpt_api_set_pointer_location(SURFACE_INST_ID, SURFACE_FINGER_ID, t9_status,  qtsf->h_position, qtsf->v_position/*, qtsf->contact_size*/);	
-}
-#endif
-
+#ifdef TOUCH_API_BUTTON
 qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
-	{ .node = {	.origin = 0, .size = 7 } },
-	{ .node = {	.origin = 7, .size = 1 } },
-	{ .node = {	.origin = 8, .size = 2 } },
+	//{ .node = {	.origin = 0, .size = 2 } },
+	//{ .node = {	.origin = 2, .size = 2 } },
 };
+#endif
 
-#ifdef OBJECT_T9
+#if defined(TOUCH_API_SURFACE) || defined(TOUCH_API_SCROLLER)
 // For simpling the algorithm, we set v for x, h for y, but must care, v should start first, h follow up
 qsurface_config_t surfaces_sliders_config[MXT_TOUCH_MULTI_T9_INST] = {
-
+	//{ .xnode = { .origin = 5, .size = 4 }, .ynode = { .origin = 9, .size = 13 } },
 };
 #endif
 
@@ -393,16 +320,18 @@ qtouch_config_t tsl_qtouch_def = {
 	/*.matrix_xsize = 5,*/
 	/*.matrix_ysize = 5,*/
 
-#ifdef OBJECT_T9	
-	//If define num_surfaces_slider, should filled the surfaces_sliders_config
-	.surface_sliders = &surfaces_sliders_config[0],
-	.num_surfaces_slider = ARRAY_SIZE(surfaces_sliders_config),
-#endif
-
-#ifdef OBJECT_T15
+#ifdef TOUCH_API_BUTTON
 	//If define num_buttons, should filled the buttons_config
 	.buttons = &buttons_config[0],
 	.num_buttons = ARRAY_SIZE(buttons_config),
+#endif
+
+#if defined(TOUCH_API_SURFACE) || defined(TOUCH_API_SCROLLER)
+	//If define num_surfaces_slider, should filled the surfaces_sliders_config
+	.surface_sliders = &surfaces_sliders_config[0],
+	.num_surfaces_slider = ARRAY_SIZE(surfaces_sliders_config),
+	//.num_surfaces,
+	//.num_slider,
 #endif
 };
 
@@ -437,6 +366,7 @@ void init_maxtrix_node(qtouch_config_t *qdef)
 	}
 }
 
+#ifdef TOUCH_API_BUTTON
 void init_button_node(qbutton_config_t *btn)
 {
 	qtm_acq_node_group_config_t *qtacq = &ptc_qtlib_acq_gen1;
@@ -446,12 +376,13 @@ void init_button_node(qbutton_config_t *btn)
 		btn->node.size = qtacq->num_sensor_nodes;
 	}
 }
+#endif
 
-#ifdef qtm_scroller_config_t
+#ifdef TOUCH_API_SCROLLER
 u8 init_slider_node(qsurface_config_t *sursld, u8 slider_num)
 {
-	qtm_scroller_group_config_t qsgcfg = &qtm_scroller_group_config1;
-	qtm_scroller_config_t qtcfg = &qtm_scroller_config1[0];
+	qtm_scroller_group_config_t *qsgcfg = &qtm_scroller_group_config1;
+	qtm_scroller_config_t *qtcfg = &qtm_scroller_config1[0];
 	u8 i;
 			
 	for ( i = 0; i < qsgcfg->num_scrollers && i < slider_num; i++) {
@@ -470,7 +401,7 @@ u8 init_slider_node(qsurface_config_t *sursld, u8 slider_num)
 }
 #endif
 
-#ifdef qtm_surface_cs_config_t
+#ifdef TOUCH_API_SURFACE
 void init_surface_node(qsurface_config_t *sursld)
 {
 	const qtm_surface_cs_config_t *qtcfg = &qtm_surface_cs_config1;
@@ -498,15 +429,17 @@ void inlitialize_button_slider_surface_nodes(qtouch_config_t *qdef)
 	int count = 0;
 	
 	init_maxtrix_node(qdef);
-	
-	init_button_node(&qdef->buttons[0]);
 
-#ifdef qtm_scroller_config_t
+#ifdef TOUCH_API_BUTTON
+	init_button_node(&qdef->buttons[0]);
+#endif
+	
+#ifdef TOUCH_API_SCROLLER
 	count = init_slider_node(&qdef->surface_sliders[0], qdef->num_surfaces_slider);
 	qdef->num_slider = count;
 #endif
 
-#ifdef qtm_surface_cs_config_t
+#ifdef TOUCH_API_SURFACE
 	if (count < qdef->num_surfaces_slider)
 		init_surface_node(&qdef->surface_sliders[count]/*, qdef->num_surfaces_slider - count*/);
 #else
@@ -532,30 +465,115 @@ void tsl_start(void)
 	mpt_chip_start();
 }
 
+void tch_ref_signal_update(void)
+{
+#ifdef OBJECT_T6
+	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
+	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
+	u8 state, cal_status=0, sigerr_status=0;
+	u8 i;
+	for (i = 0; i < qttkg->num_key_sensors; i++) {
+		state = qtkds->sensor_state & ~KEY_TOUCHED_MASK;
+		switch (state) {
+		case QTM_KEY_STATE_CAL:
+			cal_status = MXT_T6_STATUS_CAL;
+			break;
+		case QTM_KEY_STATE_CAL_ERR:
+			sigerr_status = MXT_T6_STATUS_SIGERR;
+			break;
+		default:
+			;
+		}
+		mpt_api_set_sensor_data(i, qtkds->sensor_state, qtkds[i].channel_reference, qtkds[i].node_data_struct_ptr->node_acq_signals, qtkds[i].node_data_struct_ptr->node_comp_caps);
+	}
+
+	mpt_api_set_chip_status(MXT_T6_STATUS_RESET, 0);
+	mpt_api_set_chip_status(MXT_T6_STATUS_CAL, cal_status);
+	mpt_api_set_chip_status(MXT_T6_STATUS_SIGERR, sigerr_status);
+#endif
+}
+
+#ifdef TOUCH_API_BUTTON
+void tch_button_press_report(void)
+{
+	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
+	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
+	u8 i, status;
+	
+	for (i = 0; i < qttkg->num_key_sensors; i++) {
+		if (qtkds[i].sensor_state & KEY_TOUCHED_MASK) {
+			status = 1;
+			}else {
+			status = 0;
+		}
+		mpt_api_set_button_status(i, status);
+	}
+}
+#endif
+
+#ifdef TOUCH_API_SCROLLER
+void tch_slider_location_report(const qtouch_config_t *qdef)
+{
+	const qtm_scroller_data_t * qtsd = &qtm_scroller_data1[0];
+	u8 t9_status = 0;
+	u8 i;
+	
+	for ( i = 0; i < qdef->num_slider; i++ ) {
+		if (qtsd->scroller_status & TOUCH_ACTIVE)
+		t9_status = MXT_T9_DETECT;
+		
+		if(qtsd->scroller_status & POSITION_CHANGE)
+		t9_status |= MXT_T9_MOVE;
+		else
+		t9_status |= MXT_T9_PRESS;
+
+		#define SLIDER_FINGER_ID 0
+		mpt_api_set_pointer_location(i, SLIDER_FINGER_ID, t9_status,  0, qtsd->position/*, qtsd->contact_size*/);
+	}
+}
+#endif
+
+#ifdef TOUCH_API_SURFACE
+void tch_surface_location_report(void)
+{
+	const qtm_surface_contact_data_t *qtsf = &qtm_surface_cs_data1;
+	u8 t9_status = 0;
+	
+	if (qtsf->qt_surface_status & TOUCH_ACTIVE)
+	t9_status = MXT_T9_DETECT;
+	
+	if(qtsf->qt_surface_status & POSITION_CHANGE)
+	t9_status |= MXT_T9_MOVE;
+	else
+	t9_status |= MXT_T9_PRESS;
+
+	#define SURFACE_INST_ID 0
+	#define SURFACE_FINGER_ID 0
+	mpt_api_set_pointer_location(SURFACE_INST_ID, SURFACE_FINGER_ID, t9_status,  qtsf->h_position, qtsf->v_position/*, qtsf->contact_size*/);
+}
+#endif
+
 void tsl_process(void)
 {	
-	tch_ref_signal_update();
-#ifdef qtm_scroller_data_t
-	tch_surface_location_report();
-#endif
-#ifdef qtm_surface_contact_data_t
-	tch_surface_location_report();
-#endif
-	tch_button_press_report();
+	tsl_interface_info_t *tsl = &interface_tsl;
+	qtouch_config_t *qdef = (qtouch_config_t *)tsl->qtdef;
 
+	tch_ref_signal_update();
+
+#ifdef TOUCH_API_SCROLLER
+	tch_slider_location_report(qdef);
+#endif
+#ifdef TOUCH_API_SURFACE
+	tch_surface_location_report();
+#endif
+#ifdef TOUCH_API_BUTTON
+	tch_button_press_report();
+#endif
 	tch_assert_irq();
 	
 	mpt_api_process();
-}
-
-ssint tsl_write_message(const void *msg)
-{
-	return mpt_write_message(msg);
-}
-
-ssint tsl_read_message(void *msg)
-{
-	return mpt_read_message(msg);
+	
+	mpt_api_report_status();
 }
 
 ssint tsl_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)

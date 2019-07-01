@@ -4,6 +4,8 @@
  * Created: 6/9/2019 10:39:14 PM
  *  Author: A41450
  */ 
+#ifdef OBJECT_T15
+
 #include <string.h>
 #include "../tslapi.h"
 #include "txx.h"
@@ -111,10 +113,13 @@ void t15_report_status(u8 rid, const t15_button_status_t *btn, const mpt_api_cal
 	MPT_API_CALLBACK(cb, cb_write_message)(&message);
 }
 
-void object_t15_report_status(void)
+void object_t15_report_status(u8 force)
 {
 	t15_data_t *ptr = &t15s_data_status[0];
 	u8 i;
+	
+	if (!force)
+		return;
 	
 	for (i = 0; i < MXT_TOUCH_KEYARRAY_T15_INST; i++) {
 		t15_report_status(ptr[i].common.rid, &ptr[i].button, ptr[i].common.cb);	
@@ -148,3 +153,5 @@ ssint object_t15_set_button_status(/* Slot id */u8 id, u8 pressed)
 	
 	return 0;
 }
+
+#endif

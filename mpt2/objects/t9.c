@@ -172,10 +172,13 @@ void t9_report_status(u8 rid, const t9_point_status_t *pt, const mpt_api_callbac
 	MPT_API_CALLBACK(cb, cb_write_message)(&message);
 }
 
-void object_t9_report_status(void)
+void object_t9_report_status(u8 force)
 {
 	t9_data_t *ptr = &t9s_data_status[0];
 	u8 i, j;
+	
+	if (!force)
+		return;
 	
 	for (i = 0; i < MXT_TOUCH_MULTI_T9_INST; i++) {
 		for (j = 0; j < MXT_TOUCH_MULTI_T9_RIDS; j++) {

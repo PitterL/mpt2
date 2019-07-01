@@ -80,7 +80,7 @@ extern "C" {
  * Range: 1 to 65535.
  * Default value: 1
  */
-#define DEF_NUM_CHANNELS (14)
+#define DEF_NUM_CHANNELS (5)
 
 /* Defines node parameter setting of mutual cap
  * {X-line, Y-line, Charge Share Delay, NODE_RSEL_PRSC(series resistor, prescaler), NODE_G(Analog Gain , Digital Gain),
@@ -93,73 +93,28 @@ extern "C" {
  */
 #define NODE_0_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		Y(1) | Y(2) | Y(3) | Y(4) | Y(5) | Y(6) | Y(7) | Y(8) | Y(9) | Y(10) | Y(11) | Y(12) | Y(13), Y(0), 0,         \
-		    NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                     \
+		Y(2) | Y(0) | Y(1) | Y(4) | Y(5), Y(3), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                         \
+		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 #define NODE_1_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		Y(0) | Y(2) | Y(3) | Y(4) | Y(5) | Y(6) | Y(7) | Y(8) | Y(9) | Y(10) | Y(11) | Y(12) | Y(13), Y(1), 0,         \
-		    NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                     \
+		Y(2) | Y(3) | Y(1) | Y(4) | Y(5), Y(0), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                         \
+		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 #define NODE_2_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		Y(0) | Y(1) | Y(3) | Y(4) | Y(5) | Y(6) | Y(7) | Y(8) | Y(9) | Y(10) | Y(11) | Y(12) | Y(13), Y(2), 0,         \
-		    NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                     \
+		Y(2) | Y(0) | Y(3) | Y(1) | Y(4), Y(5), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                         \
+		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 #define NODE_3_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		Y(0) | Y(1) | Y(2) | Y(4) | Y(5) | Y(6) | Y(7) | Y(8) | Y(9) | Y(10) | Y(11) | Y(12) | Y(13), Y(3), 0,         \
-		    NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                     \
+		Y(2) | Y(0) | Y(3) | Y(1) | Y(5), Y(4), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                         \
+		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 #define NODE_4_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		Y(0) | Y(1) | Y(2) | Y(3) | Y(5) | Y(6) | Y(7) | Y(8) | Y(9) | Y(10) | Y(11) | Y(12) | Y(13), Y(4), 0,         \
-		    NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                     \
-	}
-#define NODE_5_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		Y(0) | Y(1) | Y(2) | Y(3) | Y(4) | Y(6) | Y(7) | Y(8) | Y(9) | Y(10) | Y(11) | Y(12) | Y(13), Y(5), 0,         \
-		    NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                     \
-	}
-#define NODE_6_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		Y(0) | Y(1) | Y(2) | Y(3) | Y(4) | Y(5) | Y(7) | Y(8) | Y(9) | Y(10) | Y(11) | Y(12) | Y(13), Y(6), 0,         \
-		    NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                     \
-	}
-#define NODE_7_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		Y(0) | Y(1) | Y(2) | Y(3) | Y(4) | Y(5) | Y(6) | Y(8) | Y(9) | Y(10) | Y(11) | Y(12) | Y(13), Y(7), 0,         \
-		    NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                     \
-	}
-#define NODE_8_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		Y(0) | Y(1) | Y(2) | Y(3) | Y(4) | Y(5) | Y(6) | Y(7) | Y(9) | Y(10) | Y(11) | Y(12) | Y(13), Y(8), 0,         \
-		    NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                     \
-	}
-#define NODE_9_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		Y(0) | Y(1) | Y(2) | Y(3) | Y(4) | Y(5) | Y(6) | Y(7) | Y(8) | Y(10) | Y(11) | Y(12) | Y(13), Y(9), 0,         \
-		    NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                     \
-	}
-#define NODE_10_PARAMS                                                                                                 \
-	{                                                                                                                  \
-		Y(0) | Y(1) | Y(2) | Y(3) | Y(4) | Y(5) | Y(6) | Y(7) | Y(8) | Y(9) | Y(11) | Y(12) | Y(13), Y(10), 0,         \
-		    NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                     \
-	}
-#define NODE_11_PARAMS                                                                                                 \
-	{                                                                                                                  \
-		Y(0) | Y(1) | Y(2) | Y(3) | Y(4) | Y(5) | Y(6) | Y(7) | Y(8) | Y(9) | Y(10) | Y(12) | Y(13), Y(11), 0,         \
-		    NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                     \
-	}
-#define NODE_12_PARAMS                                                                                                 \
-	{                                                                                                                  \
-		Y(0) | Y(1) | Y(2) | Y(3) | Y(4) | Y(5) | Y(6) | Y(7) | Y(8) | Y(9) | Y(10) | Y(11) | Y(13), Y(12), 0,         \
-		    NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                     \
-	}
-#define NODE_13_PARAMS                                                                                                 \
-	{                                                                                                                  \
-		Y(0) | Y(1) | Y(2) | Y(3) | Y(4) | Y(5) | Y(6) | Y(7) | Y(8) | Y(9) | Y(10) | Y(11) | Y(12), Y(13), 0,         \
-		    NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                     \
+		Y(2) | Y(0) | Y(3) | Y(4) | Y(5), Y(1), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                         \
+		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 
 /**********************************************************/
@@ -169,7 +124,7 @@ extern "C" {
  * Range: 1 to 65535.
  * Default value: 1
  */
-#define DEF_NUM_SENSORS (14)
+#define DEF_NUM_SENSORS (5)
 
 /* Defines Key Sensor setting
  * {Sensor Threshold, Sensor Hysterisis, Sensor AKS}
@@ -184,58 +139,22 @@ extern "C" {
 	}
 #define KEY_2_PARAMS                                                                                                   \
 	{                                                                                                                  \
-		20, HYST_25, NO_AKS_GROUP                                                                                      \
+		20, HYST_25, AKS_GROUP_1                                                                                       \
 	}
 #define KEY_3_PARAMS                                                                                                   \
 	{                                                                                                                  \
-		20, HYST_25, NO_AKS_GROUP                                                                                      \
+		20, HYST_25, AKS_GROUP_1                                                                                       \
 	}
 #define KEY_4_PARAMS                                                                                                   \
 	{                                                                                                                  \
-		20, HYST_25, NO_AKS_GROUP                                                                                      \
-	}
-#define KEY_5_PARAMS                                                                                                   \
-	{                                                                                                                  \
-		20, HYST_25, NO_AKS_GROUP                                                                                      \
-	}
-#define KEY_6_PARAMS                                                                                                   \
-	{                                                                                                                  \
-		20, HYST_25, NO_AKS_GROUP                                                                                      \
-	}
-#define KEY_7_PARAMS                                                                                                   \
-	{                                                                                                                  \
-		20, HYST_25, NO_AKS_GROUP                                                                                      \
-	}
-#define KEY_8_PARAMS                                                                                                   \
-	{                                                                                                                  \
 		20, HYST_25, AKS_GROUP_1                                                                                       \
-	}
-#define KEY_9_PARAMS                                                                                                   \
-	{                                                                                                                  \
-		20, HYST_25, AKS_GROUP_1                                                                                       \
-	}
-#define KEY_10_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		20, HYST_25, AKS_GROUP_2                                                                                       \
-	}
-#define KEY_11_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		20, HYST_25, AKS_GROUP_2                                                                                       \
-	}
-#define KEY_12_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		20, HYST_25, AKS_GROUP_2                                                                                       \
-	}
-#define KEY_13_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		20, HYST_25, AKS_GROUP_2                                                                                       \
 	}
 
 /* De-bounce counter for additional measurements to confirm touch detection
  * Range: 0 to 255.
  * Default value: 4.
  */
-#define DEF_TOUCH_DET_INT 2
+#define DEF_TOUCH_DET_INT 4
 
 /* De-bounce counter for additional measurements to confirm away from touch signal
  * to initiate Away from touch re-calibration.
@@ -284,12 +203,13 @@ extern "C" {
  * Default value: 0
  */
 #define DEF_MAX_ON_DURATION 0
+
 /**********************************************************/
 /***************** Slider/Wheel Parameters ****************/
 /**********************************************************/
 /* Defines the number of scrollers (sliders or wheels)
  */
-#define DEF_NUM_SCROLLERS (2)
+#define DEF_NUM_SCROLLERS (1)
 
 /* Defines scroller parameter setting
  * {touch_scroller_type, touch_start_key, touch_scroller_size,
@@ -301,11 +221,7 @@ extern "C" {
  */
 #define SCROLLER_0_PARAMS                                                                                              \
 	{                                                                                                                  \
-		SCROLLER_TYPE_SLIDER, 8, 2, SCR_RESOL_DEADBAND(RESOL_8_BIT, DB_10_PERCENT), 8, 20                              \
-	}
-#define SCROLLER_1_PARAMS                                                                                              \
-	{                                                                                                                  \
-		SCROLLER_TYPE_SLIDER, 10, 4, SCR_RESOL_DEADBAND(RESOL_8_BIT, DB_10_PERCENT), 8, 20                             \
+		SCROLLER_TYPE_SLIDER, 2, 3, SCR_RESOL_DEADBAND(RESOL_8_BIT, DB_10_PERCENT), 8, 20                              \
 	}
 
 /**********************************************************/

@@ -46,7 +46,7 @@ void object_t15_process(u8 rw);
 ssint object_t15_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_t15_start(u8 loaded);
 void object_t15_process(u8 rw);
-void object_t15_report_status(void);
+void object_t15_report_status(u8 force);
 
 ssint object_t15_set_button_status(/* Slot id */u8 id, u8 pressed);
 #endif /* T15_H_ */
