@@ -36,13 +36,19 @@ void t15_set_unsupport_area(t15_data_t *ptr)
 	mem->xsize = /*btndef->node.size*/ 0;
 	mem->yorigin = btndef->node.origin;
 	mem->ysize = btndef->node.size;
-
+	
 	if (mem->xsize || mem->ysize)
-		mem->ctrl = 0x3;
+		mem->ctrl |= MXT_T15_CTRL_ENABLE;
 	else
-		mem->ctrl = 0;
+		mem->ctrl &= ~MXT_T15_CTRL_ENABLE;
+#ifndef OBJECT_WRITEBACK
+	mem->ctrl |= MXT_T15_CTRL_RPTEN;	//Need enable report if not write permission
+#endif
+
+#ifdef OBJECT_WRITEBACK
 	mem->akscfg = 0;
 	mem->rsv = 0;
+#endif
 }
 
 void t15_data_sync(t15_data_t *ptr, u8 rw)
@@ -59,17 +65,17 @@ void t15_data_sync(t15_data_t *ptr, u8 rw)
 		{ KEY_PARAMS_HYSTERESIS, &mem->tchhyst, sizeof(mem->tchhyst)}
 	};
 	
-	if (!rw) {	//write		
+	if (rw == OP_WRITE) {	//write		
 		t15_set_unsupport_area(ptr);
 	}
 	
 	// Sensor channel parameter
-	count = rw ? 1 :  mem->ysize;
+	count = (rw == OP_READ) ? 1 :  mem->ysize;
 	for (i = mem->yorigin; i < mem->yorigin + count; i++) {
 		object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
 	}
 	
-	if (rw) {	// read
+	if (rw == OP_READ) {	// read
 		t15_set_unsupport_area(ptr);
 	}
 }
@@ -106,9 +112,9 @@ void t15_report_status(u8 rid, const t15_button_status_t *btn, const mpt_api_cal
 	message.reportid = rid;
 	message.data[0] = btn->status ? MXT_T15_DETECT : 0;
 	message.data[1] = btn->data[0];
-	message.data[2] = btn->data[2];
-	message.data[3] = btn->data[3];
-	message.data[4] = btn->data[4];
+	message.data[2] = btn->data[1];
+	message.data[3] = btn->data[2];
+	message.data[4] = btn->data[3];
 	
 	MPT_API_CALLBACK(cb, cb_write_message)(&message);
 }
@@ -126,28 +132,45 @@ void object_t15_report_status(u8 force)
 	}
 }
 
-ssint object_t15_set_button_status(/* Slot id */u8 id, u8 pressed)
+u16 object_t15_get_button_base_ref(u8 inst)
 {
 	t15_data_t *ptr =  &t15s_data_status[0];
+	
+	if (inst >= MXT_TOUCH_KEYARRAY_T15_INST)
+		return 0;
+	
+	return (SENSOR_BASE_REF_VALUE << /*NODE_GAIN_DIG*/(((object_t15_t *)ptr[inst].common.mem)->blen & 0xF));
+}
+
+ssint object_api_t15_set_button_status(/* Slot id */u8 id, u8 pressed)
+{
+	t15_data_t *ptr =  &t15s_data_status[0];
+	object_t15_t *mem = (object_t15_t *) ptr->common.mem;
 	const qbutton_config_t *btndef;
 	u8 offset, i;
 	u32 status;
 	
 	for (i = 0, offset = 0; i < MXT_TOUCH_KEYARRAY_T15_INST; i++) {
+		mem = (object_t15_t *) ptr[i].common.mem;
 		btndef = (qbutton_config_t *)ptr[i].btndef;
-		if (id >= btndef->node.origin &&  id < btndef->node.origin + btndef->node.size) {
-			offset = id - btndef->node.origin;
-			status = ptr[i].button.status;
-			if (pressed)
-				status |= BIT(offset);
-			else
-				status &= ~BIT(offset);
+		
+		if (mem->ctrl & MXT_T15_CTRL_ENABLE) {
+			if (id >= btndef->node.origin &&  id < btndef->node.origin + btndef->node.size) {
+				offset = id - btndef->node.origin;
+				status = ptr[i].button.status;
+				if (pressed)
+					status |= BIT(offset);
+				else
+					status &= ~BIT(offset);
 			
-			if (status != ptr[i].button.status) {
-				ptr[i].button.status = status;
-				t15_report_status(ptr[i].common.rid, &ptr[i].button, ptr[i].common.cb);
+				if (status != ptr[i].button.status) {
+					ptr[i].button.status = status;
+				
+					if (mem->ctrl & MXT_T15_CTRL_RPTEN)
+						t15_report_status(ptr[i].common.rid, &ptr[i].button, ptr[i].common.cb);
+				}
+				break;
 			}
-			break;
 		}
 	}
 	

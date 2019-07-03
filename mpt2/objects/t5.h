@@ -11,10 +11,12 @@
 
 #include "../types.h"
 
+#define MXT_T5_MESSAGE_SIZE 8
+
 /* T5 Memory space */
 typedef struct object_t5 {
 	u8 reportid;
-	u8 data[7];
+	u8 data[MXT_T5_MESSAGE_SIZE - 1];
 	u8 crc;
 } __attribute__ ((packed)) object_t5_t;
 

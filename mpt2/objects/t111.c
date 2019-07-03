@@ -4,6 +4,8 @@
  * Created: 6/12/2019 2:16:35 PM
  *  Author: A41450
  */ 
+#ifdef OBJECT_T111
+
 #include "../tslapi.h"
 #include "txx.h"
 
@@ -15,6 +17,7 @@ ssint object_t111_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, c
 
 void t111_set_unsupport_area(object_t111_t *mem)
 {
+#ifdef OBJECT_WRITEBACK
 	mem->ctrl = 0;
 	mem->dbgctrl = 0;
 	mem->idlesyncsperl = 0;
@@ -24,6 +27,7 @@ void t111_set_unsupport_area(object_t111_t *mem)
 	mem->dccalrecstr = 0;
 	mem->dccalerrratio = 0;
 	mem->dcgainsf = 0;
+#endif
 }
 
 void t111_data_sync(const txx_data_t *ptr, u8 rw)
@@ -61,21 +65,24 @@ void t111_data_sync(const txx_data_t *ptr, u8 rw)
 	};
 	
 	u8 i, end;
-	
-	if (object_api_t8_measuring_self()) {
-		end = rw ? 1 : QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize);
+
+#ifdef OBJECT_T8
+	if (object_api_t8_measuring_self()) 
+#endif
+	{
+		end = (rw == OP_READ) ? 1 : QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize);
 		for (i = 0; i < end; i++) {
 			object_txx_op(ptr, xparams, ARRAY_SIZE(xparams), i, rw);
 		}
 	
-		end = rw ? QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + 1 : QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + QTOUCH_CONFIG_VAL(ptr->def, matrix_ysize);
+		end = (rw == OP_READ) ? QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + 1 : QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + QTOUCH_CONFIG_VAL(ptr->def, matrix_ysize);
 		for (i = QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize); i < end; i++) {
 			object_txx_op(ptr, yparams, ARRAY_SIZE(yparams), i, rw);
 		}	
 	
 		object_txx_op(ptr, params, ARRAY_SIZE(params), 0, rw);
 	
-		if (rw) {
+		if (rw == OP_READ) {
 			// Update memory
 			mem->inttime = resprsc_y.lo;
 			mem->altinttimex = resprsc_x.lo == resprsc_y.lo ? 0 : resprsc_x.lo;
@@ -104,3 +111,5 @@ void object_t111_process(u8 rw)
 	
 	t111_data_sync(ptr, rw);
 }
+
+#endif

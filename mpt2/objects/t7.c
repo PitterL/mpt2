@@ -4,6 +4,7 @@
  * Created: 6/9/2019 10:30:07 AM
  *  Author: A41450
  */ 
+#ifdef OBJECT_T7
 
 #include "../tslapi.h"
 #include "txx.h"
@@ -49,3 +50,5 @@ void object_t7_process(u8 rw)
 	
 	t7_data_sync(ptr, rw);
 }
+
+#endif

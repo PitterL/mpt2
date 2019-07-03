@@ -9,6 +9,8 @@
 #ifndef T9_H_
 #define T9_H_
 
+#ifdef OBJECT_T9
+
 /* T9 configure */
 typedef struct object_t9 {
 	u8 ctrl;
@@ -48,7 +50,17 @@ typedef struct object_t9 {
 
 /* MXT_TOUCH_MULTI_T9 field */
 #define MXT_T9_CTRL		0
+#define MXT_T9_CTRL_ENABLE		BIT(0)
+#define MXT_T9_CTRL_RPTEN		BIT(1)
+#define MXT_T9_CTRL_DISSCRMSG0	BIT(2)
+#define MXT_T9_CTRL_SCANEN		BIT(3)
+
 #define MXT_T9_ORIENT		9
+/* MXT_TOUCH_MULTI_T9 orient */
+#define MXT_T9_ORIENT_SWITCH	BIT(0)
+#define MXT_T9_ORIENT_INVERTX	BIT(1)
+#define MXT_T9_ORIENT_INVERTY	BIT(2)
+
 #define MXT_T9_RANGE		18
 
 /* MXT_TOUCH_MULTI_T9 status */
@@ -60,11 +72,6 @@ typedef struct object_t9 {
 #define MXT_T9_RELEASE		BIT(5)
 #define MXT_T9_PRESS		BIT(6)
 #define MXT_T9_DETECT		BIT(7)
-
-/* MXT_TOUCH_MULTI_T9 orient */
-#define MXT_T9_ORIENT_SWITCH	BIT(0)
-#define MXT_T9_ORIENT_INVERTX	BIT(1)
-#define MXT_T9_ORIENT_INVERTY	BIT(2)
 
 typedef struct t9_range {
 	u16 x;
@@ -83,12 +90,21 @@ typedef struct t9_data {
 	txx_data_t common;
 	const /*qsurface_config_t*/void *surdef;
 	t9_point_status_t points[MXT_TOUCH_MULTI_T9_RIDS];
+	u16 resolution_max;
 } t9_data_t;
 
 ssint object_t9_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_t9_start(u8 loaded);
 void object_t9_process(u8 rw);
 void object_t9_report_status(u8 force);
-ssint object_t9_set_pointer_location(u8 inst, u8 id, u8 status, u16 x, u16 y);
+u16 object_t9_get_surface_slider_base_ref(u8 inst);
+ssint object_api_t9_set_pointer_location(u8 inst, u8 id, u8 status, u16 x, u16 y);
+
+#else	/* OBJECT_T9 */
+
+#define MXT_TOUCH_MULTI_T9_INST 0	/* Set T9 instance to ZERO if not compiled */
+#define MXT_TOUCH_MULTI_T9_RIDS 0
+
+#endif /* OBJECT_T9 */
 
 #endif /* T9_H_ */

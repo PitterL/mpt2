@@ -4,6 +4,7 @@
  * Created: 6/9/2019 9:38:09 AM
  *  Author: A41450
  */ 
+#ifdef OBJECT_T9
 
 #include <string.h>
 #include "../tslapi.h"
@@ -28,34 +29,39 @@ ssint object_t9_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, con
 
 void t9_set_unsupport_area(t9_data_t *ptr)
 {
+	const qtouch_config_t *qdef = (qtouch_config_t *)ptr->common.def;
 	const qsurface_config_t *surdef = (qsurface_config_t *)ptr->surdef;
 	object_t9_t *mem = (object_t9_t *) ptr->common.mem;
 	
-	mem->xorigin = /*surdef->xnode.origin*/0;
+	mem->xorigin = surdef->xnode.origin;
 	mem->xsize = surdef->xnode.size;
-	mem->yorigin = /*surdef->ynode.origin*/0;
+	mem->yorigin = surdef->ynode.origin - /*(mem->xorigin + mem->xsize)*/qdef->matrix_xsize;
 	mem->ysize = surdef->ynode.size;
 
-	if (mem->xsize && mem->ysize)
-		mem->ctrl = 0xff;
+	if (mem->xsize || mem->ysize)
+		mem->ctrl |= MXT_T9_CTRL_ENABLE;
 	else
-		mem->ctrl = 0;
+		mem->ctrl &= ~MXT_T9_CTRL_ENABLE;
+#ifndef OBJECT_WRITEBACK
+	mem->ctrl |= MXT_T9_CTRL_RPTEN;
+#endif
+
+	if (!mem->xrange || mem->xrange > surdef->resolution_max)
+		mem->xrange = surdef->resolution_max;
+
+	if (!mem->yrange || mem->yrange > surdef->resolution_max)
+		mem->yrange = surdef->resolution_max;
+
+#ifdef OBJECT_WRITEBACK
 	mem->akscfg = 0;
-	
-	//self cap
-	if (object_api_t8_measuring_self()) {
-		mem->blen = 0;
-		mem->tchthr = 0;
-		mem->tchhyst = 0;	
-	}
-	
+
 	mem->mrgtimeout = 0;
 	mem->movhystn = 0;
 	//temp
 	mem->numtouch = 1;
 	mem->mrghyst = 0;
 	mem->mrgthr = 0;
-	mem->amphyst = 0;
+	mem->amphyst = 0;	
 	
 	mem->xloclip = 0;
 	mem->xhiclip = 0;
@@ -69,12 +75,13 @@ void t9_set_unsupport_area(t9_data_t *ptr)
 	mem->jumplimit = 0;
 	mem->xpitch = 0;
 	mem->ypitch = 0;
+#endif
 }
 
 void t9_data_sync(t9_data_t *ptr, u8 rw)
 {
+	const qsurface_config_t *surdef = (qsurface_config_t *)ptr->surdef;
 	object_t9_t *mem = (object_t9_t *) ptr->common.mem;
-	u8 i, count;
 	/*
 	u16 xorigin = mem->xorigin, yorigin = mem->yorigin + ptr->surdef->xnode.origin + ptr->surdef->xnode.size;
 	
@@ -86,7 +93,8 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 		{ SURFACE_CS_NUM_KEYS_H, &mem->ysize, sizeof(mem->ysize) },
 	};
 	*/
-	
+
+	u8 i, count;
 	txx_cb_param_t params_sensor[] = {
 		{ NODE_PARAMS_GAIN, &mem->blen, sizeof(mem->blen) },
 		{ KEY_PARAMS_THRESHOLD, &mem->tchthr, sizeof(mem->tchthr) },
@@ -102,31 +110,28 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 		{ SURFACE_CS_FILT_CFG, &movfilter, sizeof(movfilter) },
 	};
 
-	if (!rw) {	//write		
+	if (rw == OP_WRITE) {	//write		
 		// Channel using
 		t9_set_unsupport_area(ptr);
 		movfilter.lo = (mem->movfilter >> 4);
 	}
 	
-	// Mutual only
-	if (object_api_t8_measuring_mutual()) {	//Test Mutual cap
-		// Sensor channel parameter
-		count = rw ? 1 :  mem->xsize;
-		for (i = mem->xorigin; i < mem->xorigin + count; i++) {
-			object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
-		}
-	
-		if (!rw) {	//write
-			for (i = mem->yorigin; i < mem->yorigin + mem->ysize; i++) {
-				object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
-			}
-		}
+	// Sensor channel parameter
+	count = (rw == OP_READ) ? 1 :  surdef->xnode.size;
+	for (i = surdef->xnode.origin; i < surdef->xnode.size + count; i++) {
+		object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
 	}
 	
+	if (rw == OP_WRITE) {	//write
+		for (i = surdef->ynode.origin; i < surdef->ynode.origin + surdef->ynode.size; i++) {
+			object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
+		}
+	}
+
 	// Touch parameters
 	object_txx_op(&ptr->common, params_touch, ARRAY_SIZE(params_touch), 0, rw);
 	
-	if (rw) {	// read
+	if (rw == OP_READ) {	// read
 		mem->movfilter = (movfilter.value << 4);
 		t9_set_unsupport_area(ptr);
 	}
@@ -156,7 +161,7 @@ void object_t9_process(u8 rw)
 }
 
 void t9_report_status(u8 rid, const t9_point_status_t *pt, const mpt_api_callback_t *cb)
-{	
+{
 	object_t5_t message;
 	
 	memset(&message, 0, sizeof(message));
@@ -187,11 +192,24 @@ void object_t9_report_status(u8 force)
 	}
 }
 
+//Note: Since there is only 1 Gain in surface, the first X gain will be decided as base gain. If different Gain set in touch.h, need extra code to detect
+u16 object_t9_get_surface_slider_base_ref(u8 inst)
+{
+	t9_data_t *ptr =  &t9s_data_status[0];
+	
+	if (inst >= MXT_TOUCH_MULTI_T9_INST)
+		return 0;
+	
+	return (SENSOR_BASE_REF_VALUE << /*NODE_GAIN_DIG*/(((object_t9_t *)ptr[inst].common.mem)->blen & 0xF));
+}
+
+#ifdef OBJECT_T9_ORIENT
+//Note this resolution transform only could room in, if you want larger resolution, should modify in the qtouch lib 
 void transfer_pos(t9_data_t *ptr, t9_range_t *ppos)
 {
 	object_t9_t *mem = (object_t9_t *) ptr->common.mem;
 	const qsurface_config_t *surdef = (qsurface_config_t *)ptr->surdef;
-	const u16 resol_max = (1 << surdef->resolution_bit) - 1;
+	const u16 resol_max = surdef->resolution_max;
 	t9_range_t point;
 	u16 xrange, yrange, tmp;
 	
@@ -233,10 +251,12 @@ void transfer_pos(t9_data_t *ptr, t9_range_t *ppos)
 	ppos->x = point.x;
 	ppos->y = point.y;
 }
+#endif
 
-ssint object_t9_set_pointer_location(u8 inst, /* Slot id */u8 id, u8 status, u16 x, u16 y)
+ssint object_api_t9_set_pointer_location(u8 inst, /* Slot id */u8 id, u8 status, u16 x, u16 y)
 {
 	t9_data_t *ptr;
+	object_t9_t *mem;
 	t9_point_status_t point, *pt;
 
 	if (inst > MXT_TOUCH_MULTI_T9_INST)
@@ -246,17 +266,25 @@ ssint object_t9_set_pointer_location(u8 inst, /* Slot id */u8 id, u8 status, u16
 		return -3;
 	
 	ptr =  &t9s_data_status[inst];
+	mem = (object_t9_t *) ptr->common.mem;
 	
-	pt = &ptr->points[id];
-	if (pt->status != status || pt->pos.x != x || pt->pos.y != y) {
-		pt->status = status;
-		pt->pos.x = x;
-		pt->pos.y = y;
-		
-		memcpy(&point, pt, sizeof(point));
-		transfer_pos(ptr, &point.pos);
-		t9_report_status(ptr->common.rid + id, &point, ptr->common.cb);	//Each Touch finger has own ID
+	if (mem->ctrl & MXT_T9_CTRL_ENABLE) {
+		pt = &ptr->points[id];
+		if (pt->status != status || pt->pos.x != x || pt->pos.y != y) {
+			pt->status = status;
+			pt->pos.x = x;
+			pt->pos.y = y;
+
+			memcpy(&point, pt, sizeof(point));
+		#ifdef OBJECT_T9_ORIENT
+			transfer_pos(ptr, &point.pos);
+		#endif
+			if (mem->ctrl & MXT_T9_CTRL_RPTEN)
+				t9_report_status(ptr->common.rid + id, &point, ptr->common.cb);	//Each Touch finger has own ID
+		}
 	}
 	
 	return 0;
 }
+
+#endif

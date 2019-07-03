@@ -38,5 +38,6 @@ void tsl_process(void);
 
 ssint tsl_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr);
 ssint tsl_mem_write(u16 baseaddr, u16 offset, u8 val);
+void tsl_end(void);
 
 #endif /* TSL_H_ */

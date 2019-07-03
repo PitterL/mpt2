@@ -81,15 +81,15 @@ Calculate multi block crc24
 */
 u32 calc_blocks_crc24(const crc_data_blocks_t *blk, size_t count)
 {
-    const u8 *ptr;
-    
 	u8 firstbyte, secondbyte, odd = 0;
 	u32 crc = 0;
 	size_t i, j, sum;
+	const u8 *ptr;
 	
 	for (i = 0, sum = 0; i < count; i++) {
 		ptr = blk[i].base;
-		for (j = 0; j < blk[i].size - 1; j += 2) {
+		
+		for (j = 0; j + 1 < blk[i].size; j += 2) {
 			if (sum & 0x1) {
 				firstbyte = odd;
 				secondbyte = *ptr++;

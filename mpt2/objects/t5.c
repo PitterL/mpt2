@@ -3,8 +3,9 @@
  *
  * Created: 6/9/2019 10:24:52 AM
  *  Author: A41450
- */ 
-#include <string.h>
+ */
+#ifdef OBJECT_T5
+
 #include "t5.h"
 
 t5_data_t t5_data_status;
@@ -17,3 +18,5 @@ ssint object_t5_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, con
 	
 	return 0;
 }
+
+#endif

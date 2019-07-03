@@ -4,6 +4,8 @@
  * Created: 6/8/2019 11:31:42 PM
  *  Author: A41450
  */ 
+#ifdef OBJECT_T6
+
 #include <string.h>
 #include "../tslapi.h"
 #include "txx.h"
@@ -27,8 +29,9 @@ void object_t6_start(u8 unused)
 	MPT_API_CALLBACK(ptr->common.cb, cb_get_config_crc)(&ptr->crc);
 }
 
-void report_status(t6_data_t *ptr, u8 status)
+static void report_status(t6_data_t *ptr, u8 status)
 {
+#ifdef OBJECT_T5
 	object_t5_t message;
 	
 	memset(&message, 0, sizeof(message));
@@ -40,6 +43,7 @@ void report_status(t6_data_t *ptr, u8 status)
 	message.data[3] = ptr->crc.data[2];
 	
 	MPT_API_CALLBACK(ptr->common.cb, cb_write_message)(&message);
+#endif
 }
 
 void t6_pulse_status(t6_data_t *ptr, u8 mask, u8 set)
@@ -70,10 +74,11 @@ void chip_reset(u8 arg)
 		/* Reboot to bootloader mode */
 	}else if (arg != 0) {
 		/* Normal reset */
-		
+
+#ifdef OBJECT_WRITEBACK
 		/* Update reg */
 		MPT_API_CALLBACK(ptr->common.cb, cb_object_write)(MXT_GEN_COMMAND_T6, 0, MXT_COMMAND_RESET, &arg, 1);
-		
+#endif
 		//t6_pulse_status(ptr, MXT_T6_STATUS_RESET, 1);
 		
 		/* Do reset */
@@ -102,7 +107,7 @@ void chip_calibrate(u8 arg)
 	
 	if (arg) {
 		/* performance calibration */
-		//api_object_t6_set_status(MXT_T6_STATUS_CAL);
+		//object_api_t6_set_status(MXT_T6_STATUS_CAL);
 		
 		//t6_pulse_status(ptr, MXT_T6_STATUS_CAL, 1);
 		
@@ -152,7 +157,7 @@ void chip_diagnostic(u8 arg)
 			default:
 				ptr->dbg.cmd = MXT_DIAGNOSTIC_NONE;
 		}
-		object_t37_set_data_page(ptr->dbg.cmd, ptr->dbg.page);
+		object_api_t37_set_data_page(ptr->dbg.cmd, ptr->dbg.page);
 	}
 }
 #endif
@@ -189,7 +194,7 @@ ssint object_t6_handle_command(u16 cmd, u8 arg)
 	return result;
 }
 
-void api_object_t6_set_status(u8 mask)
+void object_api_t6_set_status(u8 mask)
 {
 	t6_data_t *ptr = &t6_data_status;
 	
@@ -197,10 +202,12 @@ void api_object_t6_set_status(u8 mask)
 		ptr->status_new |= mask;
 }
 
-void api_object_t6_clr_status(u8 mask)
+void object_api_t6_clr_status(u8 mask)
 {
 	t6_data_t *ptr = &t6_data_status;
 	
 	if (ptr->status_new & mask)
 		ptr->status_new &= ~mask;
 }
+
+#endif

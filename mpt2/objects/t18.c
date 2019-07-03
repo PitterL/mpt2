@@ -4,6 +4,7 @@
  * Created: 6/9/2019 10:44:13 AM
  *  Author: A41450
  */ 
+#ifdef OBJECT_T18
 
 #include "../tslapi.h"
 #include "txx.h"
@@ -37,3 +38,5 @@ bool object_t18_check_retrigger(void)
 	
 	return false;
 }
+
+#endif

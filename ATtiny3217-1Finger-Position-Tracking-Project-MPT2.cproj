@@ -212,6 +212,8 @@
     <ListValues>
       <Value>DEBUG</Value>
       <Value>USE_MPTT_WRAPPER</Value>
+      <Value>OBJECT_WRITEBACK</Value>
+      <Value>FLASH_SAVE_CONFIG</Value>
       <Value>OBJECT_T37</Value>
       <Value>OBJECT_T44</Value>
       <Value>OBJECT_T5</Value>
@@ -219,12 +221,13 @@
       <Value>OBJECT_T7</Value>
       <Value>OBJECT_T8</Value>
       <Value>OBJECT_T9</Value>
+      <Value>OBJECT_T9_ORIENT</Value>
       <Value>OBJECT_T15</Value>
       <Value>OBJECT_T18</Value>
       <Value>OBJECT_T25</Value>
+      <Value>OBJECT_T25_EXTENSION</Value>
       <Value>OBJECT_T104</Value>
       <Value>OBJECT_T111</Value>
-      <Value>FLASH_SAVE_CONFIG</Value>
       <Value>OBJECT_T109</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>

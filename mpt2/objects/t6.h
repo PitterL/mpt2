@@ -81,8 +81,8 @@ void object_t6_process(void);
 
 ssint object_t6_handle_command(u16 cmd, u8 arg);
 u8 object_t6_get_diagnostic_status(u8 *pg);
-void api_object_t6_set_status(u8 mask);
-void api_object_t6_clr_status(u8 mask);
+void object_api_t6_set_status(u8 mask);
+void object_api_t6_clr_status(u8 mask);
 
 #define MXT_GEN_COMMAND_T6_RIDS 1
 

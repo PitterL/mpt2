@@ -96,6 +96,7 @@ typedef struct qsurface_config {
 	nodes_desc_t xnode;
 	nodes_desc_t ynode;
 	u8 resolution_bit;
+	u16 resolution_max;
 } qsurface_config_t;
 
 typedef struct qtouch_config {
@@ -112,8 +113,8 @@ typedef struct qtouch_config {
 #define QTOUCH_CONFIG_VAL(_p, _n) (((qtouch_config_t *)(_p))->_n)
 
 typedef struct qtouch_api_callback {
-	cb_writeback_t write;
-	cb_writeback_t read;
+	//cb_writeback_t write;
+	//cb_writeback_t read;
 	cb_sync_op_t sync;
 	cb_calibrate_t calibrate;
 } qtouch_api_callback_t;
@@ -121,16 +122,51 @@ typedef struct qtouch_api_callback {
 
 typedef struct mpt_api_callback {
 	const qtouch_api_callback_t *qtapi;
+
+#ifdef OBJECT_T6	
 	void (*reset)(void);
 	void (*calibrate)(void);
 	ssint (*backup)(void);
 	void (*report_all)(void);
 	void (*cb_get_config_crc)(/*data_crc24_t*/void *crc_ptr);
+#endif
+#ifdef OBJECT_T5	
 	ssint (*cb_write_message)(const /*object_t5_t*/void *msg);
+#endif
+#ifdef OBJECT_WRITEBACK
 	ssint (*cb_object_write)(u8 regid, u8 instance, u16 offset, const u8 *ptr, u8 size);
+#endif
 } mpt_api_callback_t;
 
 #define MPT_API_CALLBACK(_cb, _fn) (((mpt_api_callback_t *)(_cb))->_fn)
 #define MPT_QTAPI_CALLBACK(_cb, _fn) ((((mpt_api_callback_t *)(_cb))->qtapi)->_fn)
+
+enum {
+	OP_WRITE = 0,
+	OP_READ,
+};
+
+/* 
+	cc value formula:
+		(val & 0x0F)*0.00675 + ((val >> 4) & 0x0F)*0.0675 + ((val >> 8) & 0x0F)*0.675 + ((val >> 12) & 0x3) * 6.75
+	Here, multiply 1000 for calculation:
+*/
+
+// 7 = 4 + 2 + 1 = 2^2 + 2^1 + 2^0
+#define MUL_7(_v0) (((_v0) << 2) + ((_v0) << 1) + (_v0))
+
+// 68 = 64 + 4 = 2^6 + 2^2
+#define MUL_68(_v1) (((_v1) << 6) + ((_v1) << 2))
+
+// 675 = 512 + 128 + 32 + 4 - 1 = 2^9 + 2^7 + 2^5 + 2^2 - 2^0
+#define MUL_675(_v2) (((_v2) << 9) + ((_v2) << 7) + ((_v2) << 5) + ((_v2) << 2) - (_v2))
+
+// 6750 = 4096 + 2048 + 512 + 64 + 32 - 2 = 2^12 + 2^11 + 2^9 + 2^6 + 2^5 - 2^1
+#define MUL_6750(_v3) (((_v3) << 12) + ((_v3) << 11) + ((_v3) << 9) + ((_v3) << 6) + ((_v3) << 5) - ((_v3) << 2))
+
+//#define CALCULATE_CAP(_v) (MUL_7((_v) & 0x0F) + MUL_68(((_v) >> 4) & 0x0F) + MUL_675(((_v) >> 8) & 0x0F) + MUL_6750(((_v) >> 12) & 0x3))
+#define CALCULATE_CAP(_v) (((_v) & 0x0F) * 7 + (((_v) >> 4) & 0x0F) * 68 + (((_v) >> 8) & 0x0F) *675 + (((_v) >> 12) & 0x3) * 6750)
+
+#define SENSOR_BASE_REF_VALUE 512
 
 #endif /* TSLAPI_H_ */
