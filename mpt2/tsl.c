@@ -292,6 +292,10 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 	{ .node = {	.origin = 0, .size = 2 } },	// Button
 	{ .node = {	.origin = 2, .size = 3 } },	// Surface slider
 #endif
+#ifdef EVK_QT8	
+	{ .node = {	.origin = 0, .size = 5 } },	// Button
+	{ .node = {	.origin = 5, .size = 5 } },	
+#endif
 };
 #endif
 
@@ -412,7 +416,7 @@ void init_slider_nodes(qtouch_config_t *qdef)
 void init_surface_node(qtouch_config_t *qdef)
 {
 	const qtm_surface_cs_config_t *qtcfg = &qtm_surface_cs_config1;
-	qsurface_config_t *sursld = qdef->surface_sliders[qdef->num_slider];
+	qsurface_config_t *sursld = &qdef->surface_sliders[qdef->num_slider];
 
 	if (sursld->xnode.size && sursld->ynode.size)
 		return;

@@ -96,58 +96,56 @@ void object_api_t37_set_data_page(u8 cmd, u8 page)
 	ptr->status.page = page;
 }
 
-void object_api_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
+u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
 {
-	t37_data_t *ptr = &t37_data_status;
-	s16 data;
+	switch(cmd) {
+		case MXT_DIAGNOSTIC_KEY_DELTA:
+		case MXT_DIAGNOSTIC_MC_DELTA: 
+		case MXT_DIAGNOSTIC_SC_DELTA:
+			return (u16)((s16)signal- (s16)reference);
+		case MXT_DIAGNOSTIC_KEY_REF:
+		case MXT_DIAGNOSTIC_MC_REF:
+		case MXT_DIAGNOSTIC_SC_REF:
+			return reference;
+		case MXT_DIAGNOSTIC_MC_SIGNAL: 
+		case MXT_DIAGNOSTIC_KEY_SIGNAL:
+		case MXT_DIAGNOSTIC_SC_SIGNAL:
+			return cap;
+		default:
+			;
+	};
+	
+	return 0;
+}
+
+void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
+{
 	s8 pos; 	//If t37 buffer size more than 128, this value will over flow
-
-	check_and_empty_object_t37(ptr->status.cmd, ptr->status.page);
-
-	switch(ptr->status.cmd) {
-		case MXT_DIAGNOSTIC_PAGEUP:
-		break;
-		case MXT_DIAGNOSTIC_PAGEDOWN:
-		break;
+	
+	switch(cmd) {
 		case MXT_DIAGNOSTIC_KEY_DELTA:
 		case MXT_DIAGNOSTIC_KEY_REF:
 		case MXT_DIAGNOSTIC_KEY_SIGNAL:
-			if (ptr->status.cmd == MXT_DIAGNOSTIC_KEY_DELTA)
-				data = signal- reference;
-			else if (ptr->status.cmd == MXT_DIAGNOSTIC_KEY_REF)
-				data = reference;
-			else
-				data = signal;	/* MXT_DIAGNOSTIC_KEY_SIGNAL */
 			pos = channel;
-			copy_node_data_to_buffer(ptr->status.cmd, ptr->status.page, pos, (u16)data, DATA_NEW);
-		break;
-		case MXT_DIAGNOSTIC_MC_DELTA: 
+			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
+			break;
+		case MXT_DIAGNOSTIC_MC_DELTA:
 		case MXT_DIAGNOSTIC_MC_REF:
-			// re-organize the data order, see protocol
-			if (ptr->status.cmd == MXT_DIAGNOSTIC_MC_DELTA)
-				data = signal- reference;
-			else
-				data = reference;
+		case MXT_DIAGNOSTIC_MC_SIGNAL:
 			if (channel < QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize)) {
-				copy_row_data_to_buffer(ptr->status.cmd, ptr->status.page, channel, data);
+				copy_row_data_to_buffer(cmd, page, channel, data);
 			}else {
-				copy_col_data_to_buffer(ptr->status.cmd, ptr->status.page, channel - QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize), data);
+				copy_col_data_to_buffer(cmd, page, channel - QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize), data);
 			}
 		break;
-		case MXT_DIAGNOSTIC_DC_DATA:
-		break;
-		case MXT_DIAGNOSTIC_DEVICE_INFO:
-		break;
-		case MXT_DIAGNOSTIC_PRODUCT_DATA:
-		break;
 		case MXT_DIAGNOSTIC_SC_DELTA:
+			//Y channel First
 			if (channel < QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize)) {
 				pos = channel + QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
 			}else {
 				pos = channel - QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize);
 			}
-			data = signal - reference;
-			copy_node_data_to_buffer(ptr->status.cmd, ptr->status.page, pos, (u16)data, DATA_NEW);
+			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
 		break;
 		case MXT_DIAGNOSTIC_SC_REF:
 		case MXT_DIAGNOSTIC_SC_SIGNAL:
@@ -155,7 +153,7 @@ void object_api_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 c
 			if (channel >= QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize)) {
 				pos = channel - QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize);
 			}else {
-				// FIXME: studio not match with protocol?
+				// X channel more, X placed as alternative ascending; Y channels more, x placed as ordered ascending 
 				if (QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize) > QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize)) {
 					pos = channel >> 1;
 					if (channel & 0x1) {	//Odd
@@ -166,17 +164,21 @@ void object_api_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 c
 					pos = channel + QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
 				}
 			}
-			
-			if (ptr->status.cmd == MXT_DIAGNOSTIC_SC_REF)
-				data = reference;
-			else
-				data = cap;
-				
-			copy_node_data_to_buffer(ptr->status.cmd, ptr->status.page, pos, (u16)data, DATA_NEW);
-		break;
+			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
 		default:
-		;
-	}
+			;
+	};
+}
+
+void object_api_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
+{
+	t37_data_t *ptr = &t37_data_status;
+	u16 data;
+	
+	check_and_empty_object_t37(ptr->status.cmd, ptr->status.page);
+
+	data = t37_get_data(ptr->status.cmd, channel, reference, signal, cap);
+	t37_put_data(ptr, ptr->status.cmd, ptr->status.page, channel, data);
 }
 
 #endif

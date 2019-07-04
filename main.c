@@ -1,8 +1,5 @@
 #include <atmel_start.h>
 #include "mpt2/interface.h"
-#ifndef USE_MPTT_WRAPPER
-#include <i2c_slave_example.h>
-#endif
 extern volatile uint8_t measurement_done_touch;
 
 int main(void)
@@ -23,8 +20,6 @@ int main(void)
 
 #ifdef USE_MPTT_WRAPPER
 			mptt_process();
-#else
-			I2C_test_i2c_slave();	//For memory test purpose
 #endif
 
 		}
