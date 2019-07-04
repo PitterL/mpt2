@@ -4,6 +4,7 @@
  * Created: 6/9/2019 10:32:50 AM
  *  Author: A41450
  */ 
+#ifdef OBJECT_T8
 
 #include "../tslapi.h"
 #include "../include/touch_api_ptc.h"
@@ -144,3 +145,5 @@ void object_t8_process(u8 rw)
 	t8_writeback_sensing_mode(ptr);
 	t8_data_sync(ptr, rw);
 }
+
+#endif

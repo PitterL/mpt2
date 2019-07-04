@@ -11,7 +11,7 @@
 
 typedef struct data_crc24 {
 	u8 data[3];
-} data_crc24_t;
+} __attribute__ ((packed)) data_crc24_t;
 
 typedef struct crc_data_blocks {
 	const u8 *base;

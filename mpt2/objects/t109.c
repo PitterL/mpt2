@@ -4,6 +4,8 @@
  * Created: 6/16/2019 2:48:07 AM
  *  Author: A41450
  */ 
+#ifdef OBJECT_T09
+
 #include "../tslapi.h"
 #include "txx.h"
 
@@ -12,3 +14,5 @@ ssint object_t109_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, c
 {
 	return object_txx_init(&t109_data_status, rid, def, mem, cb);
 }
+
+#endif

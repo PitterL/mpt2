@@ -4,6 +4,7 @@
  * Created: 6/12/2019 2:16:55 PM
  *  Author: A41450
  */ 
+#ifdef OBJECT_T104
 
 #include "../tslapi.h"
 #include "txx.h"
@@ -28,7 +29,6 @@ void t104_data_sync(const txx_data_t *ptr, u8 rw)
 {
 	object_t104_t *mem = (object_t104_t *)ptr->mem;
 	u8 i, end;
-	
 	txx_cb_param_t xparams[] = {
 		{ NODE_PARAMS_GAIN, &mem->xgain, sizeof(mem->xgain) },
 		{ KEY_PARAMS_THRESHOLD, &mem->xtchthr, sizeof(mem->xtchthr) },
@@ -40,14 +40,17 @@ void t104_data_sync(const txx_data_t *ptr, u8 rw)
 		{ KEY_PARAMS_THRESHOLD, &mem->ytchthr, sizeof(mem->ytchthr) },
 		{ KEY_PARAMS_HYSTERESIS, &mem->ytchhyst, sizeof(mem->ytchhyst) },
 	};
-	
-	if (object_api_t8_measuring_self()) {
-		end = rw ? 1 : QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize);
+
+#ifdef OBJECT_T8
+	if (object_api_t8_measuring_self()) 
+#endif
+	{
+		end = (rw == OP_READ) ? 1 : QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize);
 		for (i = 0; i < end; i++) {
 			object_txx_op(ptr, xparams, ARRAY_SIZE(xparams), i, rw);
 		}
 	
-		end = rw ? QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + 1 : QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + QTOUCH_CONFIG_VAL(ptr->def, matrix_ysize);
+		end = (rw == OP_READ) ? QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + 1 : QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize) + QTOUCH_CONFIG_VAL(ptr->def, matrix_ysize);
 		for (i = QTOUCH_CONFIG_VAL(ptr->def, matrix_xsize); i < end; i++) {
 			object_txx_op(ptr, yparams, ARRAY_SIZE(yparams), i, rw);
 		}
@@ -72,3 +75,5 @@ void object_t104_process(u8 rw)
 		
 	t104_data_sync(ptr, rw);
 }
+
+#endif

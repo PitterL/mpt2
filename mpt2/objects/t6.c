@@ -4,6 +4,8 @@
  * Created: 6/8/2019 11:31:42 PM
  *  Author: A41450
  */ 
+#ifdef OBJECT_T6
+
 #include <string.h>
 #include "../tslapi.h"
 #include "txx.h"
@@ -27,47 +29,41 @@ void object_t6_start(u8 unused)
 	MPT_API_CALLBACK(ptr->common.cb, cb_get_config_crc)(&ptr->crc);
 }
 
-void object_t6_report_status(void)
+static void report_status(t6_data_t *ptr, u8 status)
 {
-	t6_data_t *ptr = &t6_data_status;
+#ifdef OBJECT_T5
 	object_t5_t message;
 	
 	memset(&message, 0, sizeof(message));
 
 	message.reportid = ptr->common.rid;
-	message.data[0] = ptr->status;
+	message.data[0] = status;
 	message.data[1] = ptr->crc.data[0];
 	message.data[2] = ptr->crc.data[1];
 	message.data[3] = ptr->crc.data[2];
 	
 	MPT_API_CALLBACK(ptr->common.cb, cb_write_message)(&message);
+#endif
 }
 
-void send_chip_status(u8 cmd, u8 arg)
+void t6_pulse_status(t6_data_t *ptr, u8 mask, u8 set)
+{
+	if (set) {
+		ptr->status |= mask;
+	}else {
+		ptr->status &= ~mask;
+	}
+	report_status(ptr, ptr->status);
+}
+
+void object_t6_report_status(u8 force)
 {
 	t6_data_t *ptr = &t6_data_status;
 	
-	switch (cmd) {
-		case MXT_COMMAND_RESET:
-			if (arg)
-				ptr->status |= MXT_T6_STATUS_RESET;
-			else
-				ptr->status &= ~MXT_T6_STATUS_RESET;
-		break;
-		case MXT_COMMAND_CALIBRATE:
-			if (arg)
-				ptr->status |= MXT_T6_STATUS_CAL;
-			else
-				ptr->status &= ~MXT_T6_STATUS_CAL;
-		break;
-		case MXT_COMMAND_BACKUPNV:
-		case MXT_COMMAND_REPORTALL:
-		case MXT_COMMAND_DIAGNOSTIC:
-		default:
-		;
+	if (force || ptr->status != ptr->status_new) {
+		report_status(ptr, ptr->status_new);
+		ptr->status = ptr->status_new;
 	}
-	
-	object_t6_report_status();
 }
 
 void chip_reset(u8 arg)
@@ -78,16 +74,18 @@ void chip_reset(u8 arg)
 		/* Reboot to bootloader mode */
 	}else if (arg != 0) {
 		/* Normal reset */
-		
+
+#ifdef OBJECT_WRITEBACK
 		/* Update reg */
 		MPT_API_CALLBACK(ptr->common.cb, cb_object_write)(MXT_GEN_COMMAND_T6, 0, MXT_COMMAND_RESET, &arg, 1);
-		send_chip_status(MXT_COMMAND_RESET, 1);
+#endif
+		//t6_pulse_status(ptr, MXT_T6_STATUS_RESET, 1);
 		
 		/* Do reset */
 		MPT_API_CALLBACK(ptr->common.cb, reset)();
 		
 		/* Never return since chip will reset */
-		while(1);
+		//while(1);
 	}
 }
 
@@ -96,11 +94,10 @@ void chip_backup(u8 arg)
 	t6_data_t *ptr = &t6_data_status;
 	
 	if (arg == MXT_BACKUP_VALUE) {
-		send_chip_status(MXT_COMMAND_BACKUPNV, 1);
 		/* performance config backup */
-		MPT_API_CALLBACK(ptr->common.cb, backup)();	
+		MPT_API_CALLBACK(ptr->common.cb, backup)();
 		
-		send_chip_status(MXT_COMMAND_BACKUPNV, 0);
+		//Calculate CRC	
 	}
 }
 
@@ -109,11 +106,12 @@ void chip_calibrate(u8 arg)
 	t6_data_t *ptr = &t6_data_status;
 	
 	if (arg) {
-		send_chip_status(MXT_COMMAND_CALIBRATE, 1);
 		/* performance calibration */
-		MPT_API_CALLBACK(ptr->common.cb, calibrate)();
+		//object_api_t6_set_status(MXT_T6_STATUS_CAL);
 		
-		send_chip_status(MXT_COMMAND_CALIBRATE, 0);
+		//t6_pulse_status(ptr, MXT_T6_STATUS_CAL, 1);
+		
+		MPT_API_CALLBACK(ptr->common.cb, calibrate)();
 	}
 }
 
@@ -159,7 +157,7 @@ void chip_diagnostic(u8 arg)
 			default:
 				ptr->dbg.cmd = MXT_DIAGNOSTIC_NONE;
 		}
-		object_t37_set_data_page(ptr->dbg.cmd, ptr->dbg.page);
+		object_api_t37_set_data_page(ptr->dbg.cmd, ptr->dbg.page);
 	}
 }
 #endif
@@ -195,3 +193,21 @@ ssint object_t6_handle_command(u16 cmd, u8 arg)
 	
 	return result;
 }
+
+void object_api_t6_set_status(u8 mask)
+{
+	t6_data_t *ptr = &t6_data_status;
+	
+	if (!(ptr->status_new & mask))
+		ptr->status_new |= mask;
+}
+
+void object_api_t6_clr_status(u8 mask)
+{
+	t6_data_t *ptr = &t6_data_status;
+	
+	if (ptr->status_new & mask)
+		ptr->status_new &= ~mask;
+}
+
+#endif

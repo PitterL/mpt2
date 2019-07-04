@@ -66,7 +66,7 @@ u8 current_tick()
 	
 	ticks++;
 	if (ticks >= CHG_DUTY_CYCLES)
-	ticks = 0;
+		ticks = 0;
 	
 	return ticks;
 }
@@ -135,6 +135,7 @@ ssint handle_bus_event(u8 state, u8 *val)
 		break;
 		case BUS_COLLISION:
 		case BUS_ERROR:
+			; // Here we could report communication error
 		default:
 			memset(bus, 0, sizeof(*bus));
 	}
@@ -188,6 +189,7 @@ void bus_write_handler(void)
 void bus_stop_handler(void)
 {
 	handle_bus_event(BUS_STOP, NULL);
+	tsl_end();
 }
 
 void bus_error_handler(void)
@@ -216,6 +218,7 @@ void bus_start(void)
 
 void sys_reset(void)
 {
+	//FIXME: this is working
 	RSTCTRL.SWRR = 0x1;
 }
 

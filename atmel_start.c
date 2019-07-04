@@ -11,7 +11,7 @@ void atmel_start_init(void)
 {
 	system_init();
 
-#if USE_MPTT_WRAPPER
+#ifdef USE_MPTT_WRAPPER
 	mptt_interface_init();
 #endif
 

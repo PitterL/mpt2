@@ -38,6 +38,7 @@
 #define MXT_DIAGNOSTIC_PAGEDOWN 0x02
 #define MXT_DIAGNOSTIC_MC_DELTA 0x10
 #define MXT_DIAGNOSTIC_MC_REF	0x11
+#define MXT_DIAGNOSTIC_MC_SIGNAL	0x12	// Guess
 #define MXT_DIAGNOSTIC_KEY_DELTA	0x17
 #define MXT_DIAGNOSTIC_KEY_REF	0x18
 #define MXT_DIAGNOSTIC_KEY_SIGNAL	0x19
@@ -66,6 +67,7 @@ typedef struct t6_debug_command {
 
 typedef struct t6_data {
 	u8 status;
+	u8 status_new;
 	u8 cmd;
 	t6_debug_command_t dbg;
 	data_crc24_t crc;
@@ -75,10 +77,13 @@ typedef struct t6_data {
 
 ssint object_t6_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_t6_start(u8 unused);
-void object_t6_report_status(void);
+void object_t6_report_status(u8 force);
+void object_t6_process(void);
 
 ssint object_t6_handle_command(u16 cmd, u8 arg);
 u8 object_t6_get_diagnostic_status(u8 *pg);
+void object_api_t6_set_status(u8 mask);
+void object_api_t6_clr_status(u8 mask);
 
 #define MXT_GEN_COMMAND_T6_RIDS 1
 
