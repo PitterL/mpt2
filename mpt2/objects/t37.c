@@ -24,6 +24,7 @@ void object_t37_start(void)
 {
 	
 }
+
 enum {
 	DATA_NEW,
 	DATA_AVE,	
@@ -33,10 +34,9 @@ void copy_node_data_to_buffer(u8 cmd, u8 page, u8 relative, u16 data, u8 mode)
 {
 	t37_data_t *ptr = &t37_data_status;
 	object_t37_t *mem = (object_t37_t *)ptr->common.mem;
-	u8 pagesize;
+	const u8 pagesize = T37_DATA_SIZE;
 #define DATA_DIRTY_MAGIC_MASK BIT(0)
 
-	pagesize = T37_DATA_SIZE;
 	while(relative >= pagesize) {
 		relative -= pagesize;
 		page--;
@@ -141,7 +141,11 @@ void object_api_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 c
 		case MXT_DIAGNOSTIC_PRODUCT_DATA:
 		break;
 		case MXT_DIAGNOSTIC_SC_DELTA:
-			pos = channel;
+			if (channel < QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize)) {
+				pos = channel + QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
+			}else {
+				pos = channel - QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize);
+			}
 			data = signal - reference;
 			copy_node_data_to_buffer(ptr->status.cmd, ptr->status.page, pos, (u16)data, DATA_NEW);
 		break;

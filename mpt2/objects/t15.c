@@ -36,12 +36,13 @@ void t15_set_unsupport_area(t15_data_t *ptr)
 	mem->xsize = /*btndef->node.size*/ 0;
 	mem->yorigin = btndef->node.origin;
 	mem->ysize = btndef->node.size;
-	
+
+#ifndef OBJECT_WRITEBACK	
 	if (mem->xsize || mem->ysize)
 		mem->ctrl |= MXT_T15_CTRL_ENABLE;
 	else
 		mem->ctrl &= ~MXT_T15_CTRL_ENABLE;
-#ifndef OBJECT_WRITEBACK
+
 	mem->ctrl |= MXT_T15_CTRL_RPTEN;	//Need enable report if not write permission
 #endif
 

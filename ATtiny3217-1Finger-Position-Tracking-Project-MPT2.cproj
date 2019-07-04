@@ -211,17 +211,18 @@
   <avrgcc.compiler.symbols.DefSymbols>
     <ListValues>
       <Value>DEBUG</Value>
+      <Value>EVK_QT7</Value>
       <Value>USE_MPTT_WRAPPER</Value>
-      <Value>xOBJECT_WRITEBACK</Value>
-      <Value>xOBJECT_READBACK</Value>
+      <Value>OBJECT_WRITEBACK</Value>
+      <Value>OBJECT_READBACK</Value>
       <Value>xFLASH_SAVE_CONFIG</Value>
       <Value>OBJECT_T37</Value>
       <Value>OBJECT_T44</Value>
       <Value>OBJECT_T5</Value>
       <Value>OBJECT_T6</Value>
       <Value>xOBJECT_T7</Value>
-      <Value>xOBJECT_T8</Value>
-      <Value>xOBJECT_T9</Value>
+      <Value>OBJECT_T8</Value>
+      <Value>OBJECT_T9</Value>
       <Value>xOBJECT_T9_ORIENT</Value>
       <Value>OBJECT_T15</Value>
       <Value>xOBJECT_T18</Value>

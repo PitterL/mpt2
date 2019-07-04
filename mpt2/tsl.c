@@ -288,8 +288,10 @@ void tch_calibrate(void)
 
 #ifdef TOUCH_API_BUTTON
 qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
-	//{ .node = {	.origin = 0, .size = 11 } },	// Surface slider
-	//{ .node = {	.origin = 11, .size = 2 } },	// Button
+#ifdef EVK_QT7	
+	{ .node = {	.origin = 0, .size = 2 } },	// Button
+	{ .node = {	.origin = 2, .size = 3 } },	// Surface slider
+#endif
 };
 #endif
 
@@ -301,8 +303,10 @@ qsurface_config_t surfaces_sliders_config[MXT_TOUCH_MULTI_T9_INST] = {
 #endif
 
 qtouch_config_t tsl_qtouch_def = {
-	/*.matrix_xsize = 5,*/
-	/*.matrix_ysize = 5,*/
+#ifdef EVK_QT7
+	.matrix_xsize = 2,
+	.matrix_ysize = 3,
+#endif
 
 #ifdef TOUCH_API_BUTTON
 	//If define num_button, should filled the buttons_config

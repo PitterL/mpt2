@@ -29,19 +29,21 @@ ssint object_t9_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, con
 
 void t9_set_unsupport_area(t9_data_t *ptr)
 {
+	qtouch_config_t *qcfg = (qtouch_config_t *)ptr->common.def;
 	const qsurface_config_t *surdef = (qsurface_config_t *)ptr->surdef;
 	object_t9_t *mem = (object_t9_t *) ptr->common.mem;
 	
-	mem->xorigin = surdef->xnode.origin;
-	mem->xsize = surdef->xnode.size;
-	mem->yorigin = surdef->ynode.origin;
-	mem->ysize = surdef->ynode.size;
+	mem->xorigin = 0;
+	mem->xsize = qcfg->matrix_xsize;
+	mem->yorigin = 0;
+	mem->ysize = qcfg->matrix_ysize;
 
+#ifndef OBJECT_WRITEBACK
 	if (mem->xsize || mem->ysize)
 		mem->ctrl |= MXT_T9_CTRL_ENABLE;
 	else
 		mem->ctrl &= ~MXT_T9_CTRL_ENABLE;
-#ifndef OBJECT_WRITEBACK
+		
 	mem->ctrl |= MXT_T9_CTRL_RPTEN;
 #endif
 
