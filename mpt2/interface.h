@@ -15,6 +15,9 @@ void mptt_interface_init(void);
 /* Call start after Touch inited */
 void mptt_start(void);
 
+/* Call pre_process at each sampling*/
+void mptt_pre_process(void);
+
 /* Call process when sampling finished each time*/
 void mptt_process(void);
 

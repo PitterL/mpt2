@@ -13,11 +13,11 @@
 t6_data_t t6_data_status;
 ssint object_t6_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb)
 {
-	t6_data_t *t6_ptr = &t6_data_status;
+	t6_data_t *ptr = &t6_data_status;
 
-	object_txx_init(&t6_ptr->common, rid, def, mem, cb);
-	
-	t6_ptr->status = MXT_T6_STATUS_RESET; /* Initialized by Reset */
+	object_txx_init(&ptr->common, rid, def, mem, cb);
+
+	ptr->status = MXT_T6_STATUS_RESET;	// Initialized as Reset
 	
 	return 0;
 }
@@ -60,10 +60,10 @@ void object_t6_report_status(u8 force)
 {
 	t6_data_t *ptr = &t6_data_status;
 	
-	if (force || ptr->status != ptr->status_new) {
-		report_status(ptr, ptr->status_new);
-		ptr->status = ptr->status_new;
-	}
+	if (!force)
+		return;
+	
+	report_status(ptr, ptr->status);
 }
 
 void chip_reset(u8 arg)
@@ -198,16 +198,20 @@ void object_api_t6_set_status(u8 mask)
 {
 	t6_data_t *ptr = &t6_data_status;
 	
-	if (!(ptr->status_new & mask))
-		ptr->status_new |= mask;
+	if (!(ptr->status & mask)) {
+		ptr->status |= mask;
+		report_status(ptr, ptr->status);
+	}
 }
 
 void object_api_t6_clr_status(u8 mask)
 {
 	t6_data_t *ptr = &t6_data_status;
-	
-	if (ptr->status_new & mask)
-		ptr->status_new &= ~mask;
+
+	if (ptr->status & mask) {
+		ptr->status &= ~mask;
+		report_status(ptr, ptr->status);
+	}
 }
 
 #endif

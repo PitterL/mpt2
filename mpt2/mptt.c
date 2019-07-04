@@ -379,7 +379,7 @@ void mpt_chip_start(void)
 			ocbs[i].start(result ? 0 : 1);
 	}
 	
-	mpt_chip_reportall();
+	//mpt_chip_reportall();
 }
 
 void mem_readback(u8 regid)
@@ -439,7 +439,7 @@ void mpt_api_process(void)
 			}
 		}
 	}
-		
+	
 	UNLOCK();
 }
 #endif
@@ -537,7 +537,7 @@ void mpt_api_report_status(void)
 	// Report object status if necessary
 	for (i = 0; i < MXT_OBJECTS_INITIALIZE_LIST_NUM; i++) {
 		if (ocbs[i].report)
-		ocbs[i].report(0);
+			ocbs[i].report(0);
 	}
 }
 
