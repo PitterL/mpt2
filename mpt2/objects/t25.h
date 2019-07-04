@@ -67,14 +67,28 @@ enum MSG_T25_SIGNAL_LIMIT {
 	SIGNAL_LIMIT_INSTANCE,
 };
 
+enum T25_INSPECT_TYPE {
+#ifdef OBJECT_T9	
+	INSPECT_SURFACE_SLIDER,
+#endif
+
+#ifdef OBJECT_T5	
+	INSPECT_BUTTON,
+#endif
+	NUM_INSPECT_TYPES
+};
+
 #ifdef OBJECT_T25_EXTENSION
 #define MXT_T25_RESULT_INFO_SIZE 7
 #else
 #define MXT_T25_RESULT_INFO_SIZE 3
 #endif
 typedef struct object_t25_result {
-	u8 result;
-	u8 info[MXT_T25_RESULT_INFO_SIZE];
+	struct {
+		u8 result;
+		u8 info[MXT_T25_RESULT_INFO_SIZE];
+	} data;
+	u8 counter[NUM_INSPECT_TYPES];
 } object_t25_result_t;
 
 typedef struct t25_data {

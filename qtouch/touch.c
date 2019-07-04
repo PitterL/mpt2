@@ -152,7 +152,7 @@ qtm_touch_key_control_t qtlib_key_set1
 /**********************************************************/
 /***************** Surface 1t Module ********************/
 /**********************************************************/
-
+#ifdef TOUCH_API_SCROLLER_H
 /* Individual and Group Data */
 qtm_scroller_data_t       qtm_scroller_data1[DEF_NUM_SCROLLERS];
 qtm_scroller_group_data_t qtm_scroller_group_data1 = {0};
@@ -168,10 +168,12 @@ qtm_scroller_config_t qtm_scroller_config1[DEF_NUM_SCROLLERS] = {
 };
 
 /* Container */
+
 qtm_scroller_control_t qtm_scroller_control1
     = {&qtm_scroller_group_data1, &qtm_scroller_group_config1, &qtm_scroller_data1[0], &qtm_scroller_config1[0]
 
 };
+#endif
 
 /**********************************************************/
 /****************  Binding Layer Module  ******************/
@@ -181,22 +183,35 @@ qtm_scroller_control_t qtm_scroller_control1
 		(module_init_t) & qtm_ptc_init_acquisition_module, null                                                        \
 	}
 
+#ifdef TOUCH_API_SCROLLER_H
 #define LIB_MODULES_PROC_LIST                                                                                          \
 	{                                                                                                                  \
 		(module_proc_t) & qtm_freq_hop_autotune, (module_proc_t)&qtm_key_sensors_process,                              \
-		    (module_proc_t)&qtm_scroller_process,  null                      \
+		    (module_proc_t)&qtm_scroller_process, null                      \
 	}
-
+#else
+#define LIB_MODULES_PROC_LIST                                                                                          \
+	{                                                                                                                  \
+		(module_proc_t) & qtm_freq_hop_autotune, (module_proc_t)&qtm_key_sensors_process,                              \
+		    /*(module_proc_t)&qtm_scroller_process,*/ null                      \
+	}
+#endif
 #define LIB_INIT_DATA_MODELS_LIST                                                                                      \
 	{                                                                                                                  \
 		(void *)&qtlib_acq_set1, null                                                                                  \
 	}
 
+#ifdef TOUCH_API_SCROLLER_H
 #define LIB_DATA_MODELS_PROC_LIST                                                                                      \
 	{                                                                                                                  \
 		(void *)&qtm_freq_hop_autotune_control1, (void *)&qtlib_key_set1, (void *)&qtm_scroller_control1, null         \
 	}
-
+#else
+#define LIB_DATA_MODELS_PROC_LIST                                                                                      \
+	{                                                                                                                  \
+		(void *)&qtm_freq_hop_autotune_control1, (void *)&qtlib_key_set1, /*(void *)&qtm_scroller_control1,*/ null         \
+	}
+#endif
 #define LIB_MODULES_ACQ_ENGINES_LIST                                                                                   \
 	{                                                                                                                  \
 		(module_acq_t) & qtm_ptc_start_measurement_seq, null                                                           \
@@ -357,8 +372,10 @@ static void init_complete_callback(void)
 	/* Configure touch sensors with Application specific settings */
 	touch_sensors_config();
 
+#ifdef TOUCH_API_SCROLLER_H
 	/* scroller init */
 	qtm_init_scroller_module(&qtm_scroller_control1);
+#endif
 }
 
 /*============================================================================
@@ -604,6 +621,8 @@ void calibrate_node(uint16_t sensor_node)
 	qtm_init_sensor_key(&qtlib_key_set1, sensor_node, &ptc_qtlib_node_stat1[sensor_node]);
 }
 
+#ifdef TOUCH_API_SCROLLER_H
+
 uint8_t get_scroller_state(uint16_t sensor_node)
 {
 	return (qtm_scroller_control1.qtm_scroller_data[sensor_node].scroller_status);
@@ -614,6 +633,7 @@ uint16_t get_scroller_position(uint16_t sensor_node)
 	return (qtm_scroller_control1.qtm_scroller_data[sensor_node].position);
 }
 
+#endif
 /*============================================================================
 ISR(ADC0_RESRDY_vect)
 ------------------------------------------------------------------------------

@@ -29,13 +29,12 @@ ssint object_t9_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, con
 
 void t9_set_unsupport_area(t9_data_t *ptr)
 {
-	const qtouch_config_t *qdef = (qtouch_config_t *)ptr->common.def;
 	const qsurface_config_t *surdef = (qsurface_config_t *)ptr->surdef;
 	object_t9_t *mem = (object_t9_t *) ptr->common.mem;
 	
 	mem->xorigin = surdef->xnode.origin;
 	mem->xsize = surdef->xnode.size;
-	mem->yorigin = surdef->ynode.origin - /*(mem->xorigin + mem->xsize)*/qdef->matrix_xsize;
+	mem->yorigin = surdef->ynode.origin;
 	mem->ysize = surdef->ynode.size;
 
 	if (mem->xsize || mem->ysize)
@@ -141,10 +140,10 @@ void object_t9_start(u8 loaded)
 {
 	t9_data_t *ptr = &t9s_data_status[0];
 	u8 i;
-	
+			
 	if (loaded)
 		return;
-	
+		
 	for (i = 0; i < MXT_TOUCH_MULTI_T9_INST; i++) {
 		t9_data_sync(ptr + i, 1);
 	}
@@ -193,11 +192,21 @@ void object_t9_report_status(u8 force)
 }
 
 //Note: Since there is only 1 Gain in surface, the first X gain will be decided as base gain. If different Gain set in touch.h, need extra code to detect
-u16 object_t9_get_surface_slider_base_ref(u8 inst)
+u16 object_t9_get_surface_slider_base_ref(u8 inst, u8 channel)
 {
 	t9_data_t *ptr =  &t9s_data_status[0];
-	
+	object_t9_t *mem;
+	const qsurface_config_t *surdef;
 	if (inst >= MXT_TOUCH_MULTI_T9_INST)
+		return 0;
+	
+	mem = (object_t9_t *)ptr[inst].common.mem;
+	if (!(mem->ctrl & MXT_T9_CTRL_ENABLE))
+		return 0;
+		
+	surdef = (qsurface_config_t *)ptr->surdef;
+	if (!((channel >=  surdef->xnode.origin && channel <surdef->xnode.origin + surdef->xnode.size) ||
+		(channel >=  surdef->ynode.origin && channel < surdef->ynode.origin + surdef->ynode.size)))
 		return 0;
 	
 	return (SENSOR_BASE_REF_VALUE << /*NODE_GAIN_DIG*/(((object_t9_t *)ptr[inst].common.mem)->blen & 0xF));
@@ -267,7 +276,7 @@ ssint object_api_t9_set_pointer_location(u8 inst, /* Slot id */u8 id, u8 status,
 	
 	ptr =  &t9s_data_status[inst];
 	mem = (object_t9_t *) ptr->common.mem;
-	
+		
 	if (mem->ctrl & MXT_T9_CTRL_ENABLE) {
 		pt = &ptr->points[id];
 		if (pt->status != status || pt->pos.x != x || pt->pos.y != y) {

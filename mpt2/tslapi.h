@@ -102,12 +102,16 @@ typedef struct qsurface_config {
 typedef struct qtouch_config {
 	u8 matrix_xsize;
 	u8 matrix_ysize;
+
 	qbutton_config_t *buttons;
-	u8 num_buttons;
+	u8 num_button;
+	u8 num_button_channel_count;
+	
 	qsurface_config_t *surface_sliders;
 	u8 num_surfaces_slider;
 	u8 num_surfaces;
 	u8 num_slider;
+	u8 num_surfaces_slider_channel_count;
 } qtouch_config_t;
 
 #define QTOUCH_CONFIG_VAL(_p, _n) (((qtouch_config_t *)(_p))->_n)

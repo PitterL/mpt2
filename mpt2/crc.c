@@ -84,10 +84,10 @@ u32 calc_blocks_crc24(const crc_data_blocks_t *blk, size_t count)
 	u8 firstbyte, secondbyte, odd = 0;
 	u32 crc = 0;
 	size_t i, j, sum;
-	const u8 *ptr;
+	/* const */ u8 *ptr;	// Complier may occur segmentation error when declared as const
 	
 	for (i = 0, sum = 0; i < count; i++) {
-		ptr = blk[i].base;
+		ptr = (/*const */u8 *)blk[i].base;
 		
 		for (j = 0; j + 1 < blk[i].size; j += 2) {
 			if (sum & 0x1) {

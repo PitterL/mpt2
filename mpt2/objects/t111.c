@@ -97,19 +97,23 @@ void t111_data_sync(const txx_data_t *ptr, u8 rw)
 
 void object_t111_start(u8 loaded)
 {
+#ifdef OBJECT_READBACK
 	t111_data_t *ptr = &t111_data_status;
 	
 	if (loaded)
 		return;
 	
 	t111_data_sync(ptr, 1);
+#endif
 }
 
 void object_t111_process(u8 rw)
 {
+#ifdef OBJECT_READBACK
 	t111_data_t *ptr = &t111_data_status;
-	
+
 	t111_data_sync(ptr, rw);
+#endif
 }
 
 #endif

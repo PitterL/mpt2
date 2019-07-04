@@ -135,8 +135,13 @@ void object_t15_report_status(u8 force)
 u16 object_t15_get_button_base_ref(u8 inst)
 {
 	t15_data_t *ptr =  &t15s_data_status[0];
+	object_t15_t *mem;
 	
 	if (inst >= MXT_TOUCH_KEYARRAY_T15_INST)
+		return 0;
+	
+	mem = (object_t15_t *) ptr[inst].common.mem;
+	if (!(mem->ctrl & MXT_T15_CTRL_ENABLE))
 		return 0;
 	
 	return (SENSOR_BASE_REF_VALUE << /*NODE_GAIN_DIG*/(((object_t15_t *)ptr[inst].common.mem)->blen & 0xF));

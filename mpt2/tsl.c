@@ -10,10 +10,10 @@
 #include "mptt.h"
 #include "tsl.h"
 
-#if (defined(TOUCH_API_KEYS_H) && defined(OBJECT_T15))
+#ifdef TOUCH_API_KEYS_H
+#ifdef OBJECT_T15
 #define TOUCH_API_BUTTON
 #endif
-
 /* Node configure parameters */
 extern qtm_acq_t161x_node_config_t ptc_seq_node_cfg1[];
 
@@ -37,10 +37,13 @@ extern qtm_acq_node_data_t ptc_qtlib_node_stat1[];
 
 /* Container */
 extern qtm_touch_key_control_t qtlib_key_set1;
+#endif
 
 /* scroller Configurations */
-#if (defined(OBJECT_T9) && defined(TOUCH_API_SCROLLER_H))
+#ifdef TOUCH_API_SCROLLER_H
+#ifdef OBJECT_T9
 #define TOUCH_API_SCROLLER
+#endif
 extern qtm_scroller_config_t qtm_scroller_config1[];
 
 /* Group Configuration */
@@ -54,8 +57,10 @@ extern qtm_scroller_control_t qtm_scroller_control1;
 #endif
 
 /* Surface Config */
-#if (defined(OBJECT_T9) && (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H)))
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
+#ifdef OBJECT_T9
 #define TOUCH_API_SURFACE
+#endif
 extern qtm_surface_cs_config_t qtm_surface_cs_config1;
 
 /* Surface Data */
@@ -68,6 +73,18 @@ extern qtm_surface_cs_control_t qtm_surface_cs_control1;
 /* Acquisition timer schedule interval */
 #ifdef OBJECT_T7
 extern uint8_t qtlib_time_elapsed_since_update;
+#endif
+
+#ifdef OBJECT_T15
+#ifndef TOUCH_API_BUTTON
+#error "Defined OBJECT T15 But no Button"
+#endif
+#endif
+
+#ifdef OBJECT_T9
+#if !(defined(TOUCH_API_SURFACE) || defined(TOUCH_API_SCROLLER))
+#error "Defined OBJECT T9 But no surface"
+#endif
 #endif
 
 enum {
@@ -271,8 +288,8 @@ void tch_calibrate(void)
 
 #ifdef TOUCH_API_BUTTON
 qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
-	{ .node = {	.origin = 0, .size = 11 } },	// Surface slider
-	{ .node = {	.origin = 11, .size = 2 } },	// Button
+	//{ .node = {	.origin = 0, .size = 11 } },	// Surface slider
+	//{ .node = {	.origin = 11, .size = 2 } },	// Button
 };
 #endif
 
@@ -288,9 +305,10 @@ qtouch_config_t tsl_qtouch_def = {
 	/*.matrix_ysize = 5,*/
 
 #ifdef TOUCH_API_BUTTON
-	//If define num_buttons, should filled the buttons_config
+	//If define num_button, should filled the buttons_config
 	.buttons = &buttons_config[0],
-	.num_buttons = ARRAY_SIZE(buttons_config),
+	.num_button = ARRAY_SIZE(buttons_config),
+	/*.num_buttons_channel_count,*/
 #endif
 
 #if defined(TOUCH_API_SURFACE) || defined(TOUCH_API_SCROLLER)
@@ -299,6 +317,7 @@ qtouch_config_t tsl_qtouch_def = {
 	.num_surfaces_slider = ARRAY_SIZE(surfaces_sliders_config),
 	/*.num_surfaces,*/
 	/*.num_slider,*/
+	/*.num_surfaces_slider_channel_count,*/
 #endif
 };
 
@@ -336,44 +355,60 @@ void init_maxtrix_node(qtouch_config_t *qdef)
 }
 
 #ifdef TOUCH_API_BUTTON
-void init_button_node(qbutton_config_t *btn)
+void init_button_nodes(qtouch_config_t *qdef)
 {
 	qtm_acq_node_group_config_t *qtacq = &ptc_qtlib_acq_gen1;
-
-	if (!btn->node.size) {	//Combine all sensor to 1 instance
-		btn->node.origin = 0;
-		btn->node.size = qtacq->num_sensor_nodes;
+	qbutton_config_t *btn = &qdef->buttons[0];
+	u8 i;
+	
+	for (i = 0; i < qdef->num_button; i++) {
+		if (!btn[i].node.size) {
+			if (i == 0) {	//All nodes assigned to button 0
+				btn[i].node.origin = 0;
+				btn[i].node.size = qtacq->num_sensor_nodes;
+			} else {
+				break;
+			}
+		}
+		qdef->num_button_channel_count += btn[i].node.size;
 	}
+	
+	qdef->num_button = i;
 }
 #endif
 
 #ifdef TOUCH_API_SCROLLER
-u8 init_slider_node(qsurface_config_t *sursld, u8 slider_num)
+void init_slider_nodes(qtouch_config_t *qdef)
 {
 	qtm_scroller_group_config_t *qsgcfg = &qtm_scroller_group_config1;
 	qtm_scroller_config_t *qtcfg = &qtm_scroller_config1[0];
+	qsurface_config_t *sursld = &qdef->surface_sliders[0];
 	u8 i;
 			
-	for ( i = 0; i < qsgcfg->num_scrollers && i < slider_num; i++) {
-		if (!(sursld->xnode.size || sursld->ynode.size))
-		sursld[i].xnode.origin = 0;
-		sursld[i].xnode.size = 0;
-		sursld[i].ynode.origin = qtcfg[i].start_key;
-		sursld[i].ynode.size = qtcfg[i].number_of_keys;
+	for ( i = 0; i < qsgcfg->num_scrollers && i < qdef->num_surfaces_slider; i++) {
+		if (!(sursld[i].xnode.size || sursld[i].ynode.size)) {
+			sursld[i].xnode.origin = 0;
+			sursld[i].xnode.size = 0;
+			sursld[i].ynode.origin = qtcfg[i].start_key;
+			sursld[i].ynode.size = qtcfg[i].number_of_keys;
 	
-		sursld->resolution_bit = (qtcfg[i].resol_deadband >> 4);
-		//position_hysteresis
-		//contact_min_threshold
+			sursld->resolution_bit = (qtcfg[i].resol_deadband >> 4);
+		
+			//position_hysteresis
+			//contact_min_threshold
+		}
+		qdef->num_surfaces_slider_channel_count += qtcfg[i].number_of_keys;
 	}
 	
-	return i;
+	qdef->num_slider = i;
 }
 #endif
 
 #ifdef TOUCH_API_SURFACE
-void init_surface_node(qsurface_config_t *sursld)
+void init_surface_node(qtouch_config_t *qdef)
 {
 	const qtm_surface_cs_config_t *qtcfg = &qtm_surface_cs_config1;
+	qsurface_config_t *sursld = qdef->surface_sliders[qdef->num_slider];
 
 	if (sursld->xnode.size && sursld->ynode.size)
 		return;
@@ -390,29 +425,26 @@ void init_surface_node(qsurface_config_t *sursld)
 	sursld->resolution_max = (1 << sursld->resolution_bit) - 1;
 	// Deadband percentage
 	// sursld->deadband = qtm_surface_cs_config1.resol_deadband & 0xf;
+	
+	qdef->num_surfaces_slider_channel_count += qtcfg->number_of_keys_v + qtcfg->number_of_keys_h;
+	qdef->num_slider++;
 }
 #endif
 
 void inlitialize_button_slider_surface_nodes(qtouch_config_t *qdef)
 {
-	int count = 0;
-	
 	init_maxtrix_node(qdef);
 
 #ifdef TOUCH_API_BUTTON
-	init_button_node(&qdef->buttons[0]);
+	init_button_nodes(qdef);
 #endif
 	
 #ifdef TOUCH_API_SCROLLER
-	count = init_slider_node(&qdef->surface_sliders[0], qdef->num_surfaces_slider);
-	qdef->num_slider = count;
+	init_slider_nodes(qdef);
 #endif
 
 #ifdef TOUCH_API_SURFACE
-	if (count < qdef->num_surfaces_slider)
-		init_surface_node(&qdef->surface_sliders[count]/*, qdef->num_surfaces_slider - count*/);
-#else
-	count = count;	//For compile warning estimated
+	init_surface_node(qdef);
 #endif
 }
 
