@@ -15,6 +15,10 @@ int main(void)
 	/* Replace with your application code */
 	while (1) {
 		touch_process();
+
+#ifdef USE_MPTT_WRAPPER
+		mptt_pre_process();
+#endif		
 		if (measurement_done_touch == 1) {
 			measurement_done_touch = 0;
 

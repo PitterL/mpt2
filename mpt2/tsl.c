@@ -106,10 +106,13 @@ tch_config_callback_t touch_config_list[] ={
 	/* { DEF_TOUCH_MEASUREMENT_PERIOD_MS } Not support untill put it into a global 'varible qtlib_time_elapsed_since_update' */
 	{DEF_TOUCH_MEASUREMENT_PERIOD_MS, &qtlib_time_elapsed_since_update, sizeof(qtlib_time_elapsed_since_update), 0 },
 #endif
+	//TBD
 	{DEF_SEL_FREQ_INIT, &ptc_qtlib_acq_gen1.freq_option_select, sizeof(ptc_qtlib_acq_gen1.freq_option_select), 0 },
+	
+	//qtm_init_sensor_key() + qtm_calibrate_sensor_node()
 	{DEF_SENSOR_TYPE, &ptc_qtlib_acq_gen1.acq_sensor_type, sizeof(ptc_qtlib_acq_gen1.acq_sensor_type), 0 },
 	
-	//qtm_init_sensor_key()
+	//qtm_init_sensor_key() + qtm_calibrate_sensor_node()
 	{NODE_PARAMS_CSD, &ptc_seq_node_cfg1[0].node_csd, sizeof(ptc_seq_node_cfg1[0].node_csd), sizeof(ptc_seq_node_cfg1[0]) },
 	{NODE_PARAMS_RESISTOR_PRESCALER, &ptc_seq_node_cfg1[0].node_rsel_prsc, sizeof(ptc_seq_node_cfg1[0].node_rsel_prsc), sizeof(ptc_seq_node_cfg1[0]) },
 	{NODE_PARAMS_GAIN, &ptc_seq_node_cfg1[0].node_gain, sizeof(ptc_seq_node_cfg1[0].node_gain), sizeof(ptc_seq_node_cfg1[0]) },
@@ -137,6 +140,7 @@ tch_config_callback_t touch_config_list[] ={
 #endif
 
 #ifdef TOUCH_API_SURFACE
+	//qtm_init_surface_cs()
 	{SURFACE_CS_START_KEY_V, &qtm_surface_cs_config1.start_key_v, sizeof(qtm_surface_cs_config1.start_key_v), 0 },
 	{SURFACE_CS_START_KEY_H, &qtm_surface_cs_config1.start_key_h, sizeof(qtm_surface_cs_config1.start_key_h), 0 },
 	{SURFACE_CS_NUM_KEYS_V, &qtm_surface_cs_config1.number_of_keys_v, sizeof(qtm_surface_cs_config1.number_of_keys_v), 0 },
@@ -154,6 +158,15 @@ void force_init_sensor_key(u8 sensor_node, u8 cal)
 	qtm_init_sensor_key(&qtlib_key_set1, sensor_node, &ptc_qtlib_node_stat1[sensor_node]);
 	if (cal)
 		qtm_calibrate_sensor_node(&qtlib_acq_set1, sensor_node);
+}
+
+void force_init_all_sensor_key(void) {
+	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
+	u8 i;
+	
+	for ( i = 0; i < qttkg->num_key_sensors; i++) {
+		force_init_sensor_key(i, 1);
+	}
 }
 
 #ifdef TOUCH_API_SCROLLER
@@ -174,6 +187,9 @@ void force_parameters(u8 type, u8 index)
 {		
 	switch (type)
 	{
+		case DEF_SENSOR_TYPE:
+			force_init_all_sensor_key();
+			break;
 		case NODE_PARAMS_CSD:
 		case NODE_PARAMS_RESISTOR_PRESCALER:
 		case NODE_PARAMS_GAIN:
@@ -474,41 +490,50 @@ void tsl_start(void)
 	mpt_chip_start();
 }
 
-void tch_ref_signal_update(void)
+void tch_update_sensor_state(void)
 {
-#if (defined(OBJECT_T6) || defined(OBJECT_T37) || defined(OBJECT_T25)) 
+#ifdef OBJECT_T6
 	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
 	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
-#ifdef OBJECT_T6	
-	u8 state, cal_status=0, sigerr_status=0;
-#endif
+	u8 state;
 	u8 i;
 
 	for (i = 0; i < qttkg->num_key_sensors; i++) {
-#ifdef OBJECT_T6
-		state = qtkds->sensor_state & ~KEY_TOUCHED_MASK;
+		state = qtkds[i].sensor_state & ~KEY_TOUCHED_MASK;
 		switch (state) {
+		case QTM_KEY_STATE_DISABLE:
+			mpt_api_set_chip_status(MXT_T6_STATUS_RESET, 1);
+			return;
 		case QTM_KEY_STATE_CAL:
-			cal_status = MXT_T6_STATUS_CAL;
-			break;
+			mpt_api_set_chip_status(MXT_T6_STATUS_CAL, 1);
+			return;
 		case QTM_KEY_STATE_CAL_ERR:
-			sigerr_status = MXT_T6_STATUS_SIGERR;
-			break;
+			mpt_api_set_chip_status(MXT_T6_STATUS_SIGERR, 1);
+			return;
 		default:
 			;
 		}
-#endif
-#if (defined(OBJECT_T37) || defined(OBJECT_T25)) 
-		mpt_api_set_sensor_data(i, qtkds->sensor_state, qtkds[i].channel_reference, qtkds[i].node_data_struct_ptr->node_acq_signals, CALCULATE_CAP(qtkds[i].node_data_struct_ptr->node_comp_caps));
-#endif
 	}
-
-#ifdef OBJECT_T6
-	mpt_api_set_chip_status(MXT_T6_STATUS_RESET, 0);
-	mpt_api_set_chip_status(MXT_T6_STATUS_CAL, cal_status);
-	mpt_api_set_chip_status(MXT_T6_STATUS_SIGERR, sigerr_status);
+	
+	mpt_api_set_chip_status(MXT_T6_STATUS_RESET|MXT_T6_STATUS_CAL|MXT_T6_STATUS_SIGERR, 0);
 #endif
+}
 
+void tsl_pre_process(void)
+{
+	tch_update_sensor_state();
+}
+
+void tch_ref_signal_update(void)
+{
+#if (defined(OBJECT_T37) || defined(OBJECT_T25)) 
+	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
+	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
+	u8 i;
+
+	for (i = 0; i < qttkg->num_key_sensors; i++) {
+		mpt_api_set_sensor_data(i, qtkds[i].sensor_state, qtkds[i].channel_reference, qtkds[i].node_data_struct_ptr->node_acq_signals, CALCULATE_CAP(qtkds[i].node_data_struct_ptr->node_comp_caps));
+	}
 #endif
 }
 
@@ -595,7 +620,7 @@ void tsl_process(void)
 #ifdef OBJECT_WRITEBACK
 	mpt_api_process();
 #endif
-	mpt_api_report_status();
+	//mpt_api_report_status();
 }
 
 ssint tsl_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)

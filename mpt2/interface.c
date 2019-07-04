@@ -28,6 +28,7 @@
 #include <include/atmel_start_pins.h>
 #include <include/i2c_slave.h>
 #include <nvmctrl_basic.h>
+#include <rstctrl.h>
 #include "types.h"
 #include "tsl.h"
 #include "interface.h"
@@ -218,8 +219,7 @@ void bus_start(void)
 
 void sys_reset(void)
 {
-	//FIXME: this is working
-	RSTCTRL.SWRR = 0x1;
+	RSTCTRL_reset();
 }
 
 #ifdef FLASH_SAVE_CONFIG
@@ -263,6 +263,11 @@ void mptt_start(void)
 {	
 	tsl_start();
 	bus_start();
+}
+
+void mptt_pre_process(void)
+{
+	tsl_pre_process();	
 }
 
 void mptt_process(void)
