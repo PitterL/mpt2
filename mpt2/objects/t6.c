@@ -18,7 +18,7 @@ ssint object_t6_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, con
 	object_txx_init(&ptr->common, rid, def, mem, cb);
 
 	ptr->status = MXT_T6_STATUS_RESET;	// Initialized as Reset
-	
+
 	return 0;
 }
 
@@ -66,9 +66,18 @@ void object_t6_report_status(u8 force)
 	report_status(ptr, ptr->status);
 }
 
+u8 object_t6_check_chip_critical(void)
+{
+	t6_data_t *ptr = &t6_data_status;
+	object_t6_t *mem = (object_t6_t *)ptr->common.mem;
+	
+	return mem->reset;
+}
+
 void chip_reset(u8 arg)
 {
 	t6_data_t *ptr = &t6_data_status;
+	object_t6_t *mem = (object_t6_t *)ptr->common.mem;
 
 	if (arg == MXT_BOOT_VALUE) {
 		/* Reboot to bootloader mode */
@@ -77,15 +86,19 @@ void chip_reset(u8 arg)
 
 #ifdef OBJECT_WRITEBACK
 		/* Update reg */
-		MPT_API_CALLBACK(ptr->common.cb, cb_object_write)(MXT_GEN_COMMAND_T6, 0, MXT_COMMAND_RESET, &arg, 1);
+		//MPT_API_CALLBACK(ptr->common.cb, cb_object_write)(MXT_GEN_COMMAND_T6, 0, MXT_COMMAND_RESET, &arg, 1);
 #endif
-		//t6_pulse_status(ptr, MXT_T6_STATUS_RESET, 1);
+
+		/* Update reg */
+		mem->reset = arg;
+
+		MPT_API_CALLBACK(ptr->common.cb, cb_assert_irq)(0, false);
 		
 		/* Do reset */
 		MPT_API_CALLBACK(ptr->common.cb, reset)();
 		
 		/* Never return since chip will reset */
-		//while(1);
+		while(1);
 	}
 }
 
@@ -94,6 +107,7 @@ void chip_backup(u8 arg)
 	t6_data_t *ptr = &t6_data_status;
 	
 	if (arg == MXT_BACKUP_VALUE) {
+		
 		/* performance config backup */
 		MPT_API_CALLBACK(ptr->common.cb, backup)();
 		
@@ -106,11 +120,8 @@ void chip_calibrate(u8 arg)
 	t6_data_t *ptr = &t6_data_status;
 	
 	if (arg) {
+		
 		/* performance calibration */
-		//object_api_t6_set_status(MXT_T6_STATUS_CAL);
-		
-		//t6_pulse_status(ptr, MXT_T6_STATUS_CAL, 1);
-		
 		MPT_API_CALLBACK(ptr->common.cb, calibrate)();
 	}
 }
@@ -120,6 +131,7 @@ void chip_reportall(u8 arg)
 	t6_data_t *ptr = &t6_data_status;
 	
 	if (arg) {
+		
 		/* performance report all */
 		MPT_API_CALLBACK(ptr->common.cb, report_all)();
 	}
@@ -162,7 +174,7 @@ void chip_diagnostic(u8 arg)
 }
 #endif
 
-ssint object_t6_handle_command(u16 cmd, u8 arg)
+ssint object_api_t6_handle_command(u16 cmd, u8 arg)
 {
 	t6_data_t *ptr = &t6_data_status;
 	ssint result = 0;

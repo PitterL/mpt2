@@ -41,8 +41,7 @@ void mpt_api_set_pointer_location(u8 type, u8 id, u8 status, u16 x, u16 y);
 void mpt_api_set_chip_status(u8 mask, u8 set);
 void mpt_api_report_status(void);
 
-typedef void (* message_cb_t)(u8/* message_count*/ , bool /*retrigger*/);
 /* Will lock FIFO get count operation */
-void mpt_api_request_irq(message_cb_t cb);
+void mpt_api_request_irq(void);
 
 #endif /* MPTT_H_ */

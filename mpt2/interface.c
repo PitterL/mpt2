@@ -84,29 +84,30 @@ void bus_release_chg(void)
 	CHG_set_dir(PORT_DIR_IN);
 }
 
-void bus_set_chg(u8 assert, bool retrigger)
+void bus_assert_irq(u8 assert, bool retrigger)
 {
 	bus_monitor_t *bus = &data_bus;
 	const u8 ticks = current_tick();
 	
-	if (!assert)
-		return;
-	
 	if (!bus->state == BUS_STOP)	// THis stop is a state, not mean real STOP signal at bus
 		return;
 	
-	if (ticks == CHG_SET_DUTY_ON_CYCLE) {
-		bus_assert_chg();
+	if (!assert) {
+		bus_release_chg();
 	}else {
+		if (ticks == CHG_SET_DUTY_ON_CYCLE) {
+			bus_assert_chg();
+		}else {
 #ifdef OBJECT_T18
-		if (retrigger) {
-			if (ticks == CHG_SET_DUTY_ON_CYCLE + 1) {
-				bus_release_chg();
-				}else if (ticks == CHG_SET_DUTY_ON_CYCLE + 2) {
-				bus_assert_chg();
+			if (retrigger) {
+				if (ticks == CHG_SET_DUTY_ON_CYCLE + 1) {
+					bus_release_chg();
+					}else if (ticks == CHG_SET_DUTY_ON_CYCLE + 2) {
+					bus_assert_chg();
+				}
 			}
-		}
 #endif
+		}
 	}
 }
 
@@ -245,7 +246,7 @@ ssint inf_save_cfg(const u8 *data, size_t len)
 #endif
 
 const hal_interface_info_t interface_hal = {
-	.fn_set_chg = bus_set_chg,
+	.fn_assert_irq = bus_assert_irq,
 	.fn_reset = sys_reset,
 #ifdef FLASH_SAVE_CONFIG
 	.fn_load_cfg = inf_load_cfg,

@@ -133,12 +133,13 @@ typedef struct mpt_api_callback {
 	ssint (*backup)(void);
 	void (*report_all)(void);
 	void (*cb_get_config_crc)(/*data_crc24_t*/void *crc_ptr);
+	void (*cb_assert_irq)(u8 assert, bool retrigger);
 #endif
 #ifdef OBJECT_T5	
 	ssint (*cb_write_message)(const /*object_t5_t*/void *msg);
 #endif
 #ifdef OBJECT_WRITEBACK
-	ssint (*cb_object_write)(u8 regid, u8 instance, u16 offset, const u8 *ptr, u8 size);
+	//ssint (*cb_object_write)(u8 regid, u8 instance, u16 offset, const u8 *ptr, u8 size);
 #endif
 } mpt_api_callback_t;
 

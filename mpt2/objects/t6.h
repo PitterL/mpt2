@@ -78,8 +78,10 @@ ssint object_t6_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, con
 void object_t6_start(u8 unused);
 void object_t6_report_status(u8 force);
 
-ssint object_t6_handle_command(u16 cmd, u8 arg);
 u8 object_t6_get_diagnostic_status(u8 *pg);
+u8 object_t6_check_chip_critical(void);
+
+ssint object_api_t6_handle_command(u16 cmd, u8 arg);
 void object_api_t6_set_status(u8 mask);
 void object_api_t6_clr_status(u8 mask);
 

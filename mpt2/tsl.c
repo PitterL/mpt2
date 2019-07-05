@@ -363,9 +363,9 @@ tsl_interface_info_t interface_tsl =
 
 void tch_assert_irq(void)
 {
-	const tsl_interface_info_t *tsl = &interface_tsl;
+	//const tsl_interface_info_t *tsl = &interface_tsl;
 
-	mpt_api_request_irq(tsl->hal->fn_set_chg);
+	mpt_api_request_irq();
 }
 
 void init_maxtrix_node(qtouch_config_t *qdef)
@@ -490,38 +490,45 @@ void tsl_start(void)
 	mpt_chip_start();
 }
 
-void tch_update_sensor_state(void)
+void tch_update_chip_state(void)
 {
-#ifdef OBJECT_T6
+	#ifdef OBJECT_T6
 	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
+	const qtm_acq_node_data_t * qtns= &ptc_qtlib_node_stat1[0];
 	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
-	u8 state;
+	u8 state, cal;
 	u8 i;
 
 	for (i = 0; i < qttkg->num_key_sensors; i++) {
+		// FIXME, Why node_acq_status may different with sensor_state?
+		cal = qtns[i].node_acq_status & NODE_CAL_MASK;
+		if (cal) {
+			return mpt_api_set_chip_status(MXT_T6_STATUS_CAL, 1);
+		}
+		
 		state = qtkds[i].sensor_state & ~KEY_TOUCHED_MASK;
 		switch (state) {
-		case QTM_KEY_STATE_DISABLE:
+			case QTM_KEY_STATE_DISABLE:
 			mpt_api_set_chip_status(MXT_T6_STATUS_RESET, 1);
 			return;
-		case QTM_KEY_STATE_CAL:
+			case QTM_KEY_STATE_CAL:
 			mpt_api_set_chip_status(MXT_T6_STATUS_CAL, 1);
 			return;
-		case QTM_KEY_STATE_CAL_ERR:
+			case QTM_KEY_STATE_CAL_ERR:
 			mpt_api_set_chip_status(MXT_T6_STATUS_SIGERR, 1);
 			return;
-		default:
+			default:
 			;
 		}
 	}
 	
 	mpt_api_set_chip_status(MXT_T6_STATUS_RESET|MXT_T6_STATUS_CAL|MXT_T6_STATUS_SIGERR, 0);
-#endif
+	#endif
 }
 
 void tsl_pre_process(void)
 {
-	tch_update_sensor_state();
+	tch_update_chip_state();
 }
 
 void tch_ref_signal_update(void)
@@ -615,12 +622,14 @@ void tsl_process(void)
 #ifdef TOUCH_API_BUTTON
 	tch_button_press_report();
 #endif
-	tch_assert_irq();
-
+	
 #ifdef OBJECT_WRITEBACK
 	mpt_api_process();
 #endif
+
 	//mpt_api_report_status();
+
+	tch_assert_irq();
 }
 
 ssint tsl_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)

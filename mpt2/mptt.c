@@ -275,6 +275,7 @@ void mpt_chip_calibrate(void);
 void mpt_chip_reportall(void);
 void mpt_chip_get_config_crc(/*data_crc24_t*/ void *ptr);
 ssint mpt_chip_load_config(void);
+void mpt_chip_assert_irq(u8 assert, bool retrigger);
 #ifdef OBJECT_T5
 ssint mpt_write_message(const /*object_t5_t*/void *msg);
 void init_buffer(message_buffer_t *buf);
@@ -291,12 +292,13 @@ mpt_api_callback_t mpt_api_info = {
 	.backup = mpt_chip_backup,
 	.report_all = mpt_chip_reportall,
 	.cb_get_config_crc = mpt_chip_get_config_crc,
+	.cb_assert_irq = mpt_chip_assert_irq,
 #endif
 #ifdef OBJECT_T5
 	.cb_write_message = mpt_write_message,
 #endif
 #ifdef OBJECT_WRITEBACK
-	.cb_object_write = mpt_object_write,
+	//.cb_object_write = mpt_object_write,
 #endif
 };
 
@@ -371,7 +373,7 @@ void mpt_chip_start(void)
 #endif
 
 	// Send a calibration
-	//object_t6_handle_command(MXT_COMMAND_CALIBRATE, 1);
+	//object_api_t6_handle_command(MXT_COMMAND_CALIBRATE, 1);
 	
 	// Run each object
 	for (i = 0; i < MXT_OBJECTS_INITIALIZE_LIST_NUM; i++) {
@@ -548,6 +550,14 @@ void mpt_chip_get_config_crc(/*data_crc24_t*/ void *ptr)
 	memcpy(ptr, &ibreg->cfg.crc, sizeof(ibreg->cfg.crc));
 }
 
+void mpt_chip_assert_irq(u8 assert, bool retrigger)
+{
+	config_manager_t *cfm = &chip_config_manager;
+	
+	if (cfm->tsl->hal->fn_assert_irq)
+		cfm->tsl->hal->fn_assert_irq(assert, retrigger);	
+}
+
 const mxt_object_t *ib_get_object(const mxt_object_t *ibots, u8 regid) 
 {
 	const mxt_object_t *obj;
@@ -711,7 +721,7 @@ u8 message_count(const mxt_message_fifo_t *msg_fifo)
 }
 #endif
 
-void mpt_api_request_irq(message_cb_t cb)
+void mpt_api_request_irq(void)
 {
 #ifdef OBJECT_T5
 	mxt_message_fifo_t *msg_fifo = &message_fifo;
@@ -719,14 +729,19 @@ void mpt_api_request_irq(message_cb_t cb)
 	bool retrigger = false;
 
 	LOCK();
+
+#ifdef OBJECT_T6	
+	if (object_t6_check_chip_critical())
+		count = 0;
+	else
+#endif
+		count = message_count(msg_fifo);
 	
-	count = message_count(msg_fifo);
-	if (cb) {
 #if OBJECT_T18
-		retrigger = object_t18_check_retrigger();
+	retrigger = object_t18_check_retrigger();
 #endif		
-		cb(count, retrigger);
-	}
+	mpt_chip_assert_irq(count, retrigger);
+	
 	UNLOCK();
 #endif
 }
@@ -809,7 +824,7 @@ ssint handle_object_command(const mxt_object_t *obj, u16 offset, u8 cmd)
 	switch(obj->type) {
 #ifdef OBJECT_T6
 		case MXT_GEN_COMMAND_T6:
-			result = object_t6_handle_command(offset, cmd);
+			result = object_api_t6_handle_command(offset, cmd);
 		break;
 #endif		
 		default:

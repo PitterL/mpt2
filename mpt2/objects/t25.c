@@ -51,10 +51,10 @@ void t25_report_status(t25_data_t *ptr)
 	if (!ptr->cache.data.result)
 		return;
 
+	mem->cmd = MXT_T25_CMD_COMPLETED;
+
 	report_status(ptr, &ptr->cache.data, sizeof(ptr->cache.data));
 	memset(&ptr->cache, 0 ,sizeof(ptr->cache));
-	
-	mem->cmd = MXT_T25_CMD_COMPLETED;
 }
 
 void object_t25_report_status(u8 force)
