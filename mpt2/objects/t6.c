@@ -77,20 +77,11 @@ u8 object_t6_check_chip_critical(void)
 void chip_reset(u8 arg)
 {
 	t6_data_t *ptr = &t6_data_status;
-	object_t6_t *mem = (object_t6_t *)ptr->common.mem;
 
 	if (arg == MXT_BOOT_VALUE) {
 		/* Reboot to bootloader mode */
 	}else if (arg != 0) {
 		/* Normal reset */
-
-#ifdef OBJECT_WRITEBACK
-		/* Update reg */
-		//MPT_API_CALLBACK(ptr->common.cb, cb_object_write)(MXT_GEN_COMMAND_T6, 0, MXT_COMMAND_RESET, &arg, 1);
-#endif
-
-		/* Update reg */
-		mem->reset = arg;
 
 		MPT_API_CALLBACK(ptr->common.cb, cb_assert_irq)(0, false);
 		
@@ -174,13 +165,13 @@ void chip_diagnostic(u8 arg)
 }
 #endif
 
-ssint object_api_t6_handle_command(u16 cmd, u8 arg)
+ssint t6_handle_command(u16 cmd, u8 arg)
 {
 	t6_data_t *ptr = &t6_data_status;
 	ssint result = 0;
 	
 	ptr->cmd = cmd;
-	
+
 	switch (cmd) {
 		case MXT_COMMAND_RESET:
 			chip_reset(arg);
@@ -204,6 +195,20 @@ ssint object_api_t6_handle_command(u16 cmd, u8 arg)
 	}
 	
 	return result;
+}
+
+void object_api_t6_handle_command(void)
+{
+	t6_data_t *ptr = &t6_data_status;
+	u8 *mem_ptr = (u8 *)ptr->common.mem;
+	u8 i;
+	
+	for (i = 0; i < sizeof(object_t6_t); i++) {
+		if (mem_ptr[i]) {
+			t6_handle_command(i, mem_ptr[i]);
+			mem_ptr[i] = 0;
+		}
+	}
 }
 
 void object_api_t6_set_status(u8 mask)

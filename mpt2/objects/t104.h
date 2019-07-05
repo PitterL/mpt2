@@ -27,8 +27,12 @@ typedef struct object_t104 {
 	u8 yinthyst;
 } object_t104_t;
 
-#include "txx.h"
-typedef struct txx_data t104_data_t;
+typedef struct t104_data {
+	txx_data_t common;
+	/*nodes_desc_t*/void *ns;
+} t104_data_t;
+
+#define MXT_SPT_AUXTOUCHCONFIG_T104_INST 1
 
 ssint object_t104_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_t104_start(u8 loaded);

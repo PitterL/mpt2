@@ -14,7 +14,7 @@
 /* T8 Memory Space */
 typedef struct object_t8 {
 	u8 chrgtime;
-	u8 rsv;
+	u8 /*rsv*/atchdrift;
 	u8 tchdrift;
 	u8 driftst;
 	u8 tchautocal;

@@ -318,14 +318,13 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 #if defined(TOUCH_API_SURFACE) || defined(TOUCH_API_SCROLLER)
 // For simpling the algorithm, we set v for x, h for y, but must care, v should start first, h follow up
 qsurface_config_t surfaces_sliders_config[MXT_TOUCH_MULTI_T9_INST] = {
-	//{ .xnode = { .origin = 5, .size = 4 }, .ynode = { .origin = 9, .size = 13 } },
+	//{ { .origin = 5, .size = 4 }, { .origin = 9, .size = 13 } },
 };
 #endif
 
 qtouch_config_t tsl_qtouch_def = {
 #ifdef EVK_QT7
-	.matrix_xsize = 2,
-	.matrix_ysize = 3,
+	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 3}},
 #endif
 
 #ifdef TOUCH_API_BUTTON
@@ -368,13 +367,20 @@ void tch_assert_irq(void)
 	mpt_api_request_irq();
 }
 
+void tch_handle_command(void)
+{
+	mpt_api_handle_command();
+}
+
 void init_maxtrix_node(qtouch_config_t *qdef)
 {
 	qtm_acq_node_group_config_t *qtacq = &ptc_qtlib_acq_gen1;
 
-	if (!(qdef->matrix_xsize || qdef->matrix_ysize)) {
-		qdef->matrix_xsize = (qtacq->num_sensor_nodes + 1) >> 1;
-		qdef->matrix_ysize = qtacq->num_sensor_nodes - qdef->matrix_xsize;
+	if (!(qdef->matrix_nodes[NODE_X].size || qdef->matrix_nodes[NODE_Y].size)) {
+		qdef->matrix_nodes[NODE_X].origin = 0;
+		qdef->matrix_nodes[NODE_X].size = (qtacq->num_sensor_nodes + 1) >> 1;
+		qdef->matrix_nodes[NODE_Y].origin = qdef->matrix_nodes[NODE_X].size;
+		qdef->matrix_nodes[NODE_Y].size = qtacq->num_sensor_nodes - qdef->matrix_nodes[NODE_X].size;
 	}
 }
 
@@ -410,13 +416,14 @@ void init_slider_nodes(qtouch_config_t *qdef)
 	u8 i;
 			
 	for ( i = 0; i < qsgcfg->num_scrollers && i < qdef->num_surfaces_slider; i++) {
-		if (!(sursld[i].xnode.size || sursld[i].ynode.size)) {
-			sursld[i].xnode.origin = 0;
-			sursld[i].xnode.size = 0;
-			sursld[i].ynode.origin = qtcfg[i].start_key;
-			sursld[i].ynode.size = qtcfg[i].number_of_keys;
+		if (!(sursld[i].nodes[NODE_X].size || sursld[i].nodes[NODE_Y].size)) {
+			sursld[i].nodes[NODE_X].origin = 0;
+			sursld[i].nodes[NODE_X].size = 0;
+			sursld[i].nodes[NODE_Y].origin = qtcfg[i].start_key;
+			sursld[i].nodes[NODE_Y].size = qtcfg[i].number_of_keys;
 	
-			sursld->resolution_bit = (qtcfg[i].resol_deadband >> 4);
+			sursld[i].resolution_bit = ((qtcfg->resol_deadband >> 4) - RESOL_2_BIT);
+			sursld[i].resolution_max = (1 << sursld->resolution_bit) - 1;
 		
 			//position_hysteresis
 			//contact_min_threshold
@@ -434,15 +441,15 @@ void init_surface_node(qtouch_config_t *qdef)
 	const qtm_surface_cs_config_t *qtcfg = &qtm_surface_cs_config1;
 	qsurface_config_t *sursld = &qdef->surface_sliders[qdef->num_slider];
 
-	if (sursld->xnode.size && sursld->ynode.size)
+	if (sursld->nodes[NODE_X].size && sursld->nodes[NODE_Y].size)
 		return;
 
 	// For simpling the algorithm, we set v for x, h for y, but must care, v should start first, h follow up
 	// Only one surface in atmel start code, so there without loop
-	sursld->xnode.origin = qtcfg->start_key_v;	//should start first
-	sursld->xnode.size = qtcfg->number_of_keys_v;
-	sursld->ynode.origin = qtcfg->start_key_h;
-	sursld->ynode.size = qtcfg->number_of_keys_h;
+	sursld->nodes[NODE_X].origin = qtcfg->start_key_v;	//should start first
+	sursld->nodes[NODE_X].size = qtcfg->number_of_keys_v;
+	sursld->nodes[NODE_Y].origin = qtcfg->start_key_h;
+	sursld->nodes[NODE_Y].size = qtcfg->number_of_keys_h;
 		
 	// Resolution
 	sursld->resolution_bit = ((qtcfg->resol_deadband >> 4) - RESOL_2_BIT);
@@ -451,7 +458,7 @@ void init_surface_node(qtouch_config_t *qdef)
 	// sursld->deadband = qtm_surface_cs_config1.resol_deadband & 0xf;
 	
 	qdef->num_surfaces_slider_channel_count += qtcfg->number_of_keys_v + qtcfg->number_of_keys_h;
-	qdef->num_slider++;
+	qdef->num_surfaces = 1;
 }
 #endif
 
@@ -644,5 +651,7 @@ ssint tsl_mem_write(u16 baseaddr, u16 offset, u8 val)
 
 void tsl_end(void)
 {
+	tch_handle_command();
+	
 	tch_assert_irq();
 }

@@ -44,4 +44,6 @@ void mpt_api_report_status(void);
 /* Will lock FIFO get count operation */
 void mpt_api_request_irq(void);
 
+void mpt_api_handle_command(void);
+
 #endif /* MPTT_H_ */

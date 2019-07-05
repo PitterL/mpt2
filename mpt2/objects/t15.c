@@ -55,7 +55,9 @@ void t15_set_unsupport_area(t15_data_t *ptr)
 void t15_data_sync(t15_data_t *ptr, u8 rw)
 {
 	object_t15_t *mem = (object_t15_t *) ptr->common.mem;
-	u8 i, count;
+	const qbutton_config_t *btndef = (qbutton_config_t *)ptr->btndef;
+	
+	u8 i;
 	
 	txx_cb_param_t params_sensor[] = {
 		{ KEY_PARAMS_AKS_GROUP, &mem->akscfg, sizeof(mem->akscfg) },
@@ -71,9 +73,11 @@ void t15_data_sync(t15_data_t *ptr, u8 rw)
 	}
 	
 	// Sensor channel parameter
-	count = (rw == OP_READ) ? 1 :  mem->ysize;
-	for (i = mem->yorigin; i < mem->yorigin + count; i++) {
+	for (i = btndef->node.origin; i < btndef->node.origin + btndef->node.size; i++) {
 		object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
+		
+		if (rw == OP_READ)
+			break;
 	}
 	
 	if (rw == OP_READ) {	// read

@@ -34,9 +34,9 @@ void t9_set_unsupport_area(t9_data_t *ptr)
 	object_t9_t *mem = (object_t9_t *) ptr->common.mem;
 	
 	mem->xorigin = 0;
-	mem->xsize = qcfg->matrix_xsize;
+	mem->xsize = qcfg->matrix_nodes[NODE_X].size;
 	mem->yorigin = 0;
-	mem->ysize = qcfg->matrix_ysize;
+	mem->ysize = qcfg->matrix_nodes[NODE_Y].size;
 
 #ifndef OBJECT_WRITEBACK
 	if (mem->xsize || mem->ysize)
@@ -84,7 +84,7 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 	const qsurface_config_t *surdef = (qsurface_config_t *)ptr->surdef;
 	object_t9_t *mem = (object_t9_t *) ptr->common.mem;
 	/*
-	u16 xorigin = mem->xorigin, yorigin = mem->yorigin + ptr->surdef->xnode.origin + ptr->surdef->xnode.size;
+	u16 xorigin = mem->xorigin, yorigin = mem->yorigin + ptr->surdef->nodes[NODE_X].origin + ptr->surdef->nodes[NODE_X].size;
 	
 	txx_cb_param_t params_channel[] = {
 		// v for x, h for y
@@ -95,7 +95,7 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 	};
 	*/
 
-	u8 i, count;
+	u8 i;
 	txx_cb_param_t params_sensor[] = {
 		{ NODE_PARAMS_GAIN, &mem->blen, sizeof(mem->blen) },
 		{ KEY_PARAMS_THRESHOLD, &mem->tchthr, sizeof(mem->tchthr) },
@@ -117,18 +117,22 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 		movfilter.lo = (mem->movfilter >> 4);
 	}
 	
-	// Sensor channel parameter
-	count = (rw == OP_READ) ? 1 :  surdef->xnode.size;
-	for (i = surdef->xnode.origin; i < surdef->xnode.size + count; i++) {
-		object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
-	}
+	// Note: for read operation, there first Y channel value be valid
 	
-	if (rw == OP_WRITE) {	//write
-		for (i = surdef->ynode.origin; i < surdef->ynode.origin + surdef->ynode.size; i++) {
-			object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
+	// Sensor channel parameter for X channel 
+	if (rw == OP_WRITE) {
+		for (i = surdef->nodes[NODE_X].origin; i < surdef->nodes[NODE_X].origin + surdef->nodes[NODE_X].size; i++) {
+			object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);		
 		}
 	}
-
+	
+	//  Sensor channel parameter for Y channel
+	for (i = surdef->nodes[NODE_Y].origin; i < surdef->nodes[NODE_Y].origin + surdef->nodes[NODE_Y].size; i++) {
+		object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
+		if (rw == OP_READ)
+			break;
+	}
+	
 	// Touch parameters
 	object_txx_op(&ptr->common, params_touch, ARRAY_SIZE(params_touch), 0, rw);
 	
@@ -207,8 +211,8 @@ u16 object_t9_get_surface_slider_base_ref(u8 inst, u8 channel)
 		return 0;
 		
 	surdef = (qsurface_config_t *)ptr->surdef;
-	if (!((channel >=  surdef->xnode.origin && channel <surdef->xnode.origin + surdef->xnode.size) ||
-		(channel >=  surdef->ynode.origin && channel < surdef->ynode.origin + surdef->ynode.size)))
+	if (!((channel >=  surdef->nodes[NODE_X].origin && channel <surdef->nodes[NODE_X].origin + surdef->nodes[NODE_X].size) ||
+		(channel >=  surdef->nodes[NODE_Y].origin && channel < surdef->nodes[NODE_Y].origin + surdef->nodes[NODE_Y].size)))
 		return 0;
 	
 	return (SENSOR_BASE_REF_VALUE << /*NODE_GAIN_DIG*/(((object_t9_t *)ptr[inst].common.mem)->blen & 0xF));
@@ -229,7 +233,7 @@ void transfer_pos(t9_data_t *ptr, t9_range_t *ppos)
 	
 	// Re-adjust axis
 	if (xrange < resol_max)
-		point.x = (u16) (((u32)ppos->x * (xrange + 1) >> surdef->resolution_bit) - 1);
+		point.x = (u16) (((u32)ppos->x * (xrange + 1)) >> surdef->resolution_bit);
 	else
 		point.x = ppos->x;
 	
@@ -237,7 +241,7 @@ void transfer_pos(t9_data_t *ptr, t9_range_t *ppos)
 		if (yrange == xrange) {
 			point.y = point.x;
 		}else
-			point.y = (u16) (((u32)ppos->y * (yrange + 1) >> surdef->resolution_bit)) - 1;
+			point.y = (u16) (((u32)ppos->y * (yrange + 1)) >> surdef->resolution_bit);
 	}else
 		point.y = ppos->y;
 	

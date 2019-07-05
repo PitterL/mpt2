@@ -191,6 +191,7 @@ void bus_write_handler(void)
 void bus_stop_handler(void)
 {
 	handle_bus_event(BUS_STOP, NULL);
+
 	tsl_end();
 }
 

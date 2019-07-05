@@ -81,7 +81,7 @@ void object_t6_report_status(u8 force);
 u8 object_t6_get_diagnostic_status(u8 *pg);
 u8 object_t6_check_chip_critical(void);
 
-ssint object_api_t6_handle_command(u16 cmd, u8 arg);
+void object_api_t6_handle_command();
 void object_api_t6_set_status(u8 mask);
 void object_api_t6_clr_status(u8 mask);
 

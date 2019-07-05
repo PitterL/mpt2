@@ -138,7 +138,7 @@ mxt_object_t ib_objects_tables[] = {
 	{	MXT_SPT_SELFTEST_T25, /*start_address*/-1, sizeof(struct object_t25) - 1, /*instances_minus_one*/0, /*num_report_ids*/MXT_SPT_SELFTEST_T25_RIDS	},
 #endif
 #ifdef OBJECT_T104
-	{	MXT_SPT_AUXTOUCHCONFIG_T104, /*start_address*/-1, sizeof(struct object_t104) - 1, /*instances_minus_one*/0, /*num_report_ids*/0	},
+	{	MXT_SPT_AUXTOUCHCONFIG_T104, /*start_address*/-1, sizeof(struct object_t104) - 1, /*instances_minus_one*/MXT_SPT_AUXTOUCHCONFIG_T104_INST - 1, /*num_report_ids*/0	},
 #endif
 #ifdef OBJECT_T111	
 	{	MXT_SPT_SELFCAPCONFIG_T111, /*start_address*/-1, sizeof(struct object_t111) - 1, /*instances_minus_one*/MXT_SPT_SELFCAPCONFIG_T111_INST - 1, /*num_report_ids*/0	},
@@ -326,8 +326,8 @@ ssint mpt_chip_init(const void *tsl_ptr)
 	cfm->api = api;
 	cfm->api->qtapi = cfm->tsl->api;
 	// Build ID Information
-	ibinf->matrix_xsize = cfm->tsl->qtdef->matrix_xsize;
-	ibinf->matrix_ysize = cfm->tsl->qtdef->matrix_ysize;
+	ibinf->matrix_xsize = cfm->tsl->qtdef->matrix_nodes[NODE_X].size;
+	ibinf->matrix_ysize = cfm->tsl->qtdef->matrix_nodes[NODE_Y].size;
 	ibinf->object_num = MXT_OBJECTS_NUM;
 	
 	// Build Objects tables
@@ -817,21 +817,11 @@ ssint mpt_write_message(const /*object_t5_t*/void *msg_ptr)
 }
 #endif
 
-ssint handle_object_command(const mxt_object_t *obj, u16 offset, u8 cmd)
+void mpt_api_handle_command(void)
 {
-	ssint result;
-	
-	switch(obj->type) {
 #ifdef OBJECT_T6
-		case MXT_GEN_COMMAND_T6:
-			result = object_api_t6_handle_command(offset, cmd);
-		break;
-#endif		
-		default:
-			result = -2; 
-	}
-	
-	return result;
+	object_api_t6_handle_command();
+#endif
 }
 
 ssint mpt_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr) 
@@ -943,14 +933,6 @@ ssint mpt_mem_write(u16 baseaddr, u16 offset, u8 val)
 	}else if (regaddr < MXT_OBJECTS_CTRL_START) {
 		/* No write access for ram area */
 		result = -3;
-	}else if (regaddr < MXT_OBJECTS_CFG_START) {
-		/* Control command */
-		obj = ib_get_object_by_address(ibots, regaddr);
-		if (obj) {
-			/*result =  Not Return error, or QTServer may crash*/handle_object_command(obj, regaddr - obj->start_address, val);
-		}else {
-			result = -4;
-		}
 	}else if (regaddr < MXT_MEMORY_END) {
 		/* Config area */
 		obj = ib_get_object_by_address(ibots, regaddr);

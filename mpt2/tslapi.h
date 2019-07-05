@@ -92,16 +92,20 @@ typedef struct qbutton_config {
 	nodes_desc_t node;
 } qbutton_config_t;
 
+enum {
+	NODE_X,
+	NODE_Y,
+	NUM_NODE_2D	
+};
+
 typedef struct qsurface_config {
-	nodes_desc_t xnode;
-	nodes_desc_t ynode;
+	nodes_desc_t nodes[NUM_NODE_2D];
 	u8 resolution_bit;
 	u16 resolution_max;
 } qsurface_config_t;
 
 typedef struct qtouch_config {
-	u8 matrix_xsize;
-	u8 matrix_ysize;
+	nodes_desc_t matrix_nodes[NUM_NODE_2D];
 
 	qbutton_config_t *buttons;
 	u8 num_button;
@@ -115,6 +119,8 @@ typedef struct qtouch_config {
 } qtouch_config_t;
 
 #define QTOUCH_CONFIG_VAL(_p, _n) (((qtouch_config_t *)(_p))->_n)
+#define QTOUCH_CONFIG_MATRIX_X(_p) (((qtouch_config_t *)(_p))->matrix_nodes[NODE_X].size)
+#define QTOUCH_CONFIG_MATRIX_Y(_p) (((qtouch_config_t *)(_p))->matrix_nodes[NODE_Y].size)
 
 typedef struct qtouch_api_callback {
 	//cb_writeback_t write;

@@ -41,10 +41,12 @@ typedef struct object_t111 {
 	u8 dcidleslewmin;	
 } object_t111_t;
 
-#define MXT_SPT_SELFCAPCONFIG_T111_INST 1
+typedef struct t111_data {
+	txx_data_t common;
+	/*const nodes_desc_t*/void *ns;
+} t111_data_t;
 
-#include "txx.h"
-typedef struct txx_data t111_data_t;
+#define MXT_SPT_SELFCAPCONFIG_T111_INST 1
 
 ssint object_t111_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_t111_start(u8 loaded);

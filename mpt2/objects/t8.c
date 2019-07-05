@@ -18,15 +18,15 @@ ssint object_t8_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, con
 
 void t8_set_unsupport_area(object_t8_t *mem)
 {
-	mem->chrgtime = 0;
+	//mem->chrgtime = 0;
 	mem->sync = 0;
 	mem->atchcalst = 0;
 	mem->atchfrccalthr = 0;
 	mem->atchfrccalratio = 0;
 	mem->measallow = MXT_T8_MEASALLOW_ALLOWED;
-	mem->measidledef = 0x0;
+	mem->measidledef = 0;
 	//mem->measactvdef = MXT_T8_MEASALLOW_SELFTCH;
-	mem->refmode = 0x1;
+	//mem->refmode = 0;
 	mem->cfg = 0;
 }
 
@@ -113,16 +113,26 @@ u8 object_api_t8_measuring_mutual(void)
 void t8_data_sync(const txx_data_t *ptr, u8 rw)
 {
 	object_t8_t *mem = (object_t8_t *)ptr->mem;
+	nibble_t resprsc = {
+		.lo =  mem->chrgtime & 0xF,
+		.hi =  mem->refmode & 0xF,
+	};
 	
 	txx_cb_param_t params[] = {
+		{ NODE_PARAMS_RESISTOR_PRESCALER, &resprsc.value, sizeof(resprsc.value)},
 		{ DEF_TCH_DRIFT_RATE, &mem->tchdrift, sizeof(mem->tchdrift) },
-		{ DEF_ANTI_TCH_DRIFT_RATE, &mem->rsv, sizeof(mem->rsv) },	//Use rsv for anti touch drift
+		{ DEF_ANTI_TCH_DRIFT_RATE, &mem->atchdrift, sizeof(mem->atchdrift) },	//Use rsv for anti touch drift
 		{ DEF_DRIFT_HOLD_TIME, &mem->driftst, sizeof(mem->driftst) },
 		{ DEF_MAX_ON_DURATION, &mem->tchautocal, sizeof(mem->tchautocal) },
 		{ DEF_ANTI_TCH_RECAL_THRSHLD, &mem->atchcalsthr, sizeof(mem->atchcalsthr) },
 	};
 	
 	object_txx_op(ptr, params, ARRAY_SIZE(params), 0, rw);
+	
+	if (rw == OP_READ) {
+		mem->chrgtime = resprsc.lo;
+		mem->refmode = resprsc.hi;
+	}
 	
 	t8_set_unsupport_area(mem);
 }

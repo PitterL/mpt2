@@ -58,9 +58,9 @@ void copy_row_data_to_buffer(u8 cmd, u8 page, u8 row, u16 data)
 {
 	t37_data_t *ptr = &t37_data_status;
 	u8 i;
-	u8 pos = row * QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
+	u8 pos = row * QTOUCH_CONFIG_MATRIX_Y(ptr->common.def);
 	
-	for ( i = 0; i < QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize); i++ )
+	for ( i = 0; i < QTOUCH_CONFIG_MATRIX_Y(ptr->common.def); i++ )
 		copy_node_data_to_buffer(cmd, page, pos + i, data, DATA_AVE);	
 }
 
@@ -70,9 +70,9 @@ void copy_col_data_to_buffer(u8 cmd, u8 page, u8 col, u16 data)
 	u8 i;
 	u8 pos = col;
 	
-	for ( i = 0; i < QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize); i++ ) {
+	for ( i = 0; i < QTOUCH_CONFIG_MATRIX_X(ptr->common.def); i++ ) {
 		copy_node_data_to_buffer(cmd, page, pos, data, DATA_AVE);
-		pos += QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
+		pos += QTOUCH_CONFIG_MATRIX_Y(ptr->common.def);
 	}
 }
 
@@ -132,36 +132,36 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 		case MXT_DIAGNOSTIC_MC_DELTA:
 		case MXT_DIAGNOSTIC_MC_REF:
 		case MXT_DIAGNOSTIC_MC_SIGNAL:
-			if (channel < QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize)) {
+			if (channel < QTOUCH_CONFIG_MATRIX_X(ptr->common.def)) {
 				copy_row_data_to_buffer(cmd, page, channel, data);
 			}else {
-				copy_col_data_to_buffer(cmd, page, channel - QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize), data);
+				copy_col_data_to_buffer(cmd, page, channel - QTOUCH_CONFIG_MATRIX_X(ptr->common.def), data);
 			}
 		break;
 		case MXT_DIAGNOSTIC_SC_DELTA:
 			//Y channel First
-			if (channel < QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize)) {
-				pos = channel + QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
+			if (channel < QTOUCH_CONFIG_MATRIX_X(ptr->common.def)) {
+				pos = channel + QTOUCH_CONFIG_MATRIX_Y(ptr->common.def);
 			}else {
-				pos = channel - QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize);
+				pos = channel - QTOUCH_CONFIG_MATRIX_X(ptr->common.def);
 			}
 			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
 		break;
 		case MXT_DIAGNOSTIC_SC_REF:
 		case MXT_DIAGNOSTIC_SC_SIGNAL:
 			// re-organize the data order, see protocol
-			if (channel >= QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize)) {
-				pos = channel - QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize);
+			if (channel >= QTOUCH_CONFIG_MATRIX_X(ptr->common.def)) {
+				pos = channel - QTOUCH_CONFIG_MATRIX_X(ptr->common.def);
 			}else {
 				// X channel more, X placed as alternative ascending; Y channels more, x placed as ordered ascending 
-				if (QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize) > QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize)) {
+				if (QTOUCH_CONFIG_MATRIX_X(ptr->common.def) > QTOUCH_CONFIG_MATRIX_Y(ptr->common.def)) {
 					pos = channel >> 1;
 					if (channel & 0x1) {	//Odd
-						pos += QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
+						pos += QTOUCH_CONFIG_MATRIX_Y(ptr->common.def);
 					}
-					pos += QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
+					pos += QTOUCH_CONFIG_MATRIX_Y(ptr->common.def);
 				}else {
-					pos = channel + QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
+					pos = channel + QTOUCH_CONFIG_MATRIX_Y(ptr->common.def);
 				}
 			}
 			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
