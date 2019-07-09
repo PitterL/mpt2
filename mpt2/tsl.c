@@ -237,15 +237,21 @@ void force_parameters(u8 type, u8 index)
 	}
 }
 
-void common_read_write(void *dst, const void *src, size_t size)
+ssint common_read_write(void *dst, const void *src, size_t size)
 {
-	memcpy(dst, src, size);
+	if (memcmp(dst, src, size)) {
+		memcpy(dst, src, size);
+		return 0;
+	}
+	
+	return -2;
 }
 
 static inline ssint tch_config_rw(const tch_config_callback_t *param, void *buf, size_t size, u8 index, u8 rw)
 {
 	void *dst, *src;
 	size_t trunk_size = 0;
+	ssint result;
 	
 	if (size != param->size)
 		return -2;
@@ -260,10 +266,11 @@ static inline ssint tch_config_rw(const tch_config_callback_t *param, void *buf,
 		src = buf;
 	}
 	
-	common_read_write(dst, src, param->size);
-	
-	if (rw == OP_WRITE) {
-		force_parameters(param->type, index);
+	result = common_read_write(dst, src, param->size);
+	if (result == 0) {
+		if (rw == OP_WRITE) {
+			force_parameters(param->type, index);
+		}
 	}
 	
 	return 0;
@@ -367,11 +374,6 @@ void tch_assert_irq(void)
 	mpt_api_request_irq();
 }
 
-void tch_handle_command(void)
-{
-	mpt_api_handle_command();
-}
-
 void init_maxtrix_node(qtouch_config_t *qdef)
 {
 	qtm_acq_node_group_config_t *qtacq = &ptc_qtlib_acq_gen1;
@@ -382,6 +384,8 @@ void init_maxtrix_node(qtouch_config_t *qdef)
 		qdef->matrix_nodes[NODE_Y].origin = qdef->matrix_nodes[NODE_X].size;
 		qdef->matrix_nodes[NODE_Y].size = qtacq->num_sensor_nodes - qdef->matrix_nodes[NODE_X].size;
 	}
+	
+	qdef->maxtrix_channel_count = (u8)qtacq->num_sensor_nodes;
 }
 
 #ifdef TOUCH_API_BUTTON
@@ -631,7 +635,7 @@ void tsl_process(void)
 #endif
 	
 #ifdef OBJECT_WRITEBACK
-	mpt_api_process();
+	//mpt_api_process();
 #endif
 
 	//mpt_api_report_status();
@@ -651,7 +655,10 @@ ssint tsl_mem_write(u16 baseaddr, u16 offset, u8 val)
 
 void tsl_end(void)
 {
-	tch_handle_command();
+
+#ifdef OBJECT_WRITEBACK
+	mpt_api_writeback();
+#endif
 	
 	tch_assert_irq();
 }

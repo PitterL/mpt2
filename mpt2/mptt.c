@@ -246,17 +246,14 @@ mxt_message_fifo_t message_fifo;
 #ifdef OBJECT_WRITEBACK
 typedef struct dirty_mark {
 #define DIRTY_BIT_WIDTH_SHIFT 3	//8 bit, shift is 3
+#define DIRTY_BIT_WIDTH_MASK (0xff)
 	u8 mark[(MXT_OBJECTS_INITIALIZE_LIST_NUM >> 3) + 1];	//Mask the config change each bit
-	u8 cacheid;	//cache the dirty regid before marked at dirty array
 } dirty_marker_t;
 #endif
 
 typedef struct config_manager {
 	/* Interface from  TSL */
 	const tsl_interface_info_t *tsl;
-	
-	// Touch default config
-	//const qtouch_config_t *def;
 	
 	mpt_api_callback_t *api;
 
@@ -399,41 +396,32 @@ void mem_readback(u8 regid)
 }
 
 #ifdef OBJECT_WRITEBACK
-void mem_mark_dirty(u8 regid, u8 first)
+void mem_mark_dirty(u8 regid)
 {
 	dirty_marker_t *dirty = &chip_config_manager.dirty;
 	const object_callback_t *ocbs = &object_initialize_list[0];
 	u8 i, j, k;
-	
-	if (!first || dirty->cacheid == regid)
-		return;
-	
+
 	for (i = 0; i < MXT_OBJECTS_INITIALIZE_LIST_NUM; i++) {
 		if (ocbs[i].type == regid) {
 			j = i >> DIRTY_BIT_WIDTH_SHIFT;
-			k = i  - (j << DIRTY_BIT_WIDTH_SHIFT);
+			k = i & DIRTY_BIT_WIDTH_MASK;
 			dirty->mark[j] |= BIT(k);
 			break;
 		}
 	}
-	dirty->cacheid = regid;
 }
 
-void mpt_api_process(void)
+void mem_writeback(void)
 {
 	dirty_marker_t *dirty = &chip_config_manager.dirty;
 	const object_callback_t *ocbs = &object_initialize_list[0];
 	u8 i, j, k;
 	
-	LOCK();
-	
-	//clean cached id
-	dirty->cacheid = 0;
-		
 	// Run each object
 	for (i = 0; i < MXT_OBJECTS_INITIALIZE_LIST_NUM; i++) {
 		j = i >> DIRTY_BIT_WIDTH_SHIFT;
-		k = i  - (j << DIRTY_BIT_WIDTH_SHIFT);
+		k = i & DIRTY_BIT_WIDTH_MASK;
 		if ((dirty->mark[j] >> k) & 0x1) {
 			if (ocbs[i].process) {
 				ocbs[i].process(OP_WRITE);
@@ -441,8 +429,23 @@ void mpt_api_process(void)
 			}
 		}
 	}
-	
+}
+
+void mpt_api_process(void)
+{
+	/*
+	LOCK();
+	mem_writeback();
 	UNLOCK();
+	*/
+}
+
+void mpt_api_writeback(void) 
+{
+#ifdef OBJECT_T6
+	object_api_t6_handle_command();
+#endif
+	mem_writeback();
 }
 #endif
 
@@ -938,10 +941,12 @@ ssint mpt_mem_write(u16 baseaddr, u16 offset, u8 val)
 		obj = ib_get_object_by_address(ibots, regaddr);
 		if (obj) {
 			dst = (u8 *)&ibreg->cfg + regaddr - MXT_OBJECTS_CFG_START;
-			dst[0] = val; //memcpy(dst, &val, 1);
+			if (dst[0] != val) {
+				dst[0] = val; //memcpy(dst, &val, 1);
 #ifdef OBJECT_WRITEBACK			
-			mem_mark_dirty(obj->type, (u8)!offset);
+				mem_mark_dirty(obj->type/*, (u8)!offset*/);
 #endif		
+			}
 		}
 	}else {
 		/* Address out of range */

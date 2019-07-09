@@ -117,15 +117,24 @@ void t8_data_sync(const txx_data_t *ptr, u8 rw)
 		.lo =  mem->chrgtime & 0xF,
 		.hi =  mem->refmode & 0xF,
 	};
+	txx_cb_param_t ct_params[] = {
+		{ NODE_PARAMS_RESISTOR_PRESCALER, &resprsc.value, sizeof(resprsc.value)},
+	};
+	u8 i;
 	
 	txx_cb_param_t params[] = {
-		{ NODE_PARAMS_RESISTOR_PRESCALER, &resprsc.value, sizeof(resprsc.value)},
 		{ DEF_TCH_DRIFT_RATE, &mem->tchdrift, sizeof(mem->tchdrift) },
 		{ DEF_ANTI_TCH_DRIFT_RATE, &mem->atchdrift, sizeof(mem->atchdrift) },	//Use rsv for anti touch drift
 		{ DEF_DRIFT_HOLD_TIME, &mem->driftst, sizeof(mem->driftst) },
 		{ DEF_MAX_ON_DURATION, &mem->tchautocal, sizeof(mem->tchautocal) },
 		{ DEF_ANTI_TCH_RECAL_THRSHLD, &mem->atchcalsthr, sizeof(mem->atchcalsthr) },
 	};
+	
+	for (i = 0; i < QTOUCH_CONFIG_VAL(ptr->def, maxtrix_channel_count); i++) {
+		object_txx_op(ptr, ct_params, ARRAY_SIZE(ct_params), 0, rw);
+		if (rw == OP_READ)
+			break;
+	}
 	
 	object_txx_op(ptr, params, ARRAY_SIZE(params), 0, rw);
 	
