@@ -18,8 +18,8 @@ ssint object_t111_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, c
 
 	for (i = 0; i < MXT_SPT_SELFCAPCONFIG_T111_INST; i++) {
 		object_txx_init(&ptr[i].common, 0, def, (object_t111_t *)mem + i, cb);
-		if (i < qdef->num_surfaces) {
-			ptr->ns = qdef->surface_sliders[qdef->num_slider + i].nodes;
+		if (i < qdef->num_surfaces_slider) {
+			ptr->ns = qdef->surface_sliders[/*qdef->num_slider + */i].nodes;
 		}else {
 			ptr->ns = qdef->matrix_nodes;
 		}
@@ -49,8 +49,8 @@ void t111_data_sync(const t111_data_t *ptr, u8 rw)
 	object_t111_t *mem = (object_t111_t *)ptr->common.mem;
 	
 	nibble_t resprsc_y = {
-		.lo =  mem->inttime & 0xF,
-		.hi =  (mem->inrushcfg >> T111_INRUSHCFG_Y_RESISTOR_SHIFT) & T111_INRUSHCFG_RESISTOR_MASK
+		.lo =  mem->inttime & 0xF,	//Low nibble for Inttime
+		.hi =  (mem->inrushcfg >> T111_INRUSHCFG_Y_RESISTOR_SHIFT) & T111_INRUSHCFG_RESISTOR_MASK	//Hi nibble for resistor
 	};
 	
 	nibble_t resprsc_x = {
@@ -100,7 +100,7 @@ void t111_data_sync(const t111_data_t *ptr, u8 rw)
 	if (rw == OP_READ) {
 		// Update memory
 		mem->inttime = resprsc_y.lo;
-		mem->altinttimex = resprsc_x.lo == resprsc_y.lo ? 0 : resprsc_x.lo;
+		mem->altinttimex = (resprsc_x.lo == resprsc_y.lo) ? 0 : resprsc_x.lo;
 		mem->inrushcfg = (resprsc_y.hi << T111_INRUSHCFG_Y_RESISTOR_SHIFT) | (resprsc_x.hi << T111_INRUSHCFG_X_RESISTOR_SHIFT);
 		mem->delaytime = delay_y;
 		mem->altdelaytimex = (delay_x == delay_y) ? 0 : delay_x;
@@ -111,7 +111,6 @@ void t111_data_sync(const t111_data_t *ptr, u8 rw)
 
 void object_t111_start(u8 loaded)
 {
-#ifdef OBJECT_READBACK
 	t111_data_t *ptr = &t111s_data_status[0];
 	u8 i;
 	
@@ -119,21 +118,18 @@ void object_t111_start(u8 loaded)
 		return;
 	
 	for (i = 0; i < MXT_SPT_SELFCAPCONFIG_T111_INST; i++) {
-		t111_data_sync(ptr, 1);
+		t111_data_sync(ptr, OP_READ);
 	}
-#endif
 }
 
 void object_t111_process(u8 rw)
 {
-#ifdef OBJECT_READBACK
 	t111_data_t *ptr = &t111s_data_status[0];
 	u8 i;
 
 	for (i = 0; i < MXT_SPT_SELFCAPCONFIG_T111_INST; i++) {
 		t111_data_sync(ptr, rw);
 	}
-#endif
 }
 
 #endif

@@ -94,7 +94,7 @@ void object_t15_start(u8 loaded)
 		return;
 	
 	for (i = 0; i < MXT_TOUCH_KEYARRAY_T15_INST; i++) {
-		t15_data_sync(ptr + i, 1);
+		t15_data_sync(ptr + i, OP_READ);
 	}
 }
 

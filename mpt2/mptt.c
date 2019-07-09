@@ -246,7 +246,7 @@ mxt_message_fifo_t message_fifo;
 #ifdef OBJECT_WRITEBACK
 typedef struct dirty_mark {
 #define DIRTY_BIT_WIDTH_SHIFT 3	//8 bit, shift is 3
-#define DIRTY_BIT_WIDTH_MASK (0xff)
+#define DIRTY_BIT_WIDTH_MASK (0x7)
 	u8 mark[(MXT_OBJECTS_INITIALIZE_LIST_NUM >> 3) + 1];	//Mask the config change each bit
 } dirty_marker_t;
 #endif
@@ -770,12 +770,17 @@ ssint mpt_read_message(object_t5_t *msg)
 #ifdef OBJECT_T44
 		//Update T44
 		ibreg->ram.t44.count = message_count(msg_fifo);
-#ifdef OBJECT_T6
-		if (ibreg->ram.t44.count < MXT_MESSAGE_FIFO_SIZE - 1) {	//at lease 2 empty spaces
-			object_api_t6_clr_status(MXT_T6_STATUS_OFL);
-		}else {			
-			//If FIFO is full, we need send a overflow message
-			object_api_t6_set_status(MXT_T6_STATUS_OFL);
+#ifdef OBJECT_T7
+		if (object_t7_report_overflow())
+#endif 
+#ifdef OBJECT_T6		
+		{
+			if (ibreg->ram.t44.count < MXT_MESSAGE_FIFO_SIZE - 1) {	//at lease 2 empty spaces
+				object_api_t6_clr_status(MXT_T6_STATUS_OFL);
+				}else {
+				//If FIFO is full, we need send a overflow message
+				object_api_t6_set_status(MXT_T6_STATUS_OFL);
+			}		
 		}
 #endif
 #endif

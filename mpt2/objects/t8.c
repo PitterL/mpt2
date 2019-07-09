@@ -113,12 +113,10 @@ u8 object_api_t8_measuring_mutual(void)
 void t8_data_sync(const txx_data_t *ptr, u8 rw)
 {
 	object_t8_t *mem = (object_t8_t *)ptr->mem;
-	nibble_t resprsc = {
-		.lo =  mem->chrgtime & 0xF,
-		.hi =  mem->refmode & 0xF,
-	};
+
 	txx_cb_param_t ct_params[] = {
-		{ NODE_PARAMS_RESISTOR_PRESCALER, &resprsc.value, sizeof(resprsc.value)},
+		{ NODE_PARAMS_CSD, &mem->chrgtime, sizeof(mem->chrgtime)},	//Compared to T111 Intdelay
+		{ NODE_PARAMS_RESISTOR_PRESCALER, &mem->refmode, sizeof(mem->refmode)},	//Compared to T111 Inttime and Resistor
 	};
 	u8 i;
 	
@@ -131,17 +129,14 @@ void t8_data_sync(const txx_data_t *ptr, u8 rw)
 	};
 	
 	for (i = 0; i < QTOUCH_CONFIG_VAL(ptr->def, maxtrix_channel_count); i++) {
-		object_txx_op(ptr, ct_params, ARRAY_SIZE(ct_params), 0, rw);
+		object_txx_op(ptr, ct_params, ARRAY_SIZE(ct_params), i, rw);
 		if (rw == OP_READ)
 			break;
+		else
+			t8_set_unsupport_area(mem);
 	}
 	
 	object_txx_op(ptr, params, ARRAY_SIZE(params), 0, rw);
-	
-	if (rw == OP_READ) {
-		mem->chrgtime = resprsc.lo;
-		mem->refmode = resprsc.hi;
-	}
 	
 	t8_set_unsupport_area(mem);
 }
@@ -154,7 +149,7 @@ void object_t8_start(u8 loaded)
 		return;
 	
 	t8_readback_sensing_mode(ptr);
-	t8_data_sync(ptr, 1);
+	t8_data_sync(ptr, OP_READ);
 }
 
 void object_t8_process(u8 rw)

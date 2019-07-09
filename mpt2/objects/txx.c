@@ -47,10 +47,10 @@ void object_txx_op(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count
 
 void object_txx_readback(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index)
 {
-	object_txx_op(ptr, params, count, index, 1);
+	object_txx_op(ptr, params, count, index, OP_READ);
 }
 
 void object_txx_writeback(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index)
 {
-	object_txx_op(ptr, params, count, index, 0);
+	object_txx_op(ptr, params, count, index, OP_WRITE);
 }

@@ -46,7 +46,7 @@ typedef struct t111_data {
 	/*const nodes_desc_t*/void *ns;
 } t111_data_t;
 
-#define MXT_SPT_SELFCAPCONFIG_T111_INST 1
+#define MXT_SPT_SELFCAPCONFIG_T111_INST /*MXT_TOUCH_MULTI_T9_INST*/1
 
 ssint object_t111_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_t111_start(u8 loaded);

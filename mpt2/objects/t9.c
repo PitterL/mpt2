@@ -151,7 +151,7 @@ void object_t9_start(u8 loaded)
 		return;
 		
 	for (i = 0; i < MXT_TOUCH_MULTI_T9_INST; i++) {
-		t9_data_sync(ptr + i, 1);
+		t9_data_sync(ptr + i, OP_READ);
 	}
 }
 
