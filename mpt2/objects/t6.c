@@ -167,11 +167,8 @@ void chip_diagnostic(u8 arg)
 
 ssint t6_handle_command(u16 cmd, u8 arg)
 {
-	t6_data_t *ptr = &t6_data_status;
-	ssint result = 0;
+	ssint result;
 	
-	ptr->cmd = cmd;
-
 	switch (cmd) {
 		case MXT_COMMAND_RESET:
 			chip_reset(arg);

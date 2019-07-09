@@ -67,7 +67,7 @@ typedef struct t6_debug_command {
 
 typedef struct t6_data {
 	u8 status;
-	u8 cmd;
+//	u8 cmd;
 	t6_debug_command_t dbg;
 	data_crc24_t crc;
 	

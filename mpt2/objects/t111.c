@@ -12,6 +12,7 @@
 t111_data_t t111s_data_status[MXT_SPT_SELFCAPCONFIG_T111_INST];
 ssint object_t111_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb)
 {
+#ifndef OBJECT_T111_DUMMY
 	t111_data_t *ptr = &t111s_data_status[0];
 	qtouch_config_t *qdef = (qtouch_config_t *)def;
 	u8 i;
@@ -24,13 +25,13 @@ ssint object_t111_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, c
 			ptr->ns = qdef->matrix_nodes;
 		}
 	}
-
+#endif
 	return 0;
 }
 
 void t111_set_unsupport_area(object_t111_t *mem)
 {
-#ifdef OBJECT_WRITEBACK
+#ifndef OBJECT_WRITEBACK
 	mem->ctrl = 0;
 	mem->dbgctrl = 0;
 	mem->idlesyncsperl = 0;
@@ -111,6 +112,7 @@ void t111_data_sync(const t111_data_t *ptr, u8 rw)
 
 void object_t111_start(u8 loaded)
 {
+#ifndef OBJECT_T111_DUMMY
 	t111_data_t *ptr = &t111s_data_status[0];
 	u8 i;
 	
@@ -120,16 +122,19 @@ void object_t111_start(u8 loaded)
 	for (i = 0; i < MXT_SPT_SELFCAPCONFIG_T111_INST; i++) {
 		t111_data_sync(ptr, OP_READ);
 	}
+#endif
 }
 
 void object_t111_process(u8 rw)
 {
+#ifndef OBJECT_T111_DUMMY
 	t111_data_t *ptr = &t111s_data_status[0];
 	u8 i;
 
 	for (i = 0; i < MXT_SPT_SELFCAPCONFIG_T111_INST; i++) {
 		t111_data_sync(ptr, rw);
 	}
+#endif
 }
 
 #endif

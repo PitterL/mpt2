@@ -81,11 +81,12 @@ void check_and_empty_object_t37(u8 dbgcmd, u8 page)
 	t37_data_t *ptr = &t37_data_status;
 	object_t37_t *mem = (object_t37_t *)ptr->common.mem;
 	
-	if (dbgcmd != mem->mode || page != mem->page) {
-		mem->mode = dbgcmd;
-		mem->page = page;
+	if (dbgcmd != mem->mode) {
 		memset(mem->data, 0, sizeof(mem->data));
 	}
+	
+	mem->mode = dbgcmd;
+	mem->page = page;
 }
 
 void object_api_t37_set_data_page(u8 cmd, u8 page)
@@ -94,6 +95,8 @@ void object_api_t37_set_data_page(u8 cmd, u8 page)
 	
 	ptr->status.cmd = cmd;
 	ptr->status.page = page;
+	
+	check_and_empty_object_t37(cmd, page);
 }
 
 u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
@@ -123,12 +126,14 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 	s8 pos; 	//If t37 buffer size more than 128, this value will over flow
 	
 	switch(cmd) {
+#ifdef OBJECT_T15
 		case MXT_DIAGNOSTIC_KEY_DELTA:
 		case MXT_DIAGNOSTIC_KEY_REF:
 		case MXT_DIAGNOSTIC_KEY_SIGNAL:
 			pos = channel;
 			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
 			break;
+#endif
 		case MXT_DIAGNOSTIC_MC_DELTA:
 		case MXT_DIAGNOSTIC_MC_REF:
 		case MXT_DIAGNOSTIC_MC_SIGNAL:
@@ -138,6 +143,7 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 				copy_col_data_to_buffer(cmd, page, channel - QT_MATRIX_X_SIZE(ptr->common.def), data);
 			}
 		break;
+#ifdef OBJECT_T111
 		case MXT_DIAGNOSTIC_SC_DELTA:
 			//Y channel First
 			if (channel < QT_MATRIX_X_SIZE(ptr->common.def)) {
@@ -165,6 +171,7 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 				}
 			}
 			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
+#endif
 		default:
 			;
 	};

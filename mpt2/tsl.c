@@ -656,9 +656,7 @@ ssint tsl_mem_write(u16 baseaddr, u16 offset, u8 val)
 void tsl_end(void)
 {
 
-#ifdef OBJECT_WRITEBACK
 	mpt_api_writeback();
-#endif
 	
 	tch_assert_irq();
 }

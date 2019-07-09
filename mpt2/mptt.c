@@ -430,12 +430,14 @@ void mem_writeback(void)
 		}
 	}
 }
+#endif
 
 void mpt_api_process(void)
 {
 	/*
 	LOCK();
-	mem_writeback();
+		...
+		
 	UNLOCK();
 	*/
 }
@@ -445,9 +447,11 @@ void mpt_api_writeback(void)
 #ifdef OBJECT_T6
 	object_api_t6_handle_command();
 #endif
+#ifdef OBJECT_WRITEBACK
 	mem_writeback();
-}
 #endif
+}
+
 
 void mpt_chip_reset(void)
 {
