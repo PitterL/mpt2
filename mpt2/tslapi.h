@@ -104,6 +104,13 @@ typedef struct qsurface_config {
 	u16 resolution_max;
 } qsurface_config_t;
 
+typedef struct qtouch_params {
+	u8 max_prsc_div;
+	u8 max_gain;
+	u8 max_filter_count;
+	u8 max_resl;
+}qtouch_params_t;
+
 typedef struct qtouch_config {
 	nodes_desc_t matrix_nodes[NUM_NODE_2D];
 	u8 maxtrix_channel_count;
@@ -117,9 +124,13 @@ typedef struct qtouch_config {
 	u8 num_surfaces;
 	u8 num_slider;
 	u8 num_surfaces_slider_channel_count;
+	
+	qtouch_params_t params;
 } qtouch_config_t;
 
 #define QTOUCH_CONFIG_VAL(_p, _n) (((qtouch_config_t *)(_p))->_n)
+#define QTOUCH_PARAMS_VAL(_p, _n) (((qtouch_config_t *)(_p))->params._n)
+
 #define QT_MATRIX_X_ST(_p) (((qtouch_config_t *)(_p))->matrix_nodes[NODE_X].origin)
 #define QT_MATRIX_X_SIZE(_p) (((qtouch_config_t *)(_p))->matrix_nodes[NODE_X].size)
 #define QT_MATRIX_Y_ST(_p) (((qtouch_config_t *)(_p))->matrix_nodes[NODE_Y].origin)

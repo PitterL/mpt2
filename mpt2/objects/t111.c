@@ -47,20 +47,24 @@ void t111_set_unsupport_area(object_t111_t *mem)
 void t111_data_sync(const t111_data_t *ptr, u8 rw)
 {
 	const nodes_desc_t *ns = (nodes_desc_t *)ptr->ns;
+	const qtouch_params_t *param = (qtouch_params_t *)&QTOUCH_CONFIG_VAL(ptr->common.def, params);
 	object_t111_t *mem = (object_t111_t *)ptr->common.mem;
 	
+	const u8 inrush_y = (mem->inrushcfg >> T111_INRUSHCFG_Y_RESISTOR_SHIFT) & T111_INRUSHCFG_RESISTOR_MASK;
+	const u8 inrush_x = (mem->inrushcfg >> T111_INRUSHCFG_X_RESISTOR_SHIFT) & T111_INRUSHCFG_RESISTOR_MASK;
+	
 	nibble_t resprsc_y = {
-		.lo =  mem->inttime & 0xF,	//Low nibble for Inttime
-		.hi =  (mem->inrushcfg >> T111_INRUSHCFG_Y_RESISTOR_SHIFT) & T111_INRUSHCFG_RESISTOR_MASK	//Hi nibble for resistor
+		.lo =  mem->inttime > param->max_prsc_div ? param->max_prsc_div : mem->inttime,	//Low nibble for Inttime
+		.hi =  inrush_y > param->max_resl ? param->max_resl : inrush_y	//Hi nibble for resistor
 	};
 	
 	nibble_t resprsc_x = {
-		.lo =  mem->altinttimex ? (mem->altinttimex & 0xF) : (mem->inttime & 0xF),
-		.hi =  (mem->inrushcfg >> T111_INRUSHCFG_X_RESISTOR_SHIFT) & T111_INRUSHCFG_RESISTOR_MASK
+		.lo =  mem->altinttimex ? (mem->altinttimex > param->max_prsc_div ? param->max_prsc_div : mem->altinttimex) : resprsc_y.lo,
+		.hi =  inrush_x > param->max_resl ? param->max_resl : inrush_x
 	};
 	
 	u8 delay_y = mem->delaytime;
-	u8 delay_x = mem->altdelaytimex ? mem->altdelaytimex : mem->delaytime;
+	u8 delay_x = mem->altdelaytimex ? mem->altdelaytimex : delay_y;
 	
 	txx_cb_param_t yparams[] = {
 		{ NODE_PARAMS_RESISTOR_PRESCALER, &resprsc_y.value, sizeof(resprsc_y.value)},

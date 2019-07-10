@@ -363,6 +363,13 @@ qtouch_config_t tsl_qtouch_def = {
 	/*.num_slider,*/
 	/*.num_surfaces_slider_channel_count,*/
 #endif
+
+	.params = {
+		.max_prsc_div = PRSC_DIV_SEL_128,
+		.max_gain = GAIN_32,
+		.max_filter_count = FILTER_LEVEL_64,
+		.max_resl = RSEL_VAL_200,
+	},
 };
 
 qtouch_api_callback_t tsl_api_info =
