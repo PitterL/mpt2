@@ -46,6 +46,9 @@ void copy_node_data_to_buffer(u8 cmd, u8 page, u8 relative, u16 data, u8 mode)
 			else
 				mem->data[relative] = data | DATA_DIRTY_MAGIC_MASK;
 		}
+	}else {
+		// If clear data, the debug view may flick in insight
+		//mem->data[relative] = 0;
 	}
 }
 
@@ -71,12 +74,12 @@ void copy_col_data_to_buffer(u8 cmd, u8 page, u8 col, u16 data)
 	}
 }
 
-void check_and_empty_object_t37(u8 dbgcmd, u8 page)
+void check_and_empty_object_t37(u8 dbgcmd, u8 page, u8 clr)
 {
 	t37_data_t *ptr = &t37_data_status;
 	object_t37_t *mem = (object_t37_t *)ptr->common.mem;
 	
-	if (dbgcmd != mem->mode || page != mem->page ) {
+	if (clr && (dbgcmd != mem->mode || page != mem->page )) {
 		memset(mem->data, 0, sizeof(mem->data));
 	}
 	
@@ -91,7 +94,9 @@ void object_api_t37_set_data_page(u8 cmd, u8 page)
 	ptr->status.cmd = cmd;
 	ptr->status.page = page;
 	
-	check_and_empty_object_t37(cmd, page);
+	// FIXME:
+	// If clear data, the debug view may flick in insight, but if not clear, be carefull about large channel maxtrix
+	check_and_empty_object_t37(cmd, page, /*1*/0 );
 }
 
 u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
@@ -178,7 +183,7 @@ void object_api_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 c
 	t37_data_t *ptr = &t37_data_status;
 	u16 data;
 	
-	check_and_empty_object_t37(ptr->status.cmd, ptr->status.page);
+	//check_and_empty_object_t37(ptr->status.cmd, ptr->status.page, 1);
 
 	data = t37_get_data(ptr->status.cmd, channel, reference, signal, cap);
 	t37_put_data(ptr, ptr->status.cmd, ptr->status.page, channel, data);
