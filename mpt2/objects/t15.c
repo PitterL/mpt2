@@ -110,6 +110,7 @@ void object_t15_process(u8 rw)
 
 void t15_report_status(u8 rid, const t15_button_status_t *btn, const mpt_api_callback_t *cb)
 {	
+#ifdef OBJECT_T5
 	object_t5_t message;
 	
 	memset(&message, 0, sizeof(message));
@@ -122,6 +123,7 @@ void t15_report_status(u8 rid, const t15_button_status_t *btn, const mpt_api_cal
 	message.data[4] = btn->data[3];
 	
 	MPT_API_CALLBACK(cb, cb_write_message)(&message);
+#endif
 }
 
 void object_t15_report_status(u8 force)
