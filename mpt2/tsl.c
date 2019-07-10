@@ -324,6 +324,10 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 	{ .node = {	.origin = 0, .size = 5 } },	// Button
 	{ .node = {	.origin = 5, .size = 5 } },	
 #endif
+#ifdef EVK_WATER_SURFACE
+	{ .node = {	.origin = 0, .size = 11 } },	// Surface slider
+	{ .node = {	.origin = 11, .size = 2 } },	// Button
+#endif
 };
 #endif
 
@@ -341,7 +345,9 @@ qtouch_config_t tsl_qtouch_def = {
 #ifdef EVK_QT7
 	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 3}},
 #endif
-
+#ifdef EVK_WATER_SURFACE
+	.matrix_nodes = {{.origin = 0, .size = 5}, {.origin =  5, .size = 8}},
+#endif
 #ifdef TOUCH_API_BUTTON
 	//If define num_button, should filled the buttons_config
 	.buttons = &buttons_config[0],
