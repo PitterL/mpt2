@@ -48,7 +48,7 @@ void copy_node_data_to_buffer(u8 cmd, u8 page, u8 relative, u16 data, u8 mode)
 		}
 	}else {
 		// If clear data, the debug view may flick in insight
-		//mem->data[relative] = 0;
+		mem->data[relative] = 0;
 	}
 }
 
@@ -95,8 +95,8 @@ void object_api_t37_set_data_page(u8 cmd, u8 page)
 	ptr->status.page = page;
 	
 	// FIXME:
-	// If clear data, the debug view may flick in insight, but if not clear, be carefull about large channel maxtrix
-	check_and_empty_object_t37(cmd, page, /*1*/0 );
+	// If clear data, the debug view may flick in insight, but if not clear, be careful about large channel matrix
+	check_and_empty_object_t37(cmd, page, 1);
 }
 
 u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
@@ -124,7 +124,7 @@ u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
 void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 {
 	s8 pos; 	//If t37 buffer size more than 128, this value will over flow
-	
+		
 	switch(cmd) {
 #ifdef OBJECT_T15
 		case MXT_DIAGNOSTIC_KEY_DELTA:
@@ -149,28 +149,33 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 			//Y channel First
 			if (channel < QT_MATRIX_X_SIZE(ptr->common.def)) {
 				pos = channel + QT_MATRIX_Y_SIZE(ptr->common.def);
-			}else {
+			}else if(channel < QT_MATRIX_X_SIZE(ptr->common.def) + QT_MATRIX_Y_SIZE(ptr->common.def)) {
 				pos = channel - QT_MATRIX_X_SIZE(ptr->common.def);
+			}else {
+				pos = channel;
 			}
 			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
 		break;
 		case MXT_DIAGNOSTIC_SC_REF:
 		case MXT_DIAGNOSTIC_SC_SIGNAL:
 			// re-organize the data order, see protocol
-			if (channel >= QT_MATRIX_X_SIZE(ptr->common.def)) {
-				pos = channel - QT_MATRIX_X_SIZE(ptr->common.def);
-			}else {
-				// X channel more, X placed as alternative ascending; Y channels more, x placed as ordered ascending 
+			if (channel < QT_MATRIX_X_SIZE(ptr->common.def)) {
+				// X channel more, X placed as alternative ascending; Y channels more, x placed as ordered ascending
 				if (QT_MATRIX_X_SIZE(ptr->common.def) > QT_MATRIX_Y_SIZE(ptr->common.def)) {
 					pos = channel >> 1;
 					if (channel & 0x1) {	//Odd
 						pos += QT_MATRIX_Y_SIZE(ptr->common.def);
 					}
 					pos += QT_MATRIX_Y_SIZE(ptr->common.def);
-				}else {
+					}else {
 					pos = channel + QT_MATRIX_Y_SIZE(ptr->common.def);
 				}
+			}else if(channel < QT_MATRIX_X_SIZE(ptr->common.def) + QT_MATRIX_Y_SIZE(ptr->common.def)) {
+				pos = channel - QT_MATRIX_X_SIZE(ptr->common.def);
+			}else {
+				pos = channel;	
 			}
+			
 			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
 #endif
 		default:
@@ -182,8 +187,6 @@ void object_api_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 c
 {
 	t37_data_t *ptr = &t37_data_status;
 	u16 data;
-	
-	//check_and_empty_object_t37(ptr->status.cmd, ptr->status.page, 1);
 
 	data = t37_get_data(ptr->status.cmd, channel, reference, signal, cap);
 	t37_put_data(ptr, ptr->status.cmd, ptr->status.page, channel, data);

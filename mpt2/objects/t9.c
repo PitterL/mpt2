@@ -167,6 +167,7 @@ void object_t9_process(u8 rw)
 
 void t9_report_status(u8 rid, const t9_point_status_t *pt, const mpt_api_callback_t *cb)
 {
+#ifdef OBJECT_T5
 	object_t5_t message;
 	
 	memset(&message, 0, sizeof(message));
@@ -180,6 +181,7 @@ void t9_report_status(u8 rid, const t9_point_status_t *pt, const mpt_api_callbac
 	message.data[5] = 1;
 	
 	MPT_API_CALLBACK(cb, cb_write_message)(&message);
+#endif
 }
 
 void object_t9_report_status(u8 force)
