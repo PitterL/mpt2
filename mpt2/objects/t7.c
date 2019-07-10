@@ -41,7 +41,7 @@ void object_t7_start(u8 loaded)
 	if (loaded)
 		return;
 	
-	t7_data_sync(ptr, 1);
+	t7_data_sync(ptr, OP_READ);
 }
 
 void object_t7_process(u8 rw)
@@ -49,6 +49,14 @@ void object_t7_process(u8 rw)
 	t7_data_t *ptr = &t7_data_status;
 	
 	t7_data_sync(ptr, rw);
+}
+
+ssint object_t7_report_overflow(void)
+{
+	t7_data_t *ptr = &t7_data_status;
+	object_t7_t *mem = (object_t7_t *)ptr->mem;
+	
+	return !(mem->cfg & MXT_T7_CFG_OVFRPTSUP);
 }
 
 #endif

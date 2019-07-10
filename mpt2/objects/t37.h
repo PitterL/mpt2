@@ -31,6 +31,12 @@ typedef struct t37_data {
 	t37_page_status_t status;
 } t37_data_t;
 
+enum {
+	DATA_NEW,
+	DATA_AVE,	
+};
+#define DEBUG_VIEW_DATA_AVE_SHIFT 1
+
 ssint object_t37_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_t37_start(void);
 

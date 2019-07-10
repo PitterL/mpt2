@@ -25,11 +25,6 @@ void object_t37_start(void)
 	
 }
 
-enum {
-	DATA_NEW,
-	DATA_AVE,	
-};
-
 void copy_node_data_to_buffer(u8 cmd, u8 page, u8 relative, u16 data, u8 mode)
 {
 	t37_data_t *ptr = &t37_data_status;
@@ -47,7 +42,7 @@ void copy_node_data_to_buffer(u8 cmd, u8 page, u8 relative, u16 data, u8 mode)
 			mem->data[relative] = data;
 		else {
 			if (mem->data[relative] & DATA_DIRTY_MAGIC_MASK)	//MASK bit mean it has filled data before
-				mem->data[relative] = (((s16)data >> 1) + ((s16)mem->data[relative] >> 1)) | DATA_DIRTY_MAGIC_MASK;	//avg
+				mem->data[relative] = (((s16)data >> DEBUG_VIEW_DATA_AVE_SHIFT) + ((s16)mem->data[relative] >> DEBUG_VIEW_DATA_AVE_SHIFT)) | DATA_DIRTY_MAGIC_MASK;	//avg
 			else
 				mem->data[relative] = data | DATA_DIRTY_MAGIC_MASK;
 		}
@@ -58,9 +53,9 @@ void copy_row_data_to_buffer(u8 cmd, u8 page, u8 row, u16 data)
 {
 	t37_data_t *ptr = &t37_data_status;
 	u8 i;
-	u8 pos = row * QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
+	u8 pos = row * QT_MATRIX_Y_SIZE(ptr->common.def);
 	
-	for ( i = 0; i < QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize); i++ )
+	for ( i = 0; i < QT_MATRIX_Y_SIZE(ptr->common.def); i++ )
 		copy_node_data_to_buffer(cmd, page, pos + i, data, DATA_AVE);	
 }
 
@@ -70,9 +65,9 @@ void copy_col_data_to_buffer(u8 cmd, u8 page, u8 col, u16 data)
 	u8 i;
 	u8 pos = col;
 	
-	for ( i = 0; i < QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize); i++ ) {
+	for ( i = 0; i < QT_MATRIX_X_SIZE(ptr->common.def); i++ ) {
 		copy_node_data_to_buffer(cmd, page, pos, data, DATA_AVE);
-		pos += QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
+		pos += QT_MATRIX_Y_SIZE(ptr->common.def);
 	}
 }
 
@@ -81,11 +76,12 @@ void check_and_empty_object_t37(u8 dbgcmd, u8 page)
 	t37_data_t *ptr = &t37_data_status;
 	object_t37_t *mem = (object_t37_t *)ptr->common.mem;
 	
-	if (dbgcmd != mem->mode || page != mem->page) {
-		mem->mode = dbgcmd;
-		mem->page = page;
+	if (dbgcmd != mem->mode || page != mem->page ) {
 		memset(mem->data, 0, sizeof(mem->data));
 	}
+	
+	mem->mode = dbgcmd;
+	mem->page = page;
 }
 
 void object_api_t37_set_data_page(u8 cmd, u8 page)
@@ -94,6 +90,8 @@ void object_api_t37_set_data_page(u8 cmd, u8 page)
 	
 	ptr->status.cmd = cmd;
 	ptr->status.page = page;
+	
+	check_and_empty_object_t37(cmd, page);
 }
 
 u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
@@ -123,48 +121,53 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 	s8 pos; 	//If t37 buffer size more than 128, this value will over flow
 	
 	switch(cmd) {
+#ifdef OBJECT_T15
 		case MXT_DIAGNOSTIC_KEY_DELTA:
 		case MXT_DIAGNOSTIC_KEY_REF:
 		case MXT_DIAGNOSTIC_KEY_SIGNAL:
 			pos = channel;
 			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
 			break;
+#endif
 		case MXT_DIAGNOSTIC_MC_DELTA:
 		case MXT_DIAGNOSTIC_MC_REF:
 		case MXT_DIAGNOSTIC_MC_SIGNAL:
-			if (channel < QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize)) {
-				copy_row_data_to_buffer(cmd, page, channel, data);
+			pos = channel;
+			if (channel < QT_MATRIX_X_SIZE(ptr->common.def)) {
+				copy_row_data_to_buffer(cmd, page, pos, data);
 			}else {
-				copy_col_data_to_buffer(cmd, page, channel - QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize), data);
+				copy_col_data_to_buffer(cmd, page, pos - QT_MATRIX_X_SIZE(ptr->common.def), data);
 			}
 		break;
+#ifdef OBJECT_T111
 		case MXT_DIAGNOSTIC_SC_DELTA:
 			//Y channel First
-			if (channel < QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize)) {
-				pos = channel + QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
+			if (channel < QT_MATRIX_X_SIZE(ptr->common.def)) {
+				pos = channel + QT_MATRIX_Y_SIZE(ptr->common.def);
 			}else {
-				pos = channel - QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize);
+				pos = channel - QT_MATRIX_X_SIZE(ptr->common.def);
 			}
 			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
 		break;
 		case MXT_DIAGNOSTIC_SC_REF:
 		case MXT_DIAGNOSTIC_SC_SIGNAL:
 			// re-organize the data order, see protocol
-			if (channel >= QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize)) {
-				pos = channel - QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize);
+			if (channel >= QT_MATRIX_X_SIZE(ptr->common.def)) {
+				pos = channel - QT_MATRIX_X_SIZE(ptr->common.def);
 			}else {
 				// X channel more, X placed as alternative ascending; Y channels more, x placed as ordered ascending 
-				if (QTOUCH_CONFIG_VAL(ptr->common.def, matrix_xsize) > QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize)) {
+				if (QT_MATRIX_X_SIZE(ptr->common.def) > QT_MATRIX_Y_SIZE(ptr->common.def)) {
 					pos = channel >> 1;
 					if (channel & 0x1) {	//Odd
-						pos += QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
+						pos += QT_MATRIX_Y_SIZE(ptr->common.def);
 					}
-					pos += QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
+					pos += QT_MATRIX_Y_SIZE(ptr->common.def);
 				}else {
-					pos = channel + QTOUCH_CONFIG_VAL(ptr->common.def, matrix_ysize);
+					pos = channel + QT_MATRIX_Y_SIZE(ptr->common.def);
 				}
 			}
 			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
+#endif
 		default:
 			;
 	};

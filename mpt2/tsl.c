@@ -237,15 +237,21 @@ void force_parameters(u8 type, u8 index)
 	}
 }
 
-void common_read_write(void *dst, const void *src, size_t size)
+ssint common_read_write(void *dst, const void *src, size_t size)
 {
-	memcpy(dst, src, size);
+	if (memcmp(dst, src, size)) {
+		memcpy(dst, src, size);
+		return 0;
+	}
+	
+	return -2;
 }
 
 static inline ssint tch_config_rw(const tch_config_callback_t *param, void *buf, size_t size, u8 index, u8 rw)
 {
 	void *dst, *src;
 	size_t trunk_size = 0;
+	ssint result;
 	
 	if (size != param->size)
 		return -2;
@@ -260,10 +266,11 @@ static inline ssint tch_config_rw(const tch_config_callback_t *param, void *buf,
 		src = buf;
 	}
 	
-	common_read_write(dst, src, param->size);
-	
-	if (rw == OP_WRITE) {
-		force_parameters(param->type, index);
+	result = common_read_write(dst, src, param->size);
+	if (result == 0) {
+		if (rw == OP_WRITE) {
+			force_parameters(param->type, index);
+		}
 	}
 	
 	return 0;
@@ -318,14 +325,13 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 #if defined(TOUCH_API_SURFACE) || defined(TOUCH_API_SCROLLER)
 // For simpling the algorithm, we set v for x, h for y, but must care, v should start first, h follow up
 qsurface_config_t surfaces_sliders_config[MXT_TOUCH_MULTI_T9_INST] = {
-	//{ .xnode = { .origin = 5, .size = 4 }, .ynode = { .origin = 9, .size = 13 } },
+	//{ { .origin = 5, .size = 4 }, { .origin = 9, .size = 13 } },
 };
 #endif
 
 qtouch_config_t tsl_qtouch_def = {
 #ifdef EVK_QT7
-	.matrix_xsize = 2,
-	.matrix_ysize = 3,
+	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 3}},
 #endif
 
 #ifdef TOUCH_API_BUTTON
@@ -363,19 +369,23 @@ tsl_interface_info_t interface_tsl =
 
 void tch_assert_irq(void)
 {
-	const tsl_interface_info_t *tsl = &interface_tsl;
+	//const tsl_interface_info_t *tsl = &interface_tsl;
 
-	mpt_api_request_irq(tsl->hal->fn_set_chg);
+	mpt_api_request_irq();
 }
 
 void init_maxtrix_node(qtouch_config_t *qdef)
 {
 	qtm_acq_node_group_config_t *qtacq = &ptc_qtlib_acq_gen1;
 
-	if (!(qdef->matrix_xsize || qdef->matrix_ysize)) {
-		qdef->matrix_xsize = (qtacq->num_sensor_nodes + 1) >> 1;
-		qdef->matrix_ysize = qtacq->num_sensor_nodes - qdef->matrix_xsize;
+	if (!(qdef->matrix_nodes[NODE_X].size || qdef->matrix_nodes[NODE_Y].size)) {
+		qdef->matrix_nodes[NODE_X].origin = 0;
+		qdef->matrix_nodes[NODE_X].size = (qtacq->num_sensor_nodes + 1) >> 1;
+		qdef->matrix_nodes[NODE_Y].origin = qdef->matrix_nodes[NODE_X].size;
+		qdef->matrix_nodes[NODE_Y].size = qtacq->num_sensor_nodes - qdef->matrix_nodes[NODE_X].size;
 	}
+	
+	qdef->maxtrix_channel_count = (u8)qtacq->num_sensor_nodes;
 }
 
 #ifdef TOUCH_API_BUTTON
@@ -410,13 +420,14 @@ void init_slider_nodes(qtouch_config_t *qdef)
 	u8 i;
 			
 	for ( i = 0; i < qsgcfg->num_scrollers && i < qdef->num_surfaces_slider; i++) {
-		if (!(sursld[i].xnode.size || sursld[i].ynode.size)) {
-			sursld[i].xnode.origin = 0;
-			sursld[i].xnode.size = 0;
-			sursld[i].ynode.origin = qtcfg[i].start_key;
-			sursld[i].ynode.size = qtcfg[i].number_of_keys;
+		if (!(sursld[i].nodes[NODE_X].size || sursld[i].nodes[NODE_Y].size)) {
+			sursld[i].nodes[NODE_X].origin = 0;
+			sursld[i].nodes[NODE_X].size = 0;
+			sursld[i].nodes[NODE_Y].origin = qtcfg[i].start_key;
+			sursld[i].nodes[NODE_Y].size = qtcfg[i].number_of_keys;
 	
-			sursld->resolution_bit = (qtcfg[i].resol_deadband >> 4);
+			sursld[i].resolution_bit = ((qtcfg->resol_deadband >> 4) - RESOL_2_BIT);
+			sursld[i].resolution_max = (1 << sursld->resolution_bit) - 1;
 		
 			//position_hysteresis
 			//contact_min_threshold
@@ -434,15 +445,15 @@ void init_surface_node(qtouch_config_t *qdef)
 	const qtm_surface_cs_config_t *qtcfg = &qtm_surface_cs_config1;
 	qsurface_config_t *sursld = &qdef->surface_sliders[qdef->num_slider];
 
-	if (sursld->xnode.size && sursld->ynode.size)
+	if (sursld->nodes[NODE_X].size && sursld->nodes[NODE_Y].size)
 		return;
 
 	// For simpling the algorithm, we set v for x, h for y, but must care, v should start first, h follow up
 	// Only one surface in atmel start code, so there without loop
-	sursld->xnode.origin = qtcfg->start_key_v;	//should start first
-	sursld->xnode.size = qtcfg->number_of_keys_v;
-	sursld->ynode.origin = qtcfg->start_key_h;
-	sursld->ynode.size = qtcfg->number_of_keys_h;
+	sursld->nodes[NODE_X].origin = qtcfg->start_key_v;	//should start first
+	sursld->nodes[NODE_X].size = qtcfg->number_of_keys_v;
+	sursld->nodes[NODE_Y].origin = qtcfg->start_key_h;
+	sursld->nodes[NODE_Y].size = qtcfg->number_of_keys_h;
 		
 	// Resolution
 	sursld->resolution_bit = ((qtcfg->resol_deadband >> 4) - RESOL_2_BIT);
@@ -451,7 +462,7 @@ void init_surface_node(qtouch_config_t *qdef)
 	// sursld->deadband = qtm_surface_cs_config1.resol_deadband & 0xf;
 	
 	qdef->num_surfaces_slider_channel_count += qtcfg->number_of_keys_v + qtcfg->number_of_keys_h;
-	qdef->num_slider++;
+	qdef->num_surfaces = 1;
 }
 #endif
 
@@ -490,38 +501,45 @@ void tsl_start(void)
 	mpt_chip_start();
 }
 
-void tch_update_sensor_state(void)
+void tch_update_chip_state(void)
 {
-#ifdef OBJECT_T6
+	#ifdef OBJECT_T6
 	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
+	const qtm_acq_node_data_t * qtns= &ptc_qtlib_node_stat1[0];
 	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
-	u8 state;
+	u8 state, cal;
 	u8 i;
 
 	for (i = 0; i < qttkg->num_key_sensors; i++) {
+		// FIXME, Why node_acq_status may different with sensor_state?
+		cal = qtns[i].node_acq_status & NODE_CAL_MASK;
+		if (cal) {
+			return mpt_api_set_chip_status(MXT_T6_STATUS_CAL, 1);
+		}
+		
 		state = qtkds[i].sensor_state & ~KEY_TOUCHED_MASK;
 		switch (state) {
-		case QTM_KEY_STATE_DISABLE:
+			case QTM_KEY_STATE_DISABLE:
 			mpt_api_set_chip_status(MXT_T6_STATUS_RESET, 1);
 			return;
-		case QTM_KEY_STATE_CAL:
+			case QTM_KEY_STATE_CAL:
 			mpt_api_set_chip_status(MXT_T6_STATUS_CAL, 1);
 			return;
-		case QTM_KEY_STATE_CAL_ERR:
+			case QTM_KEY_STATE_CAL_ERR:
 			mpt_api_set_chip_status(MXT_T6_STATUS_SIGERR, 1);
 			return;
-		default:
+			default:
 			;
 		}
 	}
 	
 	mpt_api_set_chip_status(MXT_T6_STATUS_RESET|MXT_T6_STATUS_CAL|MXT_T6_STATUS_SIGERR, 0);
-#endif
+	#endif
 }
 
 void tsl_pre_process(void)
 {
-	tch_update_sensor_state();
+	tch_update_chip_state();
 }
 
 void tch_ref_signal_update(void)
@@ -615,12 +633,14 @@ void tsl_process(void)
 #ifdef TOUCH_API_BUTTON
 	tch_button_press_report();
 #endif
-	tch_assert_irq();
-
+	
 #ifdef OBJECT_WRITEBACK
-	mpt_api_process();
+	//mpt_api_process();
 #endif
+
 	//mpt_api_report_status();
+
+	tch_assert_irq();
 }
 
 ssint tsl_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
@@ -635,5 +655,8 @@ ssint tsl_mem_write(u16 baseaddr, u16 offset, u8 val)
 
 void tsl_end(void)
 {
+
+	mpt_api_writeback();
+	
 	tch_assert_irq();
 }

@@ -1,5 +1,7 @@
 #include <atmel_start.h>
+#ifdef USE_MPTT_WRAPPER
 #include "mpt2/interface.h"
+#endif
 extern volatile uint8_t measurement_done_touch;
 
 int main(void)

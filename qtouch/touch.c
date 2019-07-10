@@ -167,6 +167,7 @@ qtm_touch_key_config_t qtlib_key_configs_set1[DEF_NUM_SENSORS] = {KEY_0_PARAMS,
 qtm_touch_key_control_t qtlib_key_set1
     = {&qtlib_key_grp_data_set1, &qtlib_key_grp_config_set1, &qtlib_key_data_set1[0], &qtlib_key_configs_set1[0]};
 
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
 /**********************************************************/
 /***************** Surface 1t Module ********************/
 /**********************************************************/
@@ -222,6 +223,8 @@ qtm_gestures_2d_data_t qtm_gestures_2d_data;
 
 qtm_gestures_2d_control_t qtm_gestures_2d_control1 = {&qtm_gestures_2d_data, &qtm_gestures_2d_config};
 
+#endif
+
 /**********************************************************/
 /****************  Binding Layer Module  ******************/
 /**********************************************************/
@@ -230,22 +233,37 @@ qtm_gestures_2d_control_t qtm_gestures_2d_control1 = {&qtm_gestures_2d_data, &qt
 		(module_init_t) & qtm_ptc_init_acquisition_module, null                                                        \
 	}
 
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
 #define LIB_MODULES_PROC_LIST                                                                                          \
 	{                                                                                                                  \
 		(module_proc_t) & qtm_freq_hop_autotune, (module_proc_t)&qtm_key_sensors_process,                              \
 		    (module_proc_t)&qtm_surface_cs_process,  null                      \
 	}
-
+#else
+#define LIB_MODULES_PROC_LIST                                                                                          \
+{                                                                                                                  \
+	(module_proc_t) & qtm_freq_hop_autotune, (module_proc_t)&qtm_key_sensors_process,                              \
+			null                      \
+}
+#endif
 #define LIB_INIT_DATA_MODELS_LIST                                                                                      \
 	{                                                                                                                  \
 		(void *)&qtlib_acq_set1, null                                                                                  \
 	}
 
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
 #define LIB_DATA_MODELS_PROC_LIST                                                                                      \
 	{                                                                                                                  \
 		(void *)&qtm_freq_hop_autotune_control1, (void *)&qtlib_key_set1, (void *)&qtm_surface_cs_control1,            \
 		     null                                                                    \
 	}
+#else
+#define LIB_DATA_MODELS_PROC_LIST                                                                                      \
+{                                                                                                                  \
+	(void *)&qtm_freq_hop_autotune_control1, (void *)&qtlib_key_set1,             \
+	null                                                                    \
+}
+#endif
 
 #define LIB_MODULES_ACQ_ENGINES_LIST                                                                                   \
 	{                                                                                                                  \
@@ -384,10 +402,11 @@ static touch_ret_t touch_sensors_config(void)
 		qtm_init_sensor_key(&qtlib_key_set1, sensor_nodes, &ptc_qtlib_node_stat1[sensor_nodes]);
 	}
 
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
 	touch_ret |= qtm_init_surface_cs(&qtm_surface_cs_control1);
 
 	touch_ret |= qtm_init_gestures_2d();
-
+#endif
 	return (touch_ret);
 }
 
@@ -593,9 +612,11 @@ Notes  :
 void touch_timer_handler(void)
 {
 	interrupt_cnt++;
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))	
 	if (interrupt_cnt % DEF_GESTURE_TIME_BASE_MS == 0) {
 		qtm_update_gesture_2d_timer(1);
 	}
+#endif	
 	if (interrupt_cnt >= qtlib_time_elapsed_since_update) {
 		interrupt_cnt = 0;
 		/* Count complete - Measure touch sensors */

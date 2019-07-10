@@ -12,7 +12,7 @@
 
 typedef struct hal_interface_info {
 	// HW interface
-	void (*fn_set_chg)(u8 assert, bool retrigger);
+	void (*fn_assert_irq)(u8 assert, bool retrigger);
 
 	void (*fn_reset)(void);
 	

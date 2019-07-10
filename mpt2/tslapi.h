@@ -92,16 +92,21 @@ typedef struct qbutton_config {
 	nodes_desc_t node;
 } qbutton_config_t;
 
+enum {
+	NODE_X,
+	NODE_Y,
+	NUM_NODE_2D	
+};
+
 typedef struct qsurface_config {
-	nodes_desc_t xnode;
-	nodes_desc_t ynode;
+	nodes_desc_t nodes[NUM_NODE_2D];
 	u8 resolution_bit;
 	u16 resolution_max;
 } qsurface_config_t;
 
 typedef struct qtouch_config {
-	u8 matrix_xsize;
-	u8 matrix_ysize;
+	nodes_desc_t matrix_nodes[NUM_NODE_2D];
+	u8 maxtrix_channel_count;
 
 	qbutton_config_t *buttons;
 	u8 num_button;
@@ -115,6 +120,10 @@ typedef struct qtouch_config {
 } qtouch_config_t;
 
 #define QTOUCH_CONFIG_VAL(_p, _n) (((qtouch_config_t *)(_p))->_n)
+#define QT_MATRIX_X_ST(_p) (((qtouch_config_t *)(_p))->matrix_nodes[NODE_X].origin)
+#define QT_MATRIX_X_SIZE(_p) (((qtouch_config_t *)(_p))->matrix_nodes[NODE_X].size)
+#define QT_MATRIX_Y_ST(_p) (((qtouch_config_t *)(_p))->matrix_nodes[NODE_Y].origin)
+#define QT_MATRIX_Y_SIZE(_p) (((qtouch_config_t *)(_p))->matrix_nodes[NODE_Y].size)
 
 typedef struct qtouch_api_callback {
 	//cb_writeback_t write;
@@ -133,12 +142,13 @@ typedef struct mpt_api_callback {
 	ssint (*backup)(void);
 	void (*report_all)(void);
 	void (*cb_get_config_crc)(/*data_crc24_t*/void *crc_ptr);
+	void (*cb_assert_irq)(u8 assert, bool retrigger);
 #endif
 #ifdef OBJECT_T5	
 	ssint (*cb_write_message)(const /*object_t5_t*/void *msg);
 #endif
 #ifdef OBJECT_WRITEBACK
-	ssint (*cb_object_write)(u8 regid, u8 instance, u16 offset, const u8 *ptr, u8 size);
+	//ssint (*cb_object_write)(u8 regid, u8 instance, u16 offset, const u8 *ptr, u8 size);
 #endif
 } mpt_api_callback_t;
 

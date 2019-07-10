@@ -67,7 +67,7 @@ typedef struct t6_debug_command {
 
 typedef struct t6_data {
 	u8 status;
-	u8 cmd;
+//	u8 cmd;
 	t6_debug_command_t dbg;
 	data_crc24_t crc;
 	
@@ -78,8 +78,10 @@ ssint object_t6_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, con
 void object_t6_start(u8 unused);
 void object_t6_report_status(u8 force);
 
-ssint object_t6_handle_command(u16 cmd, u8 arg);
 u8 object_t6_get_diagnostic_status(u8 *pg);
+u8 object_t6_check_chip_critical(void);
+
+void object_api_t6_handle_command();
 void object_api_t6_set_status(u8 mask);
 void object_api_t6_clr_status(u8 mask);
 
