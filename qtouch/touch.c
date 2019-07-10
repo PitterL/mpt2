@@ -90,7 +90,7 @@ qtm_acq_node_data_t ptc_qtlib_node_stat1[DEF_NUM_CHANNELS];
 
 /* Node configurations */
 qtm_acq_t321x_node_config_t ptc_seq_node_cfg1[DEF_NUM_CHANNELS]
-    = {NODE_0_PARAMS, NODE_1_PARAMS, NODE_2_PARAMS, NODE_3_PARAMS, NODE_4_PARAMS};
+    = {NODE_0_PARAMS, NODE_1_PARAMS, NODE_2_PARAMS, NODE_3_PARAMS, NODE_4_PARAMS, NODE_5_PARAMS};
 
 /* Container */
 qtm_acquisition_control_t qtlib_acq_set1 = {&ptc_qtlib_acq_gen1, &ptc_seq_node_cfg1[0], &ptc_qtlib_node_stat1[0]};
@@ -143,7 +143,7 @@ qtm_touch_key_data_t qtlib_key_data_set1[DEF_NUM_SENSORS];
 
 /* Key Configurations */
 qtm_touch_key_config_t qtlib_key_configs_set1[DEF_NUM_SENSORS]
-    = {KEY_0_PARAMS, KEY_1_PARAMS, KEY_2_PARAMS, KEY_3_PARAMS, KEY_4_PARAMS};
+    = {KEY_0_PARAMS, KEY_1_PARAMS, KEY_2_PARAMS, KEY_3_PARAMS, KEY_4_PARAMS, KEY_5_PARAMS};
 
 /* Container */
 qtm_touch_key_control_t qtlib_key_set1
@@ -280,47 +280,23 @@ static void build_qtm_config(qtm_control_t *qtm)
 static void touch_ptc_pin_config(void)
 {
 
+	PORTC_set_pin_pull_mode(1, PORT_PULL_OFF);
+	PORTC_pin_set_isc(1, PORT_ISC_INPUT_DISABLE_gc);
+
+	PORTB_set_pin_pull_mode(0, PORT_PULL_OFF);
+	PORTB_pin_set_isc(0, PORT_ISC_INPUT_DISABLE_gc);
+
 	PORTA_set_pin_pull_mode(4, PORT_PULL_OFF);
 	PORTA_pin_set_isc(4, PORT_ISC_INPUT_DISABLE_gc);
 
 	PORTA_set_pin_pull_mode(5, PORT_PULL_OFF);
 	PORTA_pin_set_isc(5, PORT_ISC_INPUT_DISABLE_gc);
 
-	PORTA_set_pin_pull_mode(6, PORT_PULL_OFF);
-	PORTA_pin_set_isc(6, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTA_set_pin_pull_mode(7, PORT_PULL_OFF);
-	PORTA_pin_set_isc(7, PORT_ISC_INPUT_DISABLE_gc);
-
 	PORTB_set_pin_pull_mode(1, PORT_PULL_OFF);
 	PORTB_pin_set_isc(1, PORT_ISC_INPUT_DISABLE_gc);
 
-	PORTB_set_pin_pull_mode(0, PORT_PULL_OFF);
-	PORTB_pin_set_isc(0, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTC_set_pin_pull_mode(0, PORT_PULL_OFF);
-	PORTC_pin_set_isc(0, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTC_set_pin_pull_mode(1, PORT_PULL_OFF);
-	PORTC_pin_set_isc(1, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTC_set_pin_pull_mode(2, PORT_PULL_OFF);
-	PORTC_pin_set_isc(2, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTC_set_pin_pull_mode(3, PORT_PULL_OFF);
-	PORTC_pin_set_isc(3, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTC_set_pin_pull_mode(4, PORT_PULL_OFF);
-	PORTC_pin_set_isc(4, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTC_set_pin_pull_mode(5, PORT_PULL_OFF);
-	PORTC_pin_set_isc(5, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTB_set_pin_pull_mode(5, PORT_PULL_OFF);
-	PORTB_pin_set_isc(5, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTB_set_pin_pull_mode(4, PORT_PULL_OFF);
-	PORTB_pin_set_isc(4, PORT_ISC_INPUT_DISABLE_gc);
+	PORTA_set_pin_pull_mode(6, PORT_PULL_OFF);
+	PORTA_pin_set_isc(6, PORT_ISC_INPUT_DISABLE_gc);
 }
 
 /*============================================================================

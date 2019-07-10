@@ -774,11 +774,8 @@ ssint mpt_read_message(object_t5_t *msg)
 #ifdef OBJECT_T44
 		//Update T44
 		ibreg->ram.t44.count = message_count(msg_fifo);
-#ifdef OBJECT_T7
-		if (object_t7_report_overflow())
-#endif 
-#ifdef OBJECT_T6		
-		{
+#if (defined(OBJECT_T6) && defined(OBJECT_T7))
+		if (object_t7_report_overflow()) {
 			if (ibreg->ram.t44.count < MXT_MESSAGE_FIFO_SIZE - 1) {	//at lease 2 empty spaces
 				object_api_t6_clr_status(MXT_T6_STATUS_OFL);
 				}else {

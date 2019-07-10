@@ -44,7 +44,7 @@ extern "C" {
 /* Defines the Type of sensor
  * Default value: NODE_MUTUAL.
  */
-#define DEF_SENSOR_TYPE NODE_SELFCAP_SHIELD
+#define DEF_SENSOR_TYPE NODE_MUTUAL
 
 /* Set sensor calibration mode for charge share delay ,Prescaler or series resistor.
  * Range: CAL_AUTO_TUNE_NONE / CAL_AUTO_TUNE_RSEL / CAL_AUTO_TUNE_PRSC / CAL_AUTO_TUNE_CSD
@@ -80,7 +80,7 @@ extern "C" {
  * Range: 1 to 65535.
  * Default value: 1
  */
-#define DEF_NUM_CHANNELS (5)
+#define DEF_NUM_CHANNELS (6)
 
 /* Defines node parameter setting of mutual cap
  * {X-line, Y-line, Charge Share Delay, NODE_RSEL_PRSC(series resistor, prescaler), NODE_G(Analog Gain , Digital Gain),
@@ -93,28 +93,27 @@ extern "C" {
  */
 #define NODE_0_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		Y(2) | Y(0) | Y(1) | Y(4) | Y(5), Y(3), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                         \
-		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
+		X(7), Y(4), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16          \
 	}
 #define NODE_1_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		Y(2) | Y(3) | Y(1) | Y(4) | Y(5), Y(0), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                         \
-		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
+		X(5), Y(4), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16          \
 	}
 #define NODE_2_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		Y(2) | Y(0) | Y(3) | Y(1) | Y(4), Y(5), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                         \
-		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
+		X(0), Y(2), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16          \
 	}
 #define NODE_3_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		Y(2) | Y(0) | Y(3) | Y(1) | Y(5), Y(4), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                         \
-		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
+		X(1), Y(2), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16          \
 	}
 #define NODE_4_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		Y(2) | Y(0) | Y(3) | Y(4) | Y(5), Y(1), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                         \
-		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
+		X(7), Y(2), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16          \
+	}
+#define NODE_5_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		X(5), Y(2), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16          \
 	}
 
 /**********************************************************/
@@ -124,7 +123,7 @@ extern "C" {
  * Range: 1 to 65535.
  * Default value: 1
  */
-#define DEF_NUM_SENSORS (5)
+#define DEF_NUM_SENSORS (6)
 
 /* Defines Key Sensor setting
  * {Sensor Threshold, Sensor Hysterisis, Sensor AKS}
@@ -146,6 +145,10 @@ extern "C" {
 		20, HYST_25, AKS_GROUP_1                                                                                       \
 	}
 #define KEY_4_PARAMS                                                                                                   \
+	{                                                                                                                  \
+		20, HYST_25, AKS_GROUP_1                                                                                       \
+	}
+#define KEY_5_PARAMS                                                                                                   \
 	{                                                                                                                  \
 		20, HYST_25, AKS_GROUP_1                                                                                       \
 	}
@@ -221,7 +224,7 @@ extern "C" {
  */
 #define SCROLLER_0_PARAMS                                                                                              \
 	{                                                                                                                  \
-		SCROLLER_TYPE_SLIDER, 2, 3, SCR_RESOL_DEADBAND(RESOL_8_BIT, DB_10_PERCENT), 8, 20                              \
+		SCROLLER_TYPE_SLIDER, 2, 4, SCR_RESOL_DEADBAND(RESOL_8_BIT, DB_10_PERCENT), 8, 20                              \
 	}
 
 /**********************************************************/

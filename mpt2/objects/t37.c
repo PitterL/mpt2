@@ -25,11 +25,6 @@ void object_t37_start(void)
 	
 }
 
-enum {
-	DATA_NEW,
-	DATA_AVE,	
-};
-
 void copy_node_data_to_buffer(u8 cmd, u8 page, u8 relative, u16 data, u8 mode)
 {
 	t37_data_t *ptr = &t37_data_status;
@@ -47,10 +42,13 @@ void copy_node_data_to_buffer(u8 cmd, u8 page, u8 relative, u16 data, u8 mode)
 			mem->data[relative] = data;
 		else {
 			if (mem->data[relative] & DATA_DIRTY_MAGIC_MASK)	//MASK bit mean it has filled data before
-				mem->data[relative] = (((s16)data >> 1) + ((s16)mem->data[relative] >> 1)) | DATA_DIRTY_MAGIC_MASK;	//avg
+				mem->data[relative] = (((s16)data >> DEBUG_VIEW_DATA_AVE_SHIFT) + ((s16)mem->data[relative] >> DEBUG_VIEW_DATA_AVE_SHIFT)) | DATA_DIRTY_MAGIC_MASK;	//avg
 			else
 				mem->data[relative] = data | DATA_DIRTY_MAGIC_MASK;
 		}
+	}else {
+		// If clear data, the debug view may flick in insight
+		//mem->data[relative] = 0;
 	}
 }
 
@@ -76,12 +74,12 @@ void copy_col_data_to_buffer(u8 cmd, u8 page, u8 col, u16 data)
 	}
 }
 
-void check_and_empty_object_t37(u8 dbgcmd, u8 page)
+void check_and_empty_object_t37(u8 dbgcmd, u8 page, u8 clr)
 {
 	t37_data_t *ptr = &t37_data_status;
 	object_t37_t *mem = (object_t37_t *)ptr->common.mem;
 	
-	if (dbgcmd != mem->mode) {
+	if (clr && (dbgcmd != mem->mode || page != mem->page )) {
 		memset(mem->data, 0, sizeof(mem->data));
 	}
 	
@@ -96,7 +94,9 @@ void object_api_t37_set_data_page(u8 cmd, u8 page)
 	ptr->status.cmd = cmd;
 	ptr->status.page = page;
 	
-	check_and_empty_object_t37(cmd, page);
+	// FIXME:
+	// If clear data, the debug view may flick in insight, but if not clear, be carefull about large channel maxtrix
+	check_and_empty_object_t37(cmd, page, /*1*/0 );
 }
 
 u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
@@ -137,10 +137,11 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 		case MXT_DIAGNOSTIC_MC_DELTA:
 		case MXT_DIAGNOSTIC_MC_REF:
 		case MXT_DIAGNOSTIC_MC_SIGNAL:
+			pos = channel;
 			if (channel < QT_MATRIX_X_SIZE(ptr->common.def)) {
-				copy_row_data_to_buffer(cmd, page, channel, data);
+				copy_row_data_to_buffer(cmd, page, pos, data);
 			}else {
-				copy_col_data_to_buffer(cmd, page, channel - QT_MATRIX_X_SIZE(ptr->common.def), data);
+				copy_col_data_to_buffer(cmd, page, pos - QT_MATRIX_X_SIZE(ptr->common.def), data);
 			}
 		break;
 #ifdef OBJECT_T111
@@ -182,7 +183,7 @@ void object_api_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 c
 	t37_data_t *ptr = &t37_data_status;
 	u16 data;
 	
-	check_and_empty_object_t37(ptr->status.cmd, ptr->status.page);
+	//check_and_empty_object_t37(ptr->status.cmd, ptr->status.page, 1);
 
 	data = t37_get_data(ptr->status.cmd, channel, reference, signal, cap);
 	t37_put_data(ptr, ptr->status.cmd, ptr->status.page, channel, data);

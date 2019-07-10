@@ -311,6 +311,11 @@ void tch_calibrate(void)
 
 #ifdef TOUCH_API_BUTTON
 qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
+#ifdef EVK_QT1
+// Note QT1 need modify circle to support QT1
+{ .node = {	.origin = 0, .size = 2 } },	// Button
+{ .node = {	.origin = 2, .size = 4 } },	// Surface slider
+#endif
 #ifdef EVK_QT7	
 	{ .node = {	.origin = 0, .size = 2 } },	// Button
 	{ .node = {	.origin = 2, .size = 3 } },	// Surface slider
@@ -330,6 +335,9 @@ qsurface_config_t surfaces_sliders_config[MXT_TOUCH_MULTI_T9_INST] = {
 #endif
 
 qtouch_config_t tsl_qtouch_def = {
+#ifdef EVK_QT1
+.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 4}},
+#endif
 #ifdef EVK_QT7
 	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 3}},
 #endif
