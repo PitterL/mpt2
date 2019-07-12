@@ -450,7 +450,7 @@ void init_slider_nodes(qtouch_config_t *qdef)
 			sursld[i].nodes[NODE_Y].origin = qtcfg[i].start_key;
 			sursld[i].nodes[NODE_Y].size = qtcfg[i].number_of_keys;
 	
-			sursld[i].resolution_bit = ((qtcfg->resol_deadband >> 4) - RESOL_2_BIT);
+			sursld[i].resolution_bit = ((qtcfg->resol_deadband >> 4)/* - RESOL_2_BIT*/);
 			sursld[i].resolution_max = (1 << sursld->resolution_bit) - 1;
 		
 			//position_hysteresis
@@ -480,7 +480,7 @@ void init_surface_node(qtouch_config_t *qdef)
 	sursld->nodes[NODE_Y].size = qtcfg->number_of_keys_h;
 		
 	// Resolution
-	sursld->resolution_bit = ((qtcfg->resol_deadband >> 4) - RESOL_2_BIT);
+	sursld->resolution_bit = ((qtcfg->resol_deadband >> 4)/* - RESOL_2_BIT*/);
 	sursld->resolution_max = (1 << sursld->resolution_bit) - 1;
 	// Deadband percentage
 	// sursld->deadband = qtm_surface_cs_config1.resol_deadband & 0xf;
