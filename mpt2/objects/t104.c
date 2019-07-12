@@ -14,15 +14,16 @@ ssint object_t104_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, c
 {
 	t104_data_t *ptr = &t104s_data_status[0];
 	qtouch_config_t *qdef = (qtouch_config_t *)def;
-	u8 i;
+	u8 i, tid;
 
 	for (i = 0; i < MXT_SPT_AUXTOUCHCONFIG_T104_INST; i++) {
 		object_txx_init(&ptr[i].common, 0, def, (object_t104_t *)mem + i, cb);
 
 		if (i < qdef->num_surfaces_slider) {
-			ptr->ns = qdef->surface_sliders[/*qdef->num_slider + */i].nodes;
+			tid = qdef->num_surfaces ? i + qdef->num_slider: i;
+			ptr[i].ns = qdef->surface_sliders[tid].nodes;
 		}else {
-			ptr->ns = qdef->matrix_nodes;
+			ptr[i].ns = qdef->matrix_nodes;
 		}
 	}
 	
@@ -89,7 +90,7 @@ void object_t104_start(u8 loaded)
 	}
 }
 
-void object_t104_process(u8 rw)
+void object_t104_data_sync(u8 rw)
 {
 	t104_data_t *ptr = &t104s_data_status[0];
 	u8 i;

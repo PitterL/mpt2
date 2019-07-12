@@ -36,6 +36,7 @@ void tsl_init(const hal_interface_info_t *hal);
 void tsl_start(void);
 void tsl_pre_process(void);
 void tsl_process(void);
+void tsl_post_process(void);
 
 ssint tsl_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr);
 ssint tsl_mem_write(u16 baseaddr, u16 offset, u8 val);

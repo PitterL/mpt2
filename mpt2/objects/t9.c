@@ -155,7 +155,7 @@ void object_t9_start(u8 loaded)
 	}
 }
 
-void object_t9_process(u8 rw)
+void object_t9_data_sync(u8 rw)
 {
 	t9_data_t *ptr = &t9s_data_status[0];
 	u8 i;

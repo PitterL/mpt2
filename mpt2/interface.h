@@ -15,11 +15,14 @@ void mptt_interface_init(void);
 /* Call start after Touch inited */
 void mptt_start(void);
 
-/* Call pre_process at each sampling*/
+/* Call pre_process before each sampling*/
 void mptt_pre_process(void);
 
-/* Call process when sampling finished each time*/
+/* Call mptt_process at each sampling*/
 void mptt_process(void);
+
+/* Call process when sampling finished each time*/
+void mptt_post_process(void);
 
 #define OFFSET_CONFIG_IN_EEPROM 0
 
