@@ -17,7 +17,7 @@ ssint object_t6_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, con
 
 	object_txx_init(&ptr->common, rid, def, mem, cb);
 
-	ptr->status = MXT_T6_STATUS_RESET;	// Initialized as Reset
+	ptr->status.value = MXT_T6_STATUS_RESET;	// Initialized as Reset
 
 	return 0;
 }
@@ -26,34 +26,17 @@ void object_t6_start(u8 unused)
 {
 	t6_data_t *ptr = &t6_data_status;
 	
-	MPT_API_CALLBACK(ptr->common.cb, cb_get_config_crc)(&ptr->crc);
-}
-
-static void report_status(t6_data_t *ptr, u8 status)
-{
-#ifdef OBJECT_T5
-	object_t5_t message;
-	
-	memset(&message, 0, sizeof(message));
-
-	message.reportid = ptr->common.rid;
-	message.data[0] = status;
-	message.data[1] = ptr->crc.data[0];
-	message.data[2] = ptr->crc.data[1];
-	message.data[3] = ptr->crc.data[2];
-	
-	MPT_API_CALLBACK(ptr->common.cb, cb_write_message)(&message);
-#endif
+	MPT_API_CALLBACK(ptr->common.cb, cb_get_config_crc)(&ptr->status.crc);
 }
 
 void t6_pulse_status(t6_data_t *ptr, u8 mask, u8 set)
 {
 	if (set) {
-		ptr->status |= mask;
+		ptr->status.value |= mask;
 	}else {
-		ptr->status &= ~mask;
+		ptr->status.value &= ~mask;
 	}
-	report_status(ptr, ptr->status);
+	object_txx_report_msg(&ptr->common, &ptr->status, sizeof(ptr->status));
 }
 
 void object_t6_report_status(u8 force)
@@ -63,7 +46,7 @@ void object_t6_report_status(u8 force)
 	if (!force)
 		return;
 	
-	report_status(ptr, ptr->status);
+	object_txx_report_msg(&ptr->common, &ptr->status, sizeof(ptr->status));
 }
 
 u8 object_t6_check_chip_critical(void)
@@ -212,9 +195,9 @@ void object_api_t6_set_status(u8 mask)
 {
 	t6_data_t *ptr = &t6_data_status;
 	
-	if (!(ptr->status & mask)) {
-		ptr->status |= mask;
-		report_status(ptr, ptr->status);
+	if (!(ptr->status.value & mask)) {
+		ptr->status.value |= mask;
+		object_txx_report_msg(&ptr->common, &ptr->status, sizeof(ptr->status));
 	}
 }
 
@@ -222,10 +205,16 @@ void object_api_t6_clr_status(u8 mask)
 {
 	t6_data_t *ptr = &t6_data_status;
 
-	if (ptr->status & mask) {
-		ptr->status &= ~mask;
-		report_status(ptr, ptr->status);
+	if (ptr->status.value & mask) {
+		ptr->status.value &= ~mask;
+		object_txx_report_msg(&ptr->common, &ptr->status, sizeof(ptr->status));
 	}
 }
 
+u8 object_api_t6_get_status(void)
+{
+	t6_data_t *ptr = &t6_data_status;
+
+	return ptr->status.value;
+}
 #endif

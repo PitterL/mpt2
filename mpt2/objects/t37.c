@@ -32,6 +32,9 @@ void copy_node_data_to_buffer(u8 cmd, u8 page, u8 relative, u16 data, u8 mode)
 	const u8 pagesize = T37_DATA_SIZE;
 #define DATA_DIRTY_MAGIC_MASK BIT(0)
 
+	mem->mode = cmd;
+	mem->page = page;
+	
 	while(relative >= pagesize) {
 		relative -= pagesize;
 		page--;
@@ -79,12 +82,14 @@ void check_and_empty_object_t37(u8 dbgcmd, u8 page, u8 clr)
 	t37_data_t *ptr = &t37_data_status;
 	object_t37_t *mem = (object_t37_t *)ptr->common.mem;
 	
-	if (clr && (dbgcmd != mem->mode || page != mem->page )) {
+	if ((dbgcmd != mem->mode || page != mem->page )) {
 		memset(mem->data, 0, sizeof(mem->data));
 	}
 	
-	mem->mode = dbgcmd;
-	mem->page = page;
+	if (!clr) {
+		mem->mode = dbgcmd;
+		mem->page = page;
+	}
 }
 
 void object_api_t37_set_data_page(u8 cmd, u8 page)

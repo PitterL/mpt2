@@ -34,11 +34,15 @@ typedef struct object_t15 {
 #define MXT_T15_DETECT		BIT(7)
 
 #define BTN_COUNT_EACH_INSTANCE 32	//Limited max key counts in each instance to 32, if need more, object_api_t15_set_button_status()
-
 typedef union t15_button_status {
 	u8 data[BTN_COUNT_EACH_INSTANCE >> 3];
-	u32 status;
-}t15_button_status_t;
+	u32 value;
+}__attribute__ ((packed)) t15_button_status_t;
+
+typedef struct object_t15_result {
+	u8 status;
+	t15_button_status_t keystate;
+}__attribute__ ((packed)) object_t15_result_t;
 
 #define MXT_TOUCH_KEYARRAY_T15_INST 2
 #define MXT_TOUCH_KEYARRAY_T15_RIDS 1	// Must be 1
@@ -46,13 +50,12 @@ typedef union t15_button_status {
 typedef struct t15_data {
 	txx_data_t common;
 	const /*qbutton_config_t*/void *btndef;
-	t15_button_status_t button;
+	object_t15_result_t button;
 } t15_data_t;
 
-void object_t15_process(u8 rw);
 ssint object_t15_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_t15_start(u8 loaded);
-void object_t15_process(u8 rw);
+void object_t15_data_sync(u8 rw);
 void object_t15_report_status(u8 force);
 u16 object_t15_get_button_base_ref(u8 inst);
 

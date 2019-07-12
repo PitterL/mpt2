@@ -25,22 +25,6 @@ void object_t25_start(u8 unused)
 	
 }
 
-static void report_status(t25_data_t *ptr, const void *data, u8 size)
-{
-#ifdef OBJECT_T5
-	object_t5_t message;
-	
-	//memset(&message, 0, sizeof(message));
-	if (size > sizeof(message.data));
-		size = sizeof(message.data);
-
-	message.reportid = ptr->common.rid;
-	memcpy(message.data, data, size);
-	
-	MPT_API_CALLBACK(ptr->common.cb, cb_write_message)(&message);
-#endif
-}
-
 void t25_report_status(t25_data_t *ptr)
 {
 	object_t25_t *mem = (object_t25_t *)ptr->common.mem;
@@ -53,7 +37,8 @@ void t25_report_status(t25_data_t *ptr)
 
 	mem->cmd = MXT_T25_CMD_COMPLETED;
 
-	report_status(ptr, &ptr->cache.data, sizeof(ptr->cache.data));
+	object_txx_report_msg(&ptr->common, &ptr->cache.data, sizeof(ptr->cache.data));
+
 	memset(&ptr->cache, 0 ,sizeof(ptr->cache));
 }
 
@@ -62,11 +47,11 @@ void object_t25_report_status(u8 force)
 	t25_data_t *ptr = &t25_data_status;
 	
 	if (force || ptr->cache.data.result) {
-		report_status(ptr, &ptr->cache.data, sizeof(ptr->cache.data));
+		object_txx_report_msg(&ptr->common, &ptr->cache.data, sizeof(ptr->cache.data));
 	}
 }
 
-void object_t25_process(u8 rw)
+void object_t25_data_sync(u8 rw)
 {
 	t25_data_t *ptr = &t25_data_status;
 	object_t25_t *mem = (object_t25_t *)ptr->common.mem;

@@ -15,14 +15,15 @@ ssint object_t111_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, c
 #ifndef OBJECT_T111_DUMMY
 	t111_data_t *ptr = &t111s_data_status[0];
 	qtouch_config_t *qdef = (qtouch_config_t *)def;
-	u8 i;
+	u8 i, tid;
 
 	for (i = 0; i < MXT_SPT_SELFCAPCONFIG_T111_INST; i++) {
 		object_txx_init(&ptr[i].common, 0, def, (object_t111_t *)mem + i, cb);
 		if (i < qdef->num_surfaces_slider) {
-			ptr->ns = qdef->surface_sliders[/*qdef->num_slider + */i].nodes;
+			tid = qdef->num_surfaces ? i + qdef->num_slider: i;
+			ptr[i].ns = qdef->surface_sliders[tid].nodes;
 		}else {
-			ptr->ns = qdef->matrix_nodes;
+			ptr[i].ns = qdef->matrix_nodes;
 		}
 	}
 #endif
@@ -47,20 +48,24 @@ void t111_set_unsupport_area(object_t111_t *mem)
 void t111_data_sync(const t111_data_t *ptr, u8 rw)
 {
 	const nodes_desc_t *ns = (nodes_desc_t *)ptr->ns;
+	const qtouch_params_t *param = (qtouch_params_t *)&QTOUCH_CONFIG_VAL(ptr->common.def, params);
 	object_t111_t *mem = (object_t111_t *)ptr->common.mem;
 	
+	const u8 inrush_y = (mem->inrushcfg >> T111_INRUSHCFG_Y_RESISTOR_SHIFT) & T111_INRUSHCFG_RESISTOR_MASK;
+	const u8 inrush_x = (mem->inrushcfg >> T111_INRUSHCFG_X_RESISTOR_SHIFT) & T111_INRUSHCFG_RESISTOR_MASK;
+	
 	nibble_t resprsc_y = {
-		.lo =  mem->inttime & 0xF,	//Low nibble for Inttime
-		.hi =  (mem->inrushcfg >> T111_INRUSHCFG_Y_RESISTOR_SHIFT) & T111_INRUSHCFG_RESISTOR_MASK	//Hi nibble for resistor
+		.lo =  mem->inttime > param->max_prsc_div ? param->max_prsc_div : mem->inttime,	//Low nibble for Inttime
+		.hi =  inrush_y > param->max_resl ? param->max_resl : inrush_y	//Hi nibble for resistor
 	};
 	
 	nibble_t resprsc_x = {
-		.lo =  mem->altinttimex ? (mem->altinttimex & 0xF) : (mem->inttime & 0xF),
-		.hi =  (mem->inrushcfg >> T111_INRUSHCFG_X_RESISTOR_SHIFT) & T111_INRUSHCFG_RESISTOR_MASK
+		.lo =  mem->altinttimex ? (mem->altinttimex > param->max_prsc_div ? param->max_prsc_div : mem->altinttimex) : resprsc_y.lo,
+		.hi =  inrush_x > param->max_resl ? param->max_resl : inrush_x
 	};
 	
 	u8 delay_y = mem->delaytime;
-	u8 delay_x = mem->altdelaytimex ? mem->altdelaytimex : mem->delaytime;
+	u8 delay_x = mem->altdelaytimex ? mem->altdelaytimex : delay_y;
 	
 	txx_cb_param_t yparams[] = {
 		{ NODE_PARAMS_RESISTOR_PRESCALER, &resprsc_y.value, sizeof(resprsc_y.value)},
@@ -120,19 +125,19 @@ void object_t111_start(u8 loaded)
 		return;
 	
 	for (i = 0; i < MXT_SPT_SELFCAPCONFIG_T111_INST; i++) {
-		t111_data_sync(ptr, OP_READ);
+		t111_data_sync(ptr + i, OP_READ);
 	}
 #endif
 }
 
-void object_t111_process(u8 rw)
+void object_t111_data_sync(u8 rw)
 {
 #ifndef OBJECT_T111_DUMMY
 	t111_data_t *ptr = &t111s_data_status[0];
 	u8 i;
 
 	for (i = 0; i < MXT_SPT_SELFCAPCONFIG_T111_INST; i++) {
-		t111_data_sync(ptr, rw);
+		t111_data_sync(ptr + i, rw);
 	}
 #endif
 }

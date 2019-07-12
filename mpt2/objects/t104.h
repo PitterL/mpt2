@@ -36,6 +36,6 @@ typedef struct t104_data {
 
 ssint object_t104_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_t104_start(u8 loaded);
-void object_t104_process(u8 rw);
+void object_t104_data_sync(u8 rw);
 
 #endif /* T104_H_ */
