@@ -269,10 +269,15 @@ void mptt_start(void)
 
 void mptt_pre_process(void)
 {
-	tsl_pre_process();	
+	tsl_pre_process();
 }
 
 void mptt_process(void)
 {
-	tsl_process();
+	tsl_process();	
+}
+
+void mptt_post_process(void)
+{
+	tsl_post_process();
 }

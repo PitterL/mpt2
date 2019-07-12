@@ -23,7 +23,6 @@ typedef struct object_t18 {
 	u8 cmd;
 } __attribute__ ((packed)) object_t18_t;
 
-#include "txx.h"
 typedef struct txx_data t18_data_t;
 
 void object_t18_process(u8 rw);

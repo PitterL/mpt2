@@ -155,7 +155,7 @@ void object_t9_start(u8 loaded)
 	}
 }
 
-void object_t9_process(u8 rw)
+void object_t9_data_sync(u8 rw)
 {
 	t9_data_t *ptr = &t9s_data_status[0];
 	u8 i;
@@ -165,7 +165,7 @@ void object_t9_process(u8 rw)
 	}
 }
 
-void t9_report_status(u8 rid, const t9_point_status_t *pt, const mpt_api_callback_t *cb)
+void t9_report_status(u8 rid, const t9_point_status_t *pt, u8 res_bit, const mpt_api_callback_t *cb)
 {
 #ifdef OBJECT_T5
 	object_t5_t message;
@@ -174,9 +174,17 @@ void t9_report_status(u8 rid, const t9_point_status_t *pt, const mpt_api_callbac
 		
 	message.reportid = rid;
 	message.data[0] = pt->status;
-	message.data[1] = (pt->pos.x >> 4);
-	message.data[2] = (pt->pos.y >> 4);
-	message.data[3] = ((pt->pos.x & 0xF) << 4) | (pt->pos.y & 0xF);
+	
+	if (res_bit <= 10) {
+		message.data[1] = (pt->pos.x >> 2);
+		message.data[2] = (pt->pos.y >> 2);
+		message.data[3] = ((pt->pos.x & 0x3F) << 2) | (pt->pos.y & 0x3F);
+	}else {
+		message.data[1] = (pt->pos.x >> 4);
+		message.data[2] = (pt->pos.y >> 4);
+		message.data[3] = ((pt->pos.x & 0xF) << 4) | (pt->pos.y & 0xF);
+	}
+	
 	message.data[4] = 1;
 	message.data[5] = 1;
 	
@@ -194,7 +202,7 @@ void object_t9_report_status(u8 force)
 	
 	for (i = 0; i < MXT_TOUCH_MULTI_T9_INST; i++) {
 		for (j = 0; j < MXT_TOUCH_MULTI_T9_RIDS; j++) {
-			t9_report_status(ptr[i].common.rid + j, &ptr[i].points[j], ptr[i].common.cb);
+			t9_report_status(ptr[i].common.rid + j, &ptr[i].points[j], ((qsurface_config_t *)ptr[i].surdef)->resolution_bit, ptr[i].common.cb);
 		}
 	}
 }
@@ -240,10 +248,7 @@ void transfer_pos(t9_data_t *ptr, t9_range_t *ppos)
 		point.x = ppos->x;
 	
 	if (yrange < resol_max) {
-		if (yrange == xrange) {
-			point.y = point.x;
-		}else
-			point.y = (u16) (((u32)ppos->y * (yrange + 1)) >> surdef->resolution_bit);
+		point.y = (u16) (((u32)ppos->y * (yrange + 1)) >> surdef->resolution_bit);
 	}else
 		point.y = ppos->y;
 	
@@ -297,7 +302,7 @@ ssint object_api_t9_set_pointer_location(u8 inst, /* Slot id */u8 id, u8 status,
 			transfer_pos(ptr, &point.pos);
 		#endif
 			if (mem->ctrl & MXT_T9_CTRL_RPTEN)
-				t9_report_status(ptr->common.rid + id, &point, ptr->common.cb);	//Each Touch finger has own ID
+				t9_report_status(ptr->common.rid + id, &point, ((qsurface_config_t *)ptr->surdef)->resolution_bit, ptr->common.cb);	//Each Touch finger has own ID
 		}
 	}
 	

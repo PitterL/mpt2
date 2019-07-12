@@ -152,7 +152,7 @@ void object_t8_start(u8 loaded)
 	t8_data_sync(ptr, OP_READ);
 }
 
-void object_t8_process(u8 rw)
+void object_t8_data_sync(u8 rw)
 {
 	t8_data_t *ptr = &t8_data_status;
 	

@@ -40,12 +40,11 @@ typedef struct object_t8 {
 
 #define MXT_T8_MEASALLOW_ALLOWED (MXT_T8_MEASALLOW_MUTUALTCH|MXT_T8_MEASALLOW_MUTUALTCH_4P| MXT_T8_MEASALLOW_MUTUALTCH_8P | MXT_T8_MEASALLOW_SELFTCH | MXT_T8_MEASALLOW_SELFPROX)
 
-#include "txx.h"
 typedef struct txx_data t8_data_t;
 
 ssint object_t8_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_t8_start(u8 loaded);
-void object_t8_process(u8 rw);
+void object_t8_data_sync(u8 rw);
 
 u8 object_t8_get_measure_mode(u8 *meas);
 u8 object_api_t8_measuring_self(void);

@@ -74,6 +74,8 @@ enum {
 	DEF_FREQ_AUTOTUNE_ENABLE,
 	FREQ_AUTOTUNE_MAX_VARIANCE,
 	FREQ_AUTOTUNE_COUNT_IN,
+	
+	NODE_COMPCAP_VALUE,
 };
 
 typedef ssint (*cb_writeback_t)(u8 type, /*read or write */void *buf, size_t size, u8 index);

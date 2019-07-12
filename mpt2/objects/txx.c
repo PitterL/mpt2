@@ -5,6 +5,7 @@
  *  Author: A41450
  */ 
 
+#include <string.h>
 #include "../tslapi.h"
 #include "txx.h"
 
@@ -19,22 +20,22 @@ ssint object_txx_init(txx_data_t *ptr, u8 rid,  const /*qtouch_config_t*/void *d
 	return 0;
 }
 
-/*
-void object_txx_op(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index, u8 rw)
+void object_txx_report_msg(const txx_data_t *ptr, const void *data, u8 size)
 {
-	cb_writeback_t cb_op;
-	u8 i;
+#ifdef OBJECT_T5
+	object_t5_t message;
+
+	//memset(&message, 0, sizeof(message));
 	
-	if (rw) {
-		cb_op = QTOUCH_API_CALLBACK(ptr->cb, read);
-	}else {
-		cb_op = QTOUCH_API_CALLBACK(ptr->cb, write);
-	}
-	
-	for (i = 0; i < count; i++) {
-		cb_op(params[i].type, params[i].src, params[i].size, index);
-	}
-}*/
+	if (size > sizeof(message.data));
+		size = sizeof(message.data);
+
+	message.reportid = ptr->rid;
+	memcpy(message.data, data, size);
+
+	MPT_API_CALLBACK(ptr->cb, cb_write_message)(&message);
+#endif
+}
 
 void object_txx_op(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index, u8 rw)
 {

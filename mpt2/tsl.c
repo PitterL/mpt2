@@ -130,7 +130,10 @@ tch_config_callback_t touch_config_list[] ={
 	{DEF_ANTI_TCH_RECAL_THRSHLD, &qtlib_key_grp_config_set1.sensor_anti_touch_recal_thr, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_recal_thr), 0 },
 	{DEF_TCH_DRIFT_RATE, &qtlib_key_grp_config_set1.sensor_touch_drift_rate, sizeof(qtlib_key_grp_config_set1.sensor_touch_drift_rate), 0 },
 	{DEF_ANTI_TCH_DRIFT_RATE, &qtlib_key_grp_config_set1.sensor_anti_touch_drift_rate, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_drift_rate), 0 },
-	{DEF_DRIFT_HOLD_TIME, &qtlib_key_grp_config_set1.sensor_drift_hold_time, sizeof(qtlib_key_grp_config_set1.sensor_drift_hold_time), 0 },		
+	{DEF_DRIFT_HOLD_TIME, &qtlib_key_grp_config_set1.sensor_drift_hold_time, sizeof(qtlib_key_grp_config_set1.sensor_drift_hold_time), 0 },	
+	
+	//
+	{NODE_COMPCAP_VALUE, &ptc_qtlib_node_stat1[0].node_comp_caps, sizeof(ptc_qtlib_node_stat1[0].node_comp_caps), sizeof(ptc_qtlib_node_stat1[0]) },	
 
 #ifdef TOUCH_API_SCROLLER
 	{SLIDER_START_KEY, &qtm_scroller_config1[0].start_key, sizeof(qtm_scroller_config1[0].start_key), sizeof(qtm_scroller_config1[0]) },
@@ -447,7 +450,7 @@ void init_slider_nodes(qtouch_config_t *qdef)
 			sursld[i].nodes[NODE_Y].origin = qtcfg[i].start_key;
 			sursld[i].nodes[NODE_Y].size = qtcfg[i].number_of_keys;
 	
-			sursld[i].resolution_bit = ((qtcfg->resol_deadband >> 4) - RESOL_2_BIT);
+			sursld[i].resolution_bit = ((qtcfg->resol_deadband >> 4)/* - RESOL_2_BIT*/);
 			sursld[i].resolution_max = (1 << sursld->resolution_bit) - 1;
 		
 			//position_hysteresis
@@ -477,7 +480,7 @@ void init_surface_node(qtouch_config_t *qdef)
 	sursld->nodes[NODE_Y].size = qtcfg->number_of_keys_h;
 		
 	// Resolution
-	sursld->resolution_bit = ((qtcfg->resol_deadband >> 4) - RESOL_2_BIT);
+	sursld->resolution_bit = ((qtcfg->resol_deadband >> 4)/* - RESOL_2_BIT*/);
 	sursld->resolution_max = (1 << sursld->resolution_bit) - 1;
 	// Deadband percentage
 	// sursld->deadband = qtm_surface_cs_config1.resol_deadband & 0xf;
@@ -514,66 +517,82 @@ void tsl_init(const hal_interface_info_t *hal)
 	
 	inlitialize_button_slider_surface_nodes(qdef);
 	
-	mpt_chip_init(tsl);
+	mpt_api_chip_init(tsl);
 }
 
 void tsl_start(void)
 {
-	mpt_chip_start();
+	mpt_api_chip_start();
 }
 
-void tch_update_chip_state(void)
+void tsl_pre_process(void)
 {
-	#ifdef OBJECT_T6
+	mpt_api_pre_process();
+}
+
+void tch_ref_signal_update(void)
+{
+#if (defined(OBJECT_T37) || defined(OBJECT_T25) || defined(OBJECT_T109))
+	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
+	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
+	u8 i;
+
+	for (i = 0; i < qttkg->num_key_sensors; i++) {
+		mpt_api_set_sensor_data(i, qtkds[i].sensor_state, qtkds[i].channel_reference, qtkds[i].node_data_struct_ptr->node_acq_signals, CALCULATE_CAP(qtkds[i].node_data_struct_ptr->node_comp_caps), qtkds[i].node_data_struct_ptr->node_comp_caps);
+	}
+#endif
+}
+
+u8 tch_update_chip_state(void)
+{
+	u8 state = 0;
+#ifdef OBJECT_T6
 	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
 	const qtm_acq_node_data_t * qtns= &ptc_qtlib_node_stat1[0];
 	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
-	u8 state, cal;
+	u8 sensor_state, cal;
 	u8 i;
 
 	for (i = 0; i < qttkg->num_key_sensors; i++) {
 		// FIXME, Why node_acq_status may different with sensor_state?
 		cal = qtns[i].node_acq_status & NODE_CAL_MASK;
 		if (cal) {
-			return mpt_api_set_chip_status(MXT_T6_STATUS_CAL, 1);
+			state = MXT_T6_STATUS_CAL;
+		}else {
+			sensor_state = qtkds[i].sensor_state & ~KEY_TOUCHED_MASK;
+			switch (sensor_state) {
+				case QTM_KEY_STATE_DISABLE:
+					state = MXT_T6_STATUS_RESET;
+					break;
+				case QTM_KEY_STATE_CAL:
+					state = MXT_T6_STATUS_CAL;
+					break;
+				case QTM_KEY_STATE_CAL_ERR:
+					state = MXT_T6_STATUS_SIGERR;
+					break;
+				default:
+				;
+			}
 		}
 		
-		state = qtkds[i].sensor_state & ~KEY_TOUCHED_MASK;
-		switch (state) {
-			case QTM_KEY_STATE_DISABLE:
-			mpt_api_set_chip_status(MXT_T6_STATUS_RESET, 1);
-			return;
-			case QTM_KEY_STATE_CAL:
-			mpt_api_set_chip_status(MXT_T6_STATUS_CAL, 1);
-			return;
-			case QTM_KEY_STATE_CAL_ERR:
-			mpt_api_set_chip_status(MXT_T6_STATUS_SIGERR, 1);
-			return;
-			default:
-			;
-		}
+		if (state)
+			break;
 	}
 	
-	mpt_api_set_chip_status(MXT_T6_STATUS_RESET|MXT_T6_STATUS_CAL|MXT_T6_STATUS_SIGERR, 0);
-	#endif
-}
-
-void tsl_pre_process(void)
-{
-	tch_update_chip_state();
-}
-
-void tch_ref_signal_update(void)
-{
-#if (defined(OBJECT_T37) || defined(OBJECT_T25)) 
-	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
-	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
-	u8 i;
-
-	for (i = 0; i < qttkg->num_key_sensors; i++) {
-		mpt_api_set_sensor_data(i, qtkds[i].sensor_state, qtkds[i].channel_reference, qtkds[i].node_data_struct_ptr->node_acq_signals, CALCULATE_CAP(qtkds[i].node_data_struct_ptr->node_comp_caps));
+	if (state) {
+		mpt_api_set_chip_status(state, 1);
+	} else {
+		tch_ref_signal_update();
+		mpt_api_set_chip_status(MXT_T6_STATUS_RESET|MXT_T6_STATUS_CAL|MXT_T6_STATUS_SIGERR, 0);
 	}
 #endif
+
+	return state;
+}
+
+void tsl_process(void)
+{
+	tch_update_chip_state();
 }
 
 #ifdef TOUCH_API_BUTTON
@@ -636,14 +655,12 @@ void tch_surface_location_report(void)
 }
 #endif
 
-void tsl_process(void)
+void tsl_post_process(void)
 {	
 #ifdef TOUCH_API_SCROLLER
 	tsl_interface_info_t *tsl = &interface_tsl;
 	qtouch_config_t *qdef = (qtouch_config_t *)tsl->qtdef;
 #endif
-
-	tch_ref_signal_update();
 
 #ifdef TOUCH_API_SCROLLER
 	tch_slider_location_report(qdef);
@@ -666,12 +683,12 @@ void tsl_process(void)
 
 ssint tsl_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 {
-	return mpt_mem_read(baseaddr, offset, out_ptr);
+	return mpt_api_mem_read(baseaddr, offset, out_ptr);
 }
 
 ssint tsl_mem_write(u16 baseaddr, u16 offset, u8 val)
 {
-	return mpt_mem_write(baseaddr, offset, val);
+	return mpt_api_mem_write(baseaddr, offset, val);
 }
 
 void tsl_end(void)

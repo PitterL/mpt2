@@ -87,6 +87,9 @@ typedef struct objects_config {
 #ifdef OBJECT_T104
 	object_t104_t t104;
 #endif
+#ifdef OBJECT_T109
+	object_t109_t t109;
+#endif
 #ifdef OBJECT_T111
 	object_t111_t t111;
 #endif
@@ -140,6 +143,9 @@ mxt_object_t ib_objects_tables[] = {
 #ifdef OBJECT_T104
 	{	MXT_SPT_AUXTOUCHCONFIG_T104, /*start_address*/-1, sizeof(struct object_t104) - 1, /*instances_minus_one*/MXT_SPT_AUXTOUCHCONFIG_T104_INST - 1, /*num_report_ids*/0	},
 #endif
+#ifdef OBJECT_T109
+{	MXT_SPT_SELFCAPGLOBALCONFIG_T109, /*start_address*/-1, sizeof(struct object_t109) - 1, /*instances_minus_one*/0, /*num_report_ids*/MXT_SPT_SELFCAPGLOBALCONFIG_T109_RIDS	},
+#endif
 #ifdef OBJECT_T111	
 	{	MXT_SPT_SELFCAPCONFIG_T111, /*start_address*/-1, sizeof(struct object_t111) - 1, /*instances_minus_one*/MXT_SPT_SELFCAPCONFIG_T111_INST - 1, /*num_report_ids*/0	},
 #endif
@@ -153,7 +159,8 @@ mxt_object_t ib_objects_tables[] = {
 #define MXT_REPORT_ID_COUNT (MXT_GEN_COMMAND_T6_RIDS + \
 								MXT_TOUCH_MULTI_T9_RIDS * MXT_TOUCH_MULTI_T9_INST + \
 								MXT_TOUCH_KEYARRAY_T15_RIDS * MXT_TOUCH_KEYARRAY_T15_INST +\
-								MXT_SPT_SELFTEST_T25_RIDS)
+								MXT_SPT_SELFTEST_T25_RIDS + \
+								MXT_SPT_SELFCAPGLOBALCONFIG_T109_RIDS)
 								
 #if MXT_REPORT_ID_COUNT > 254
 #error "Report id count too large, varible may overflow"
@@ -180,7 +187,7 @@ typedef struct object_callback {
 
 	ssint (*init)(u8 rid, const /* (qtouch_config_t *) */const void *, /* mem space */void *, /* (const qtouch_api_callback_t*) */const void *);
 	void (*start)(/* load default config */u8 loaded);
-	void (*process)(u8 rw);
+	void (*sync)(u8 rw);
 	void (*report)(u8 force);
 
 	void *mem;	// Reg memory pointer
@@ -200,29 +207,32 @@ object_callback_t object_initialize_list[] = {
 	{	MXT_GEN_COMMAND_T6, object_t6_init,	object_t6_start, NULL, object_t6_report_status, (void *)&ib_objects_reg.ctrl.t6	},	
 #endif
 #ifdef OBJECT_T7
-	{	MXT_GEN_POWER_T7, object_t7_init, object_t7_start, object_t7_process, NULL, (void *)&ib_objects_reg.cfg.t7	},	
+	{	MXT_GEN_POWER_T7, object_t7_init, object_t7_start, object_t7_data_sync, NULL, (void *)&ib_objects_reg.cfg.t7	},	
 #endif
 #ifdef OBJECT_T8	
-	{	MXT_GEN_ACQUIRE_T8,	object_t8_init, object_t8_start, object_t8_process, NULL, (void *)&ib_objects_reg.cfg.t8	},	
+	{	MXT_GEN_ACQUIRE_T8,	object_t8_init, object_t8_start, object_t8_data_sync, NULL, (void *)&ib_objects_reg.cfg.t8	},	
 #endif
 //The following project should later initialized than t8, since it request sensor scanning mode
 #ifdef OBJECT_T9	
-	{	MXT_TOUCH_MULTI_T9, object_t9_init, object_t9_start, object_t9_process, object_t9_report_status, (void *)ib_objects_reg.cfg.t9_objs	},
+	{	MXT_TOUCH_MULTI_T9, object_t9_init, object_t9_start, object_t9_data_sync, object_t9_report_status, (void *)ib_objects_reg.cfg.t9_objs	},
 #endif
 #ifdef OBJECT_T15
-	{	MXT_TOUCH_KEYARRAY_T15, object_t15_init, object_t15_start, object_t15_process, object_t15_report_status, (void *)ib_objects_reg.cfg.t15_objs	},
+	{	MXT_TOUCH_KEYARRAY_T15, object_t15_init, object_t15_start, object_t15_data_sync, object_t15_report_status, (void *)ib_objects_reg.cfg.t15_objs	},
 #endif
 #ifdef OBJECT_T18
 	{	MXT_SPT_COMMSCONFIG_T18, object_t18_init, NULL, NULL, NULL, (void *)&ib_objects_reg.cfg.t18},
 #endif
 #ifdef OBJECT_T25	
-	{	MXT_SPT_SELFTEST_T25, object_t25_init, object_t25_start, object_t25_process, object_t25_report_status, (void *)&ib_objects_reg.cfg.t25	},	
+	{	MXT_SPT_SELFTEST_T25, object_t25_init, object_t25_start, object_t25_data_sync, object_t25_report_status, (void *)&ib_objects_reg.cfg.t25	},	
 #endif
 #ifdef OBJECT_T104
-	{	MXT_SPT_AUXTOUCHCONFIG_T104,  object_t104_init, object_t104_start, object_t104_process, NULL, (void *)&ib_objects_reg.cfg.t104	},
+	{	MXT_SPT_AUXTOUCHCONFIG_T104,  object_t104_init, object_t104_start, object_t104_data_sync, NULL, (void *)&ib_objects_reg.cfg.t104	},
+#endif
+#ifdef OBJECT_T109
+{	MXT_SPT_SELFCAPGLOBALCONFIG_T109, object_t109_init, object_t109_start, object_t109_data_sync, NULL, (void *)&ib_objects_reg.cfg.t109	},
 #endif
 #ifdef OBJECT_T111
-	{	MXT_SPT_SELFCAPCONFIG_T111, object_t111_init, object_t111_start, object_t111_process, NULL, (void *)&ib_objects_reg.cfg.t111	},
+	{	MXT_SPT_SELFCAPCONFIG_T111, object_t111_init, object_t111_start, object_t111_data_sync, NULL, (void *)&ib_objects_reg.cfg.t111	},
 #endif
 };
 #define MXT_OBJECTS_INITIALIZE_LIST_NUM (ARRAY_SIZE(object_initialize_list))
@@ -299,7 +309,7 @@ mpt_api_callback_t mpt_api_info = {
 #endif
 };
 
-ssint mpt_chip_init(const void *tsl_ptr)
+ssint mpt_api_chip_init(const void *tsl_ptr)
 {
 	const tsl_interface_info_t *tsl = (const tsl_interface_info_t *)tsl_ptr;
 	mxt_info_t *ibinf = &ib_id_information;
@@ -359,7 +369,7 @@ ssint mpt_chip_init(const void *tsl_ptr)
 	return 0;
 }
 
-void mpt_chip_start(void)
+void mpt_api_chip_start(void)
 {
 	const object_callback_t *ocbs = &object_initialize_list[0];
 	u8 i;
@@ -388,8 +398,8 @@ void mem_readback(u8 regid)
 		
 	for (i = 0; i < MXT_OBJECTS_INITIALIZE_LIST_NUM; i++) {
 		if (ocbs[i].type == regid) {
-			if (ocbs[i].process)
-				ocbs[i].process(OP_READ);
+			if (ocbs[i].sync)
+				ocbs[i].sync(OP_READ);
 			break;
 		}
 	}
@@ -423,8 +433,8 @@ void mem_writeback(void)
 		j = i >> DIRTY_BIT_WIDTH_SHIFT;
 		k = i & DIRTY_BIT_WIDTH_MASK;
 		if ((dirty->mark[j] >> k) & 0x1) {
-			if (ocbs[i].process) {
-				ocbs[i].process(OP_WRITE);
+			if (ocbs[i].sync) {
+				ocbs[i].sync(OP_WRITE);
 				dirty->mark[j] &= ~BIT(k);
 			}
 		}
@@ -833,7 +843,7 @@ void mpt_api_handle_command(void)
 #endif
 }
 
-ssint mpt_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr) 
+ssint mpt_api_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr) 
 {
 	mxt_info_t *ibinf = &ib_id_information;
 	mxt_object_t *ibots = &ib_objects_tables[0];
@@ -925,7 +935,7 @@ ssint mpt_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 	return result;
 }
 
-ssint mpt_mem_write(u16 baseaddr, u16 offset, u8 val) 
+ssint mpt_api_mem_write(u16 baseaddr, u16 offset, u8 val) 
 {
 	mxt_object_t *ibots = &ib_objects_tables[0];
 	mxt_objects_reg_t * ibreg = &ib_objects_reg;
@@ -1014,7 +1024,14 @@ ssint mpt_object_write(u8 regid, u8 instance, u16 offset, const u8 *ptr, u8 size
 	return 0;
 }
 
-void mpt_api_set_sensor_data(u8 channel, u8 state, u16 reference, u16 signal, u16 cap)
+void mpt_api_pre_process(void)
+{
+#ifdef OBJECT_T109
+	object_t109_param_sync();
+#endif
+}
+
+void mpt_api_set_sensor_data(u8 channel, u8 state, u16 reference, u16 signal, u16 cap, u16 comcap)
 {
 #ifdef OBJECT_T37
 	object_api_t37_set_sensor_data(channel, reference, signal, cap);
@@ -1022,6 +1039,10 @@ void mpt_api_set_sensor_data(u8 channel, u8 state, u16 reference, u16 signal, u1
 
 #ifdef OBJECT_T25
 	object_api_t25_set_sensor_data(channel, reference, signal, cap);
+#endif
+
+#ifdef OBJECT_T109
+	object_api_t109_set_sensor_data(channel, comcap);
 #endif
 }
 

@@ -46,6 +46,7 @@
 #define MXT_SPT_AUXTOUCHCONFIG_T104 104
 #define MXT_SPT_SELFCAPCONFIG_T111 111
 #define MXT_PROCI_ACTIVESTYLUS_T107	107
+#define MXT_SPT_SELFCAPGLOBALCONFIG_T109 109
 
 typedef struct txx_data {
 	u8 rid;
@@ -80,5 +81,6 @@ ssint object_txx_init(txx_data_t *ptr, u8 rid,  const /*qtouch_config_t*/void *d
 void object_txx_readback(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index);
 void object_txx_writeback(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index);
 void object_txx_op(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index, u8 rw);
+void object_txx_report_msg(const txx_data_t *ptr, const void *data, u8 size);
 
 #endif /* TXX_H_ */

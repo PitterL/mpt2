@@ -87,9 +87,9 @@ typedef struct object_t25_result {
 	struct {
 		u8 result;
 		u8 info[MXT_T25_RESULT_INFO_SIZE];
-	} data;
+	}__attribute__ ((packed)) data;
 	u8 counter[NUM_INSPECT_TYPES];
-} object_t25_result_t;
+}__attribute__ ((packed)) object_t25_result_t;
 
 typedef struct t25_data {
 	txx_data_t common;
@@ -100,7 +100,7 @@ typedef struct t25_data {
 
 ssint object_t25_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_t25_start(u8 unused);
-void object_t25_process(u8 rw);
+void object_t25_data_sync(u8 rw);
 void object_t25_report_status(u8 force);
 
 void object_api_t25_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap);

@@ -65,11 +65,14 @@ typedef struct t6_debug_command {
 	u8 page;
 } t6_debug_command_t;
 
-typedef struct t6_data {
-	u8 status;
-//	u8 cmd;
-	t6_debug_command_t dbg;
+typedef struct object_t6_status {
+	u8 value;
 	data_crc24_t crc;
+} __attribute__ ((packed)) object_t6_status_t;
+
+typedef struct t6_data {
+	object_t6_status_t status;
+	t6_debug_command_t dbg;
 	
 	txx_data_t common;
 } t6_data_t;
@@ -84,6 +87,7 @@ u8 object_t6_check_chip_critical(void);
 void object_api_t6_handle_command();
 void object_api_t6_set_status(u8 mask);
 void object_api_t6_clr_status(u8 mask);
+u8 object_api_t6_get_status(void);
 
 #define MXT_GEN_COMMAND_T6_RIDS 1
 

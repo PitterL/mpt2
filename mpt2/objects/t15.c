@@ -98,7 +98,7 @@ void object_t15_start(u8 loaded)
 	}
 }
 
-void object_t15_process(u8 rw)
+void object_t15_data_sync(u8 rw)
 {
 	t15_data_t *ptr = &t15s_data_status[0];
 	u8 i;
@@ -106,24 +106,6 @@ void object_t15_process(u8 rw)
 	for (i = 0; i < MXT_TOUCH_KEYARRAY_T15_INST; i++) {
 		t15_data_sync(ptr + i, rw);
 	}
-}
-
-void t15_report_status(u8 rid, const t15_button_status_t *btn, const mpt_api_callback_t *cb)
-{	
-#ifdef OBJECT_T5
-	object_t5_t message;
-	
-	memset(&message, 0, sizeof(message));
-		
-	message.reportid = rid;
-	message.data[0] = btn->status ? MXT_T15_DETECT : 0;
-	message.data[1] = btn->data[0];
-	message.data[2] = btn->data[1];
-	message.data[3] = btn->data[2];
-	message.data[4] = btn->data[3];
-	
-	MPT_API_CALLBACK(cb, cb_write_message)(&message);
-#endif
 }
 
 void object_t15_report_status(u8 force)
@@ -135,7 +117,7 @@ void object_t15_report_status(u8 force)
 		return;
 	
 	for (i = 0; i < MXT_TOUCH_KEYARRAY_T15_INST; i++) {
-		t15_report_status(ptr[i].common.rid, &ptr[i].button, ptr[i].common.cb);	
+		object_txx_report_msg(&ptr[i].common, &ptr[i].button, sizeof(ptr[i].button));
 	}
 }
 
@@ -169,17 +151,18 @@ ssint object_api_t15_set_button_status(/* Slot id */u8 id, u8 pressed)
 		if (mem->ctrl & MXT_T15_CTRL_ENABLE) {
 			if (id >= btndef->node.origin &&  id < btndef->node.origin + btndef->node.size) {
 				offset = id - btndef->node.origin;
-				status = ptr[i].button.status;
+				status = ptr[i].button.keystate.value;
 				if (pressed)
 					status |= BIT(offset);
 				else
 					status &= ~BIT(offset);
 			
-				if (status != ptr[i].button.status) {
-					ptr[i].button.status = status;
+				if (status != ptr[i].button.keystate.value) {
+					ptr[i].button.keystate.value = status;
+					ptr[i].button.status = status? MXT_T15_DETECT : 0;
 				
 					if (mem->ctrl & MXT_T15_CTRL_RPTEN)
-						t15_report_status(ptr[i].common.rid, &ptr[i].button, ptr[i].common.cb);
+						object_txx_report_msg(&ptr[i].common, &ptr[i].button, sizeof(ptr[i].button));
 				}
 				break;
 			}
