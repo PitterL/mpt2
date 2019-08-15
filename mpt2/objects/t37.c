@@ -172,7 +172,7 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 						pos += QT_MATRIX_Y_SIZE(ptr->common.def);
 					}
 					pos += QT_MATRIX_Y_SIZE(ptr->common.def);
-					}else {
+				}else {
 					pos = channel + QT_MATRIX_Y_SIZE(ptr->common.def);
 				}
 			}else if(channel < QT_MATRIX_X_SIZE(ptr->common.def) + QT_MATRIX_Y_SIZE(ptr->common.def)) {

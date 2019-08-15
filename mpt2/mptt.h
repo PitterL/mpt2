@@ -14,7 +14,7 @@
 #define MPTT_FW_FAMILY_ID 0xa6	//0x81
 #define MPTT_FW_VARIANT_ID 0x08	//0x01
 #define MPTT_FW_VERSION 0x10
-#define MPTT_FW_BUILD 0xB1
+#define MPTT_FW_BUILD 0xB2
 
 #include "objects/txx.h"
 

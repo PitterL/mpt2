@@ -343,7 +343,7 @@ qsurface_config_t surfaces_sliders_config[MXT_TOUCH_MULTI_T9_INST] = {
 
 qtouch_config_t tsl_qtouch_def = {
 #ifdef EVK_QT1
-.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 4}},
+	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 4}},
 #endif
 #ifdef EVK_QT7
 	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 3}},
@@ -469,16 +469,15 @@ void init_surface_node(qtouch_config_t *qdef)
 	const qtm_surface_cs_config_t *qtcfg = &qtm_surface_cs_config1;
 	qsurface_config_t *sursld = &qdef->surface_sliders[qdef->num_slider];
 
-	if (sursld->nodes[NODE_X].size && sursld->nodes[NODE_Y].size)
-		return;
-
-	// For simpling the algorithm, we set v for x, h for y, but must care, v should start first, h follow up
-	// Only one surface in atmel start code, so there without loop
-	sursld->nodes[NODE_X].origin = qtcfg->start_key_v;	//should start first
-	sursld->nodes[NODE_X].size = qtcfg->number_of_keys_v;
-	sursld->nodes[NODE_Y].origin = qtcfg->start_key_h;
-	sursld->nodes[NODE_Y].size = qtcfg->number_of_keys_h;
-		
+	if (!(sursld->nodes[NODE_X].size && sursld->nodes[NODE_Y].size)) {
+		// For simpling the algorithm, we set v for x, h for y, but must care, v should start first, h follow up
+		// Only one surface in atmel start code, so there without loop
+		sursld->nodes[NODE_X].origin = qtcfg->start_key_v;	//should start first
+		sursld->nodes[NODE_X].size = qtcfg->number_of_keys_v;
+		sursld->nodes[NODE_Y].origin = qtcfg->start_key_h;
+		sursld->nodes[NODE_Y].size = qtcfg->number_of_keys_h;
+	}
+	
 	// Resolution
 	sursld->resolution_bit = ((qtcfg->resol_deadband >> 4)/* - RESOL_2_BIT*/);
 	sursld->resolution_max = (1 << sursld->resolution_bit) - 1;
@@ -582,8 +581,8 @@ u8 tch_update_chip_state(void)
 	if (state) {
 		mpt_api_set_chip_status(state, 1);
 	} else {
-		tch_ref_signal_update();
 		mpt_api_set_chip_status(MXT_T6_STATUS_RESET|MXT_T6_STATUS_CAL|MXT_T6_STATUS_SIGERR, 0);
+		tch_ref_signal_update();
 	}
 #endif
 
@@ -675,9 +674,9 @@ void tsl_post_process(void)
 #ifdef OBJECT_WRITEBACK
 	//mpt_api_process();
 #endif
-
+		
 	//mpt_api_report_status();
-
+	
 	tch_assert_irq();
 }
 
@@ -693,7 +692,6 @@ ssint tsl_mem_write(u16 baseaddr, u16 offset, u8 val)
 
 void tsl_end(void)
 {
-
 	mpt_api_writeback();
 	
 	tch_assert_irq();
