@@ -89,8 +89,19 @@ qtm_acq_node_group_config_t ptc_qtlib_acq_gen1
 qtm_acq_node_data_t ptc_qtlib_node_stat1[DEF_NUM_CHANNELS];
 
 /* Node configurations */
-qtm_acq_t321x_node_config_t ptc_seq_node_cfg1[DEF_NUM_CHANNELS]
-    = {NODE_0_PARAMS, NODE_1_PARAMS, NODE_2_PARAMS, NODE_3_PARAMS, NODE_4_PARAMS};
+qtm_acq_t161x_node_config_t ptc_seq_node_cfg1[DEF_NUM_CHANNELS] = {NODE_0_PARAMS,
+                                                                   NODE_1_PARAMS,
+                                                                   NODE_2_PARAMS,
+                                                                   NODE_3_PARAMS,
+                                                                   NODE_4_PARAMS,
+                                                                   NODE_5_PARAMS,
+                                                                   NODE_6_PARAMS,
+                                                                   NODE_7_PARAMS,
+                                                                   NODE_8_PARAMS,
+                                                                   NODE_9_PARAMS,
+                                                                   NODE_10_PARAMS,
+                                                                   NODE_11_PARAMS,
+                                                                   NODE_12_PARAMS};
 
 /* Container */
 qtm_acquisition_control_t qtlib_acq_set1 = {&ptc_qtlib_acq_gen1, &ptc_seq_node_cfg1[0], &ptc_qtlib_node_stat1[0]};
@@ -142,37 +153,80 @@ qtm_touch_key_group_data_t qtlib_key_grp_data_set1;
 qtm_touch_key_data_t qtlib_key_data_set1[DEF_NUM_SENSORS];
 
 /* Key Configurations */
-qtm_touch_key_config_t qtlib_key_configs_set1[DEF_NUM_SENSORS]
-    = {KEY_0_PARAMS, KEY_1_PARAMS, KEY_2_PARAMS, KEY_3_PARAMS, KEY_4_PARAMS};
+qtm_touch_key_config_t qtlib_key_configs_set1[DEF_NUM_SENSORS] = {KEY_0_PARAMS,
+                                                                  KEY_1_PARAMS,
+                                                                  KEY_2_PARAMS,
+                                                                  KEY_3_PARAMS,
+                                                                  KEY_4_PARAMS,
+                                                                  KEY_5_PARAMS,
+                                                                  KEY_6_PARAMS,
+                                                                  KEY_7_PARAMS,
+                                                                  KEY_8_PARAMS,
+                                                                  KEY_9_PARAMS,
+                                                                  KEY_10_PARAMS,
+                                                                  KEY_11_PARAMS,
+                                                                  KEY_12_PARAMS};
 
 /* Container */
 qtm_touch_key_control_t qtlib_key_set1
     = {&qtlib_key_grp_data_set1, &qtlib_key_grp_config_set1, &qtlib_key_data_set1[0], &qtlib_key_configs_set1[0]};
 
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
 /**********************************************************/
 /***************** Surface 1t Module ********************/
 /**********************************************************/
-#ifdef TOUCH_API_SCROLLER_H
-/* Individual and Group Data */
-qtm_scroller_data_t       qtm_scroller_data1[DEF_NUM_SCROLLERS];
-qtm_scroller_group_data_t qtm_scroller_group_data1 = {0};
 
-/* Group Configuration */
-qtm_scroller_group_config_t qtm_scroller_group_config1 = {&qtlib_key_data_set1[0], DEF_NUM_SCROLLERS};
+qtm_surface_cs_config_t qtm_surface_cs_config1 = {
+    /* Config: */
+    SURFACE_CS_START_KEY_H,
+    SURFACE_CS_NUM_KEYS_H,
+    SURFACE_CS_START_KEY_V,
+    SURFACE_CS_NUM_KEYS_V,
+    SURFACE_CS_RESOL_DB,
+    SURFACE_CS_POS_HYST,
+    SURFACE_CS_FILT_CFG,
+    SURFACE_CS_MIN_CONTACT,
+    &qtlib_key_data_set1[0]};
 
-/* scroller Configurations */
-qtm_scroller_config_t qtm_scroller_config1[DEF_NUM_SCROLLERS] = {
-
-    SCROLLER_0_PARAMS
-
-};
+/* Surface Data */
+qtm_surface_contact_data_t qtm_surface_cs_data1;
 
 /* Container */
+qtm_surface_cs_control_t qtm_surface_cs_control1 = {&qtm_surface_cs_data1, &qtm_surface_cs_config1};
 
-qtm_scroller_control_t qtm_scroller_control1
-    = {&qtm_scroller_group_data1, &qtm_scroller_group_config1, &qtm_scroller_data1[0], &qtm_scroller_config1[0]
+/**********************************************************/
+/***************** Gesture Module ********************/
+/**********************************************************/
+
+/* Gesture Configurations */
+qtm_gestures_2d_config_t qtm_gestures_2d_config = {&qtm_surface_cs_data1.h_position,
+                                                   &qtm_surface_cs_data1.v_position,
+                                                   &qtm_surface_cs_data1.qt_surface_status,
+                                                   0,
+                                                   0,
+                                                   0,
+                                                   SCR_RESOLUTION(SURFACE_CS_RESOL_DB),
+                                                   TAP_RELEASE_TIMEOUT,
+                                                   TAP_HOLD_TIMEOUT,
+                                                   SWIPE_TIMEOUT,
+                                                   HORIZONTAL_SWIPE_DISTANCE_THRESHOLD,
+                                                   VERTICAL_SWIPE_DISTANCE_THRESHOLD,
+                                                   0,
+                                                   TAP_AREA,
+                                                   SEQ_TAP_DIST_THRESHOLD,
+                                                   EDGE_BOUNDARY,
+                                                   WHEEL_POSTSCALER,
+                                                   WHEEL_START_QUADRANT_COUNT,
+                                                   WHEEL_REVERSE_QUADRANT_COUNT,
+
+                                                   0
 
 };
+
+qtm_gestures_2d_data_t qtm_gestures_2d_data;
+
+qtm_gestures_2d_control_t qtm_gestures_2d_control1 = {&qtm_gestures_2d_data, &qtm_gestures_2d_config};
+
 #endif
 
 /**********************************************************/
@@ -183,35 +237,38 @@ qtm_scroller_control_t qtm_scroller_control1
 		(module_init_t) & qtm_ptc_init_acquisition_module, null                                                        \
 	}
 
-#ifdef TOUCH_API_SCROLLER_H
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
 #define LIB_MODULES_PROC_LIST                                                                                          \
 	{                                                                                                                  \
 		(module_proc_t) & qtm_freq_hop_autotune, (module_proc_t)&qtm_key_sensors_process,                              \
-		    (module_proc_t)&qtm_scroller_process, null                      \
+		    (module_proc_t)&qtm_surface_cs_process,  null                      \
 	}
 #else
 #define LIB_MODULES_PROC_LIST                                                                                          \
-	{                                                                                                                  \
-		(module_proc_t) & qtm_freq_hop_autotune, (module_proc_t)&qtm_key_sensors_process,                              \
-		    /*(module_proc_t)&qtm_scroller_process,*/ null                      \
-	}
+{                                                                                                                  \
+	(module_proc_t) & qtm_freq_hop_autotune, (module_proc_t)&qtm_key_sensors_process,                              \
+			null                      \
+}
 #endif
 #define LIB_INIT_DATA_MODELS_LIST                                                                                      \
 	{                                                                                                                  \
 		(void *)&qtlib_acq_set1, null                                                                                  \
 	}
 
-#ifdef TOUCH_API_SCROLLER_H
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
 #define LIB_DATA_MODELS_PROC_LIST                                                                                      \
 	{                                                                                                                  \
-		(void *)&qtm_freq_hop_autotune_control1, (void *)&qtlib_key_set1, (void *)&qtm_scroller_control1, null         \
+		(void *)&qtm_freq_hop_autotune_control1, (void *)&qtlib_key_set1, (void *)&qtm_surface_cs_control1,            \
+		     null                                                                    \
 	}
 #else
 #define LIB_DATA_MODELS_PROC_LIST                                                                                      \
-	{                                                                                                                  \
-		(void *)&qtm_freq_hop_autotune_control1, (void *)&qtlib_key_set1, /*(void *)&qtm_scroller_control1,*/ null         \
-	}
+{                                                                                                                  \
+	(void *)&qtm_freq_hop_autotune_control1, (void *)&qtlib_key_set1,             \
+	null                                                                    \
+}
 #endif
+
 #define LIB_MODULES_ACQ_ENGINES_LIST                                                                                   \
 	{                                                                                                                  \
 		(module_acq_t) & qtm_ptc_start_measurement_seq, null                                                           \
@@ -283,26 +340,23 @@ static void touch_ptc_pin_config(void)
 	PORTA_set_pin_pull_mode(4, PORT_PULL_OFF);
 	PORTA_pin_set_isc(4, PORT_ISC_INPUT_DISABLE_gc);
 
-	PORTA_set_pin_pull_mode(5, PORT_PULL_OFF);
-	PORTA_pin_set_isc(5, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTA_set_pin_pull_mode(6, PORT_PULL_OFF);
-	PORTA_pin_set_isc(6, PORT_ISC_INPUT_DISABLE_gc);
-
 	PORTA_set_pin_pull_mode(7, PORT_PULL_OFF);
 	PORTA_pin_set_isc(7, PORT_ISC_INPUT_DISABLE_gc);
 
-	PORTB_set_pin_pull_mode(1, PORT_PULL_OFF);
-	PORTB_pin_set_isc(1, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTB_set_pin_pull_mode(0, PORT_PULL_OFF);
-	PORTB_pin_set_isc(0, PORT_ISC_INPUT_DISABLE_gc);
+	PORTC_set_pin_pull_mode(1, PORT_PULL_OFF);
+	PORTC_pin_set_isc(1, PORT_ISC_INPUT_DISABLE_gc);
 
 	PORTC_set_pin_pull_mode(0, PORT_PULL_OFF);
 	PORTC_pin_set_isc(0, PORT_ISC_INPUT_DISABLE_gc);
 
-	PORTC_set_pin_pull_mode(1, PORT_PULL_OFF);
-	PORTC_pin_set_isc(1, PORT_ISC_INPUT_DISABLE_gc);
+	PORTB_set_pin_pull_mode(0, PORT_PULL_OFF);
+	PORTB_pin_set_isc(0, PORT_ISC_INPUT_DISABLE_gc);
+
+	PORTB_set_pin_pull_mode(5, PORT_PULL_OFF);
+	PORTB_pin_set_isc(5, PORT_ISC_INPUT_DISABLE_gc);
+
+	PORTB_set_pin_pull_mode(1, PORT_PULL_OFF);
+	PORTB_pin_set_isc(1, PORT_ISC_INPUT_DISABLE_gc);
 
 	PORTC_set_pin_pull_mode(2, PORT_PULL_OFF);
 	PORTC_pin_set_isc(2, PORT_ISC_INPUT_DISABLE_gc);
@@ -315,9 +369,12 @@ static void touch_ptc_pin_config(void)
 
 	PORTC_set_pin_pull_mode(5, PORT_PULL_OFF);
 	PORTC_pin_set_isc(5, PORT_ISC_INPUT_DISABLE_gc);
+	
+	PORTA_set_pin_pull_mode(5, PORT_PULL_OFF);
+	PORTA_pin_set_isc(5, PORT_ISC_INPUT_DISABLE_gc);
 
-	PORTB_set_pin_pull_mode(5, PORT_PULL_OFF);
-	PORTB_pin_set_isc(5, PORT_ISC_INPUT_DISABLE_gc);
+	PORTA_set_pin_pull_mode(6, PORT_PULL_OFF);
+	PORTA_pin_set_isc(6, PORT_ISC_INPUT_DISABLE_gc);
 
 	PORTB_set_pin_pull_mode(4, PORT_PULL_OFF);
 	PORTB_pin_set_isc(4, PORT_ISC_INPUT_DISABLE_gc);
@@ -355,6 +412,11 @@ static touch_ret_t touch_sensors_config(void)
 		qtm_init_sensor_key(&qtlib_key_set1, sensor_nodes, &ptc_qtlib_node_stat1[sensor_nodes]);
 	}
 
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
+	touch_ret |= qtm_init_surface_cs(&qtm_surface_cs_control1);
+
+	touch_ret |= qtm_init_gestures_2d();
+#endif
 	return (touch_ret);
 }
 
@@ -371,11 +433,6 @@ static void init_complete_callback(void)
 {
 	/* Configure touch sensors with Application specific settings */
 	touch_sensors_config();
-
-#ifdef TOUCH_API_SCROLLER_H
-	/* scroller init */
-	qtm_init_scroller_module(&qtm_scroller_control1);
-#endif
 }
 
 /*============================================================================
@@ -565,6 +622,11 @@ Notes  :
 void touch_timer_handler(void)
 {
 	interrupt_cnt++;
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))	
+	if (interrupt_cnt % DEF_GESTURE_TIME_BASE_MS == 0) {
+		qtm_update_gesture_2d_timer(1);
+	}
+#endif	
 	if (interrupt_cnt >= qtlib_time_elapsed_since_update) {
 		interrupt_cnt = 0;
 		/* Count complete - Measure touch sensors */
@@ -621,19 +683,6 @@ void calibrate_node(uint16_t sensor_node)
 	qtm_init_sensor_key(&qtlib_key_set1, sensor_node, &ptc_qtlib_node_stat1[sensor_node]);
 }
 
-#ifdef TOUCH_API_SCROLLER_H
-
-uint8_t get_scroller_state(uint16_t sensor_node)
-{
-	return (qtm_scroller_control1.qtm_scroller_data[sensor_node].scroller_status);
-}
-
-uint16_t get_scroller_position(uint16_t sensor_node)
-{
-	return (qtm_scroller_control1.qtm_scroller_data[sensor_node].position);
-}
-
-#endif
 /*============================================================================
 ISR(ADC0_RESRDY_vect)
 ------------------------------------------------------------------------------
@@ -644,7 +693,7 @@ Notes    :  none
 ============================================================================*/
 ISR(ADC0_RESRDY_vect)
 {
-	qtm_t321x_ptc_handler_eoc();
+	qtm_t161x_ptc_handler_eoc();
 }
 
 #endif /* TOUCH_C */
