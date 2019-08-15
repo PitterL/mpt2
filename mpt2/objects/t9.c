@@ -208,11 +208,11 @@ void object_t9_report_status(u8 force)
 }
 
 //Note: Since there is only 1 Gain in surface, the first X gain will be decided as base gain. If different Gain set in touch.h, need extra code to detect
-u16 object_t9_get_surface_slider_base_ref(u8 inst, u8 channel)
+u16 object_t9_get_surface_slider_base_ref(u8 inst)
 {
 	t9_data_t *ptr =  &t9s_data_status[0];
 	object_t9_t *mem;
-	const qsurface_config_t *surdef;
+
 	if (inst >= MXT_TOUCH_MULTI_T9_INST)
 		return 0;
 	
@@ -220,11 +220,6 @@ u16 object_t9_get_surface_slider_base_ref(u8 inst, u8 channel)
 	if (!(mem->ctrl & MXT_T9_CTRL_ENABLE))
 		return 0;
 		
-	surdef = (qsurface_config_t *)ptr->surdef;
-	if (!((channel >=  surdef->nodes[NODE_X].origin && channel <surdef->nodes[NODE_X].origin + surdef->nodes[NODE_X].size) ||
-		(channel >=  surdef->nodes[NODE_Y].origin && channel < surdef->nodes[NODE_Y].origin + surdef->nodes[NODE_Y].size)))
-		return 0;
-	
 	return (SENSOR_BASE_REF_VALUE << /*NODE_GAIN_DIG*/(((object_t9_t *)ptr[inst].common.mem)->blen & 0xF));
 }
 

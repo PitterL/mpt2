@@ -37,7 +37,7 @@ void t109_report_status(t109_data_t *ptr)
 	
 	object_txx_report_msg(&ptr->common, &ptr->status.result, sizeof(ptr->status.result));
 	
-	memset(&ptr->status.result, 0, sizeof(ptr->status.result));
+	//memset(&ptr->status.result, 0, sizeof(ptr->status.result));
 }
 
 void t109_data_sync(t109_data_t *ptr, u8 rw)

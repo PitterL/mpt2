@@ -88,12 +88,14 @@ typedef struct object_t25_result {
 		u8 result;
 		u8 info[MXT_T25_RESULT_INFO_SIZE];
 	}__attribute__ ((packed)) data;
+
 	u8 counter[NUM_INSPECT_TYPES];
 }__attribute__ ((packed)) object_t25_result_t;
 
 typedef struct t25_data {
 	txx_data_t common;
 	object_t25_result_t cache;
+	u8 cmd;
 } t25_data_t;
 
 #define MXT_SPT_SELFTEST_T25_RIDS 1
