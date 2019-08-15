@@ -11,7 +11,7 @@
 
 #include "../types.h"
 
-#define MXT_T5_MESSAGE_SIZE 8
+#define MXT_T5_MESSAGE_SIZE 9
 
 /* T5 Memory space */
 typedef struct object_t5 {
