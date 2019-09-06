@@ -20,6 +20,7 @@ ssint object_t15_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, co
 	for (i = 0; i < MXT_TOUCH_KEYARRAY_T15_INST; i++) {
 		object_txx_init(&ptr[i].common, rid, def, (object_t15_t *)mem + i, cb);
 		ptr[i].btndef = &qdef->buttons[i];
+		ptr[i].idx = i;
 		rid += MXT_TOUCH_KEYARRAY_T15_RIDS;
 	}
 	
@@ -31,10 +32,10 @@ void t15_set_unsupport_area(t15_data_t *ptr)
 	const qbutton_config_t *btndef = (qbutton_config_t *)ptr->btndef;
 	object_t15_t *mem = (object_t15_t *) ptr->common.mem;
 	
-	// T15 use Y as sensor channel
-	mem->xorigin = /*btndef->node.origin*/ 0;
-	mem->xsize = /*btndef->node.size*/ 0;
-	mem->yorigin = btndef->node.origin;
+	// T15 use Y as sensor channel: x origin set as instance, x size set as 1; Y origin set as 0, Y size set as channel size
+	mem->xorigin = /*btndef->node.origin*/ ptr->idx;
+	mem->xsize = /*btndef->node.size*/ 1;
+	mem->yorigin = /*btndef->node.origin*/0;
 	mem->ysize = btndef->node.size;
 
 #ifndef OBJECT_WRITEBACK	

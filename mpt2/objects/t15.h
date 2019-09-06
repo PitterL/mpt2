@@ -48,6 +48,7 @@ typedef struct object_t15_result {
 #define MXT_TOUCH_KEYARRAY_T15_RIDS 1	// Must be 1
 
 typedef struct t15_data {
+	u8 idx;
 	txx_data_t common;
 	const /*qbutton_config_t*/void *btndef;
 	object_t15_result_t button;

@@ -110,14 +110,18 @@ u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
 		case MXT_DIAGNOSTIC_KEY_DELTA:
 		case MXT_DIAGNOSTIC_MC_DELTA: 
 		case MXT_DIAGNOSTIC_SC_DELTA:
+		//case MXT_DIAGNOSTIC_PTC_DELTA:
 			return (u16)((s16)signal- (s16)reference);
 		case MXT_DIAGNOSTIC_KEY_REF:
 		case MXT_DIAGNOSTIC_MC_REF:
 		case MXT_DIAGNOSTIC_SC_REF:
+		case MXT_DIAGNOSTIC_PTC_REF:
 			return reference;
 		case MXT_DIAGNOSTIC_MC_SIGNAL: 
 		case MXT_DIAGNOSTIC_KEY_SIGNAL:
 		case MXT_DIAGNOSTIC_SC_SIGNAL:
+		case MXT_DIAGNOSTIC_PTC_SIGNAL:
+		case MXT_DIAGNOSTIC_PTC_DELTA:	//Simple use this to inspect cap value in MTA
 			return cap;
 		default:
 			;
@@ -135,6 +139,9 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 		case MXT_DIAGNOSTIC_KEY_DELTA:
 		case MXT_DIAGNOSTIC_KEY_REF:
 		case MXT_DIAGNOSTIC_KEY_SIGNAL:
+		case MXT_DIAGNOSTIC_PTC_DELTA:
+		case MXT_DIAGNOSTIC_PTC_REF:
+		case MXT_DIAGNOSTIC_PTC_SIGNAL:
 			pos = channel;
 			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
 			break;
@@ -148,7 +155,7 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 			}else {
 				copy_col_data_to_buffer(cmd, page, pos - QT_MATRIX_X_SIZE(ptr->common.def), data);
 			}
-		break;
+			break;
 #ifdef OBJECT_T111
 		case MXT_DIAGNOSTIC_SC_DELTA:
 			//Y channel First
@@ -160,7 +167,7 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 				pos = channel;
 			}
 			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
-		break;
+			break;
 		case MXT_DIAGNOSTIC_SC_REF:
 		case MXT_DIAGNOSTIC_SC_SIGNAL:
 			// re-organize the data order, see protocol
@@ -182,6 +189,7 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 			}
 			
 			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
+			break;
 #endif
 		default:
 			;

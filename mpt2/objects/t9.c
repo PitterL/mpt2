@@ -33,6 +33,7 @@ void t9_set_unsupport_area(t9_data_t *ptr)
 	const qsurface_config_t *surdef = (qsurface_config_t *)ptr->surdef;
 	object_t9_t *mem = (object_t9_t *) ptr->common.mem;
 	
+	// For MTA compatible, we set T9 size to matrix size to show at QTServer here, but in configurable we still use actual surface size
 	mem->xorigin = 0;
 	mem->xsize = qcfg->matrix_nodes[NODE_X].size;
 	mem->yorigin = 0;
