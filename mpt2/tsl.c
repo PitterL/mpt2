@@ -346,7 +346,7 @@ qtouch_config_t tsl_qtouch_def = {
 	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 4}},
 #endif
 #ifdef EVK_QT7
-	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 3}},
+	.matrix_nodes = {{.origin = 0, .size = 3}, {.origin =  2, .size = 3}},
 #endif
 #ifdef EVK_WATER_SURFACE
 	.matrix_nodes = {{.origin = 0, .size = 5}, {.origin =  5, .size = 8}},

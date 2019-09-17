@@ -84,6 +84,9 @@ typedef struct objects_config {
 #ifdef OBJECT_T25
 	object_t25_t t25;
 #endif
+#ifdef OBJECT_T97
+	object_t97_t t97_objs[MXT_TOUCH_PTCKEYS_T97_INST];
+#endif
 #ifdef OBJECT_T104
 	object_t104_t t104;
 #endif
@@ -140,11 +143,14 @@ mxt_object_t ib_objects_tables[] = {
 #ifdef OBJECT_T25
 	{	MXT_SPT_SELFTEST_T25, /*start_address*/-1, sizeof(struct object_t25) - 1, /*instances_minus_one*/0, /*num_report_ids*/MXT_SPT_SELFTEST_T25_RIDS	},
 #endif
+#ifdef OBJECT_T97
+	{	MXT_TOUCH_PTCKEYS_T97, /*start_address*/-1, sizeof(struct object_t97) - 1, /*instances_minus_one*/MXT_TOUCH_PTCKEYS_T97_INST - 1, /*num_report_ids*/MXT_TOUCH_PTCKEYS_T97_RIDS	},
+#endif
 #ifdef OBJECT_T104
 	{	MXT_SPT_AUXTOUCHCONFIG_T104, /*start_address*/-1, sizeof(struct object_t104) - 1, /*instances_minus_one*/MXT_SPT_AUXTOUCHCONFIG_T104_INST - 1, /*num_report_ids*/0	},
 #endif
 #ifdef OBJECT_T109
-{	MXT_SPT_SELFCAPGLOBALCONFIG_T109, /*start_address*/-1, sizeof(struct object_t109) - 1, /*instances_minus_one*/0, /*num_report_ids*/MXT_SPT_SELFCAPGLOBALCONFIG_T109_RIDS	},
+	{	MXT_SPT_SELFCAPGLOBALCONFIG_T109, /*start_address*/-1, sizeof(struct object_t109) - 1, /*instances_minus_one*/0, /*num_report_ids*/MXT_SPT_SELFCAPGLOBALCONFIG_T109_RIDS	},
 #endif
 #ifdef OBJECT_T111	
 	{	MXT_SPT_SELFCAPCONFIG_T111, /*start_address*/-1, sizeof(struct object_t111) - 1, /*instances_minus_one*/MXT_SPT_SELFCAPCONFIG_T111_INST - 1, /*num_report_ids*/0	},
@@ -225,11 +231,14 @@ object_callback_t object_initialize_list[] = {
 #ifdef OBJECT_T25	
 	{	MXT_SPT_SELFTEST_T25, object_t25_init, object_t25_start, object_t25_data_sync, object_t25_report_status, (void *)&ib_objects_reg.cfg.t25	},	
 #endif
+#ifdef OBJECT_T97
+	{	MXT_TOUCH_PTCKEYS_T97, object_t97_init, object_t97_start, object_t97_data_sync, object_t97_report_status, (void *)ib_objects_reg.cfg.t97_objs	},
+#endif
 #ifdef OBJECT_T104
 	{	MXT_SPT_AUXTOUCHCONFIG_T104,  object_t104_init, object_t104_start, object_t104_data_sync, NULL, (void *)&ib_objects_reg.cfg.t104	},
 #endif
 #ifdef OBJECT_T109
-{	MXT_SPT_SELFCAPGLOBALCONFIG_T109, object_t109_init, object_t109_start, object_t109_data_sync, NULL, (void *)&ib_objects_reg.cfg.t109	},
+	{	MXT_SPT_SELFCAPGLOBALCONFIG_T109, object_t109_init, object_t109_start, object_t109_data_sync, NULL, (void *)&ib_objects_reg.cfg.t109	},
 #endif
 #ifdef OBJECT_T111
 	{	MXT_SPT_SELFCAPCONFIG_T111, object_t111_init, object_t111_start, object_t111_data_sync, NULL, (void *)&ib_objects_reg.cfg.t111	},
@@ -1050,6 +1059,9 @@ void mpt_api_set_button_status(u8 id, u8 status)
 {
 #ifdef OBJECT_T15
 	object_api_t15_set_button_status(id, status);
+#endif
+#ifdef OBJECT_T97
+	object_api_t97_set_button_status(id, status);
 #endif
 }
 

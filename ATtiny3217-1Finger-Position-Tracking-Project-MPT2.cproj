@@ -213,9 +213,10 @@
       <Value>DEBUG</Value>
       <Value>EVK_QT7</Value>
       <Value>USE_MPTT_WRAPPER</Value>
-      <Value>xOBJECT_WRITEBACK</Value>
+      <Value>OBJECT_WRITEBACK</Value>
       <Value>xFLASH_SAVE_CONFIG</Value>
       <Value>OBJECT_T37</Value>
+      <Value>xOBJECT_T37_RELATIVE_VALUE</Value>
       <Value>OBJECT_T44</Value>
       <Value>OBJECT_T5</Value>
       <Value>OBJECT_T6</Value>
@@ -223,7 +224,9 @@
       <Value>OBJECT_T8</Value>
       <Value>OBJECT_T9</Value>
       <Value>OBJECT_T9_ORIENT</Value>
+      <Value>OBJECT_T9_REPORT_DUMMY</Value>
       <Value>OBJECT_T15</Value>
+      <Value>OBJECT_T15_REPORT_DUMMY</Value>
       <Value>OBJECT_T18</Value>
       <Value>OBJECT_T25</Value>
       <Value>OBJECT_T25_EXTENSION</Value>
@@ -231,6 +234,7 @@
       <Value>OBJECT_T111</Value>
       <Value>xOBJECT_T111_DUMMY</Value>
       <Value>OBJECT_T109</Value>
+      <Value>OBJECT_T97</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>
   <avrgcc.compiler.directories.IncludePaths>
@@ -526,6 +530,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="mpt2\objects\t9.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t97.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t97.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="mpt2\objects\txx.c">

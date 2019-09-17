@@ -41,14 +41,15 @@ void copy_node_data_to_buffer(u8 cmd, u8 page, u8 relative, u16 data, u8 mode)
 	}
 	
 	if (page == 0) {
-		if (mode == DATA_NEW)
-			mem->data[relative] = data;
-		else {
+#ifdef OBJECT_T37_RELATIVE_VALUE
+		if (mode == DATA_AVE) {
 			if (mem->data[relative] & DATA_DIRTY_MAGIC_MASK)	//MASK bit mean it has filled data before
 				mem->data[relative] = (((s16)data >> DEBUG_VIEW_DATA_AVE_SHIFT) + ((s16)mem->data[relative] >> DEBUG_VIEW_DATA_AVE_SHIFT)) | DATA_DIRTY_MAGIC_MASK;	//avg
 			else
 				mem->data[relative] = data | DATA_DIRTY_MAGIC_MASK;
-		}
+		} else
+#endif
+			mem->data[relative] = data;	
 	}else {
 		// If clear data, the debug view may flick in insight
 		mem->data[relative] = 0;
@@ -121,7 +122,7 @@ u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
 		case MXT_DIAGNOSTIC_KEY_SIGNAL:
 		case MXT_DIAGNOSTIC_SC_SIGNAL:
 		case MXT_DIAGNOSTIC_PTC_SIGNAL:
-		case MXT_DIAGNOSTIC_PTC_DELTA:	//Simple use this to inspect cap value in MTA
+		case MXT_DIAGNOSTIC_PTC_DELTA:	//FIXME: Here we use delta to inspect cap value in MTA
 			return cap;
 		default:
 			;
@@ -133,19 +134,9 @@ u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
 void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 {
 	s8 pos; 	//If t37 buffer size more than 128, this value will over flow
-		
+
 	switch(cmd) {
-#ifdef OBJECT_T15
-		case MXT_DIAGNOSTIC_KEY_DELTA:
-		case MXT_DIAGNOSTIC_KEY_REF:
-		case MXT_DIAGNOSTIC_KEY_SIGNAL:
-		case MXT_DIAGNOSTIC_PTC_DELTA:
-		case MXT_DIAGNOSTIC_PTC_REF:
-		case MXT_DIAGNOSTIC_PTC_SIGNAL:
-			pos = channel;
-			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
-			break;
-#endif
+#ifdef OBJECT_T37_RELATIVE_VALUE
 		case MXT_DIAGNOSTIC_MC_DELTA:
 		case MXT_DIAGNOSTIC_MC_REF:
 		case MXT_DIAGNOSTIC_MC_SIGNAL:
@@ -156,6 +147,7 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 				copy_col_data_to_buffer(cmd, page, pos - QT_MATRIX_X_SIZE(ptr->common.def), data);
 			}
 			break;
+#endif
 #ifdef OBJECT_T111
 		case MXT_DIAGNOSTIC_SC_DELTA:
 			//Y channel First
@@ -191,8 +183,20 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
 			break;
 #endif
+/*
+		//T15
+		case MXT_DIAGNOSTIC_KEY_DELTA:
+		case MXT_DIAGNOSTIC_KEY_REF:
+		case MXT_DIAGNOSTIC_KEY_SIGNAL:
+		
+		//T97
+		case MXT_DIAGNOSTIC_PTC_DELTA:
+		case MXT_DIAGNOSTIC_PTC_REF:
+		case MXT_DIAGNOSTIC_PTC_SIGNAL:
+*/
 		default:
-			;
+			pos = channel;
+			copy_node_data_to_buffer(cmd, page, pos, data, DATA_NEW);
 	};
 }
 

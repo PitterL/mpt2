@@ -25,7 +25,7 @@ void object_txx_report_msg(const txx_data_t *ptr, const void *data, u8 size)
 #ifdef OBJECT_T5
 	object_t5_t message;
 
-	//memset(&message, 0, sizeof(message));
+	memset(&message, 0, sizeof(message));
 	
 	if (size > sizeof(message.data));
 		size = sizeof(message.data);

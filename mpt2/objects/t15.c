@@ -139,6 +139,7 @@ u16 object_t15_get_button_base_ref(u8 inst)
 
 ssint object_api_t15_set_button_status(/* Slot id */u8 id, u8 pressed)
 {
+#ifndef OBJECT_T15_REPORT_DUMMY
 	t15_data_t *ptr =  &t15s_data_status[0];
 	object_t15_t *mem = (object_t15_t *) ptr->common.mem;
 	const qbutton_config_t *btndef;
@@ -169,7 +170,7 @@ ssint object_api_t15_set_button_status(/* Slot id */u8 id, u8 pressed)
 			}
 		}
 	}
-	
+#endif
 	return 0;
 }
 

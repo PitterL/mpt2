@@ -84,17 +84,6 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 {
 	const qsurface_config_t *surdef = (qsurface_config_t *)ptr->surdef;
 	object_t9_t *mem = (object_t9_t *) ptr->common.mem;
-	/*
-	u16 xorigin = mem->xorigin, yorigin = mem->yorigin + ptr->surdef->nodes[NODE_X].origin + ptr->surdef->nodes[NODE_X].size;
-	
-	txx_cb_param_t params_channel[] = {
-		// v for x, h for y
-		{ SURFACE_CS_START_KEY_V, &xorigin, sizeof(xorigin) },
-		{ SURFACE_CS_START_KEY_H, &yorigin, sizeof(yorigin) },
-		{ SURFACE_CS_NUM_KEYS_V, &mem->xsize, sizeof(mem->xsize) },
-		{ SURFACE_CS_NUM_KEYS_H, &mem->ysize, sizeof(mem->ysize) },
-	};
-	*/
 
 	u8 i;
 	txx_cb_param_t params_sensor[] = {
@@ -168,7 +157,6 @@ void object_t9_data_sync(u8 rw)
 
 void t9_report_status(u8 rid, const t9_point_status_t *pt, u8 res_bit, const mpt_api_callback_t *cb)
 {
-#ifdef OBJECT_T5
 	object_t5_t message;
 	
 	memset(&message, 0, sizeof(message));
@@ -190,7 +178,6 @@ void t9_report_status(u8 rid, const t9_point_status_t *pt, u8 res_bit, const mpt
 	message.data[5] = 1;
 	
 	MPT_API_CALLBACK(cb, cb_write_message)(&message);
-#endif
 }
 
 void object_t9_report_status(u8 force)
@@ -203,7 +190,11 @@ void object_t9_report_status(u8 force)
 	
 	for (i = 0; i < MXT_TOUCH_MULTI_T9_INST; i++) {
 		for (j = 0; j < MXT_TOUCH_MULTI_T9_RIDS; j++) {
+#ifndef	OBJECT_T9_REPORT_DUMMY
 			t9_report_status(ptr[i].common.rid + j, &ptr[i].points[j], ((qsurface_config_t *)ptr[i].surdef)->resolution_bit, ptr[i].common.cb);
+#else
+			object_txx_report_msg(&ptr[i].common, NULL, 0);
+#endif
 		}
 	}
 }
@@ -224,7 +215,6 @@ u16 object_t9_get_surface_slider_base_ref(u8 inst)
 	return (SENSOR_BASE_REF_VALUE << /*NODE_GAIN_DIG*/(((object_t9_t *)ptr[inst].common.mem)->blen & 0xF));
 }
 
-#ifdef OBJECT_T9_ORIENT
 //Note this resolution transform only could room in, if you want larger resolution, should modify in the qtouch lib 
 void transfer_pos(t9_data_t *ptr, t9_range_t *ppos)
 {
@@ -269,10 +259,10 @@ void transfer_pos(t9_data_t *ptr, t9_range_t *ppos)
 	ppos->x = point.x;
 	ppos->y = point.y;
 }
-#endif
 
 ssint object_api_t9_set_pointer_location(u8 inst, /* Slot id */u8 id, u8 status, u16 x, u16 y)
 {
+#ifndef OBJECT_T9_REPORT_DUMMY
 	t9_data_t *ptr;
 	object_t9_t *mem;
 	t9_point_status_t point, *pt;
@@ -301,7 +291,8 @@ ssint object_api_t9_set_pointer_location(u8 inst, /* Slot id */u8 id, u8 status,
 				t9_report_status(ptr->common.rid + id, &point, ((qsurface_config_t *)ptr->surdef)->resolution_bit, ptr->common.cb);	//Each Touch finger has own ID
 		}
 	}
-	
+#endif
+
 	return 0;
 }
 
