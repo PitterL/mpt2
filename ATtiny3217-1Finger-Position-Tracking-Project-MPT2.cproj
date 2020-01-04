@@ -131,70 +131,71 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
       <AvrGcc>
-        <avrgcc.common.Device>-mmcu=attiny3217 -B "%24(PackRepoDir)\Atmel\ATtiny_DFP\1.3.229\gcc\dev\attiny3217"</avrgcc.common.Device>
-        <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
-        <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
-        <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
-        <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
-        <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
-        <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
-        <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
-        <avrgcc.compiler.symbols.DefSymbols>
-          <ListValues>
-            <Value>NDEBUG</Value>
-          </ListValues>
-        </avrgcc.compiler.symbols.DefSymbols>
-        <avrgcc.compiler.directories.IncludePaths>
-          <ListValues>
-            <Value>../Config</Value>
-            <Value>../examples/include</Value>
-            <Value>../include</Value>
-            <Value>../utils</Value>
-            <Value>../utils/assembler</Value>
-            <Value>../</Value>
-            <Value>../documentation</Value>
-            <Value>../qtouch</Value>
-            <Value>../qtouch/include</Value>
-            <Value>%24(PackRepoDir)\Atmel\ATtiny_DFP\1.3.229\include</Value>
-          </ListValues>
-        </avrgcc.compiler.directories.IncludePaths>
-        <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
-        <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
-        <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
-        <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
-        <avrgcc.linker.libraries.Libraries>
-          <ListValues>
-            <Value>libqtm_touch_key_t3217_0x0002.a</Value>
-            <Value>libqtm_surface_cs_t3217_0x0021.a</Value>
-            <Value>libqtm_binding_layer_t3217_0x0005.a</Value>
-            <Value>libqtm_acq_runtime_t3217_0x0018.a</Value>
-            <Value>libm</Value>
-            <Value>libqtm_freq_hop_auto_t3217_0x0004.a</Value>
-            <Value>libqtm_surface_gestures_t3217_0x0023.a</Value>
-            <Value>libqtm_scroller_t3217_0x000b.a</Value>
-          </ListValues>
-        </avrgcc.linker.libraries.Libraries>
-        <avrgcc.linker.libraries.LibrarySearchPaths>
-          <ListValues>
-            <Value>../qtouch/lib/gcc</Value>
-            <Value>D:\Users\a41450\atmel studio\ATtiny3217-1Finger-Position-Tracking-Project-MPT2\ATtiny3217-1Finger-Position-Tracking-Project-MPT2\qtouch\lib\gcc</Value>
-          </ListValues>
-        </avrgcc.linker.libraries.LibrarySearchPaths>
-        <avrgcc.assembler.general.IncludePaths>
-          <ListValues>
-            <Value>../Config</Value>
-            <Value>../examples/include</Value>
-            <Value>../include</Value>
-            <Value>../utils</Value>
-            <Value>../utils/assembler</Value>
-            <Value>../</Value>
-            <Value>../documentation</Value>
-            <Value>../qtouch</Value>
-            <Value>../qtouch/include</Value>
-            <Value>%24(PackRepoDir)\Atmel\ATtiny_DFP\1.3.229\include</Value>
-          </ListValues>
-        </avrgcc.assembler.general.IncludePaths>
-      </AvrGcc>
+  <avrgcc.common.Device>-mmcu=attiny3217 -B "%24(PackRepoDir)\Atmel\ATtiny_DFP\1.3.229\gcc\dev\attiny3217"</avrgcc.common.Device>
+  <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
+  <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
+  <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
+  <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
+  <avrgcc.common.outputfiles.usersignatures>False</avrgcc.common.outputfiles.usersignatures>
+  <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
+  <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
+  <avrgcc.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>NDEBUG</Value>
+    </ListValues>
+  </avrgcc.compiler.symbols.DefSymbols>
+  <avrgcc.compiler.directories.IncludePaths>
+    <ListValues>
+      <Value>../Config</Value>
+      <Value>../examples/include</Value>
+      <Value>../include</Value>
+      <Value>../utils</Value>
+      <Value>../utils/assembler</Value>
+      <Value>../</Value>
+      <Value>../documentation</Value>
+      <Value>../qtouch</Value>
+      <Value>../qtouch/include</Value>
+      <Value>%24(PackRepoDir)\Atmel\ATtiny_DFP\1.3.229\include</Value>
+    </ListValues>
+  </avrgcc.compiler.directories.IncludePaths>
+  <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
+  <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
+  <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+  <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+  <avrgcc.linker.libraries.Libraries>
+    <ListValues>
+      <Value>libqtm_touch_key_t3217_0x0002.a</Value>
+      <Value>libqtm_surface_cs_t3217_0x0021.a</Value>
+      <Value>libqtm_binding_layer_t3217_0x0005.a</Value>
+      <Value>libqtm_acq_runtime_t3217_0x0018.a</Value>
+      <Value>libm</Value>
+      <Value>libqtm_freq_hop_auto_t3217_0x0004.a</Value>
+      <Value>libqtm_surface_gestures_t3217_0x0023.a</Value>
+      <Value>libqtm_scroller_t3217_0x000b.a</Value>
+      <Value>libqtm_freq_hop_t3217_0x0006.a</Value>
+    </ListValues>
+  </avrgcc.linker.libraries.Libraries>
+  <avrgcc.linker.libraries.LibrarySearchPaths>
+    <ListValues>
+      <Value>../qtouch/lib/gcc</Value>
+      <Value>D:\Users\a41450\atmel studio\ATtiny3217-1Finger-Position-Tracking-Project-MPT2\ATtiny3217-1Finger-Position-Tracking-Project-MPT2\qtouch\lib\gcc</Value>
+    </ListValues>
+  </avrgcc.linker.libraries.LibrarySearchPaths>
+  <avrgcc.assembler.general.IncludePaths>
+    <ListValues>
+      <Value>../Config</Value>
+      <Value>../examples/include</Value>
+      <Value>../include</Value>
+      <Value>../utils</Value>
+      <Value>../utils/assembler</Value>
+      <Value>../</Value>
+      <Value>../documentation</Value>
+      <Value>../qtouch</Value>
+      <Value>../qtouch/include</Value>
+      <Value>%24(PackRepoDir)\Atmel\ATtiny_DFP\1.3.229\include</Value>
+    </ListValues>
+  </avrgcc.assembler.general.IncludePaths>
+</AvrGcc>
     </ToolchainSettings>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -214,27 +215,27 @@
       <Value>EVK_QT7</Value>
       <Value>USE_MPTT_WRAPPER</Value>
       <Value>OBJECT_WRITEBACK</Value>
-      <Value>xFLASH_SAVE_CONFIG</Value>
+      <Value>FLASH_SAVE_CONFIG</Value>
       <Value>OBJECT_T37</Value>
-      <Value>xOBJECT_T37_RELATIVE_VALUE</Value>
       <Value>OBJECT_T44</Value>
       <Value>OBJECT_T5</Value>
       <Value>OBJECT_T6</Value>
       <Value>OBJECT_T7</Value>
       <Value>OBJECT_T8</Value>
       <Value>OBJECT_T9</Value>
-      <Value>OBJECT_T9_ORIENT</Value>
-      <Value>OBJECT_T9_REPORT_DUMMY</Value>
+      <Value>xOBJECT_T9_ORIENT</Value>
       <Value>OBJECT_T15</Value>
-      <Value>OBJECT_T15_REPORT_DUMMY</Value>
-      <Value>OBJECT_T18</Value>
+      <Value>xOBJECT_T18</Value>
       <Value>OBJECT_T25</Value>
       <Value>OBJECT_T25_EXTENSION</Value>
       <Value>OBJECT_T104</Value>
       <Value>OBJECT_T111</Value>
       <Value>xOBJECT_T111_DUMMY</Value>
       <Value>OBJECT_T109</Value>
-      <Value>OBJECT_T97</Value>
+      <Value>PROJECT_EX11</Value>
+      <Value>xDEBUG_FORMAT_HAWKEYE</Value>
+      <Value>xDEF_TOUCH_DATA_STREAMER_ENABLE</Value>
+      <Value>__DELAY_BACKWARD_COMPATIBLE__</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>
   <avrgcc.compiler.directories.IncludePaths>
@@ -266,6 +267,7 @@
       <Value>libqtm_freq_hop_auto_t3217_0x0004.a</Value>
       <Value>libqtm_surface_gestures_t3217_0x0023.a</Value>
       <Value>libqtm_scroller_t3217_0x000b.a</Value>
+      <Value>libqtm_freq_hop_t3217_0x0006.a</Value>
     </ListValues>
   </avrgcc.linker.libraries.Libraries>
   <avrgcc.linker.libraries.LibrarySearchPaths>
@@ -544,6 +546,9 @@
     <Compile Include="mpt2\objects\txx.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="mpt2\pinconf.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="mpt2\tsl.c">
       <SubType>compile</SubType>
     </Compile>
@@ -596,6 +601,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="qtouch\touch.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\adc_basic2.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\bod.c">

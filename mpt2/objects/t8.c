@@ -68,9 +68,9 @@ void t8_writeback_sensing_mode(const txx_data_t *ptr)
 	} else if(mem->measactvdef & MXT_T8_MEASALLOW_MUTUALTCH) {
 		if (mem->measactvdef == MXT_T8_MEASALLOW_MUTUALTCH_8P) {
 			sensortype = NODE_MUTUAL_8P;
-		}else if (mem->measactvdef == MXT_T8_MEASALLOW_MUTUALTCH_4P) {
+		} else if (mem->measactvdef == MXT_T8_MEASALLOW_MUTUALTCH_4P) {
 			sensortype = NODE_MUTUAL_4P;
-		}else {
+		} else {
 			sensortype = NODE_MUTUAL;
 		}
 	} else if(mem->measactvdef & MXT_T8_MEASALLOW_SELFPROX) {
@@ -78,6 +78,15 @@ void t8_writeback_sensing_mode(const txx_data_t *ptr)
 	}
 	
 	object_txx_op(ptr, &param, 1, 0, 0);
+}
+
+
+u8 object_api_t8_ref_mode(void)
+{
+	t8_data_t *ptr = &t8_data_status;
+	object_t8_t *mem = (object_t8_t *)ptr->mem;
+		
+	return mem->refmode;
 }
 
 /* Don't call this function before T8 started */
@@ -116,7 +125,6 @@ void t8_data_sync(const txx_data_t *ptr, u8 rw)
 
 	txx_cb_param_t ct_params[] = {
 		{ NODE_PARAMS_CSD, &mem->chrgtime, sizeof(mem->chrgtime)},	//Compared to T111 Intdelay
-		{ NODE_PARAMS_RESISTOR_PRESCALER, &mem->refmode, sizeof(mem->refmode)},	//Compared to T111 Inttime and Resistor
 	};
 	u8 i;
 	
@@ -128,12 +136,16 @@ void t8_data_sync(const txx_data_t *ptr, u8 rw)
 		{ DEF_ANTI_TCH_RECAL_THRSHLD, &mem->atchcalsthr, sizeof(mem->atchcalsthr) },
 	};
 	
+	if (rw == OP_WRITE)
+		t8_writeback_sensing_mode(ptr);
+	else
+		t8_readback_sensing_mode(ptr);
+	
+	//T8 always write all channels
 	for (i = 0; i < QTOUCH_CONFIG_VAL(ptr->def, maxtrix_channel_count); i++) {
 		object_txx_op(ptr, ct_params, ARRAY_SIZE(ct_params), i, rw);
 		if (rw == OP_READ)
 			break;
-		else
-			t8_set_unsupport_area(mem);
 	}
 	
 	object_txx_op(ptr, params, ARRAY_SIZE(params), 0, rw);
@@ -144,19 +156,14 @@ void t8_data_sync(const txx_data_t *ptr, u8 rw)
 void object_t8_start(u8 loaded)
 {
 	t8_data_t *ptr = &t8_data_status;
-	
-	if (loaded)
-		return;
-	
-	t8_readback_sensing_mode(ptr);
-	t8_data_sync(ptr, OP_READ);
+		
+	t8_data_sync(ptr, loaded ? OP_WRITE : OP_READ);
 }
 
 void object_t8_data_sync(u8 rw)
 {
 	t8_data_t *ptr = &t8_data_status;
 	
-	t8_writeback_sensing_mode(ptr);
 	t8_data_sync(ptr, rw);
 }
 

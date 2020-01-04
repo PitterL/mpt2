@@ -67,7 +67,7 @@ enum MSG_T25_SIGNAL_LIMIT {
 	SIGNAL_LIMIT_INSTANCE,
 };
 
-enum T25_INSPECT_TYPE {
+enum T25_TEST_OBJECTS_TYPE {
 #ifdef OBJECT_T9	
 	INSPECT_SURFACE_SLIDER,
 #endif
@@ -75,7 +75,15 @@ enum T25_INSPECT_TYPE {
 #ifdef OBJECT_T5	
 	INSPECT_BUTTON,
 #endif
-	NUM_INSPECT_TYPES
+	NUM_TEST_OBJECTS_TYPES
+};
+
+enum T25_TEST_ITEMS_TYPE {
+	TEST_AVDD,
+	TEST_PINFAULT,
+	TEST_SIGNAL_LIMIT,
+	NUM_TEST_ITEMS_TYPE,
+	TEST_ALL = 0x7
 };
 
 #ifdef OBJECT_T25_EXTENSION
@@ -85,17 +93,16 @@ enum T25_INSPECT_TYPE {
 #endif
 typedef struct object_t25_result {
 	struct {
-		u8 result;
+		u8 status;
 		u8 info[MXT_T25_RESULT_INFO_SIZE];
 	}__attribute__ ((packed)) data;
-
-	u8 counter[NUM_INSPECT_TYPES];
+	u8 testop;
+	u8 counter[NUM_TEST_OBJECTS_TYPES];
 }__attribute__ ((packed)) object_t25_result_t;
 
 typedef struct t25_data {
 	txx_data_t common;
 	object_t25_result_t cache;
-	u8 cmd;
 } t25_data_t;
 
 #define MXT_SPT_SELFTEST_T25_RIDS 1
@@ -106,5 +113,6 @@ void object_t25_data_sync(u8 rw);
 void object_t25_report_status(u8 force);
 
 void object_api_t25_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap);
+ssint object_api_t25_pinfault_test(void);
 
 #endif /* T25_H_ */

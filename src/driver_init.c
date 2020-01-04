@@ -135,6 +135,37 @@ void I2C_initialization(void)
 	I2C_init();
 }
 
+
+/* configure the pins and initialize the registers */
+void USART_initialization(void)
+{
+
+	// Set pin direction to input
+	PB3_set_dir(PORT_DIR_IN);
+
+	PB3_set_pull_mode(
+	    // <y> Pull configuration
+	    // <id> pad_pull_config
+	    // <PORT_PULL_OFF"> Off
+	    // <PORT_PULL_UP"> Pull-up
+	    PORT_PULL_OFF);
+
+	// Set pin direction to output
+	PB2_set_dir(PORT_DIR_OUT);
+
+	PB2_set_level(
+	    // <y> Initial level
+	    // <id> pad_initial_level
+	    // <false"> Low
+	    // <true"> High
+	    false);
+
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
+	USART_init();
+#endif
+}
+
+
 /**
  * \brief System initialization
  */
@@ -179,6 +210,10 @@ void system_init()
 	SLPCTRL_init();
 
 	I2C_initialization();
+
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
+	USART_initialization();
+#endif
 
 	BOD_init();
 }

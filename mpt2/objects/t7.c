@@ -19,7 +19,6 @@ void t7_set_unsupport_area(object_t7_t *mem)
 {
 	mem->idleacqint = 0;
 	mem->actv2idleto = 0;
-	//mem->cfg |= MXT_T7_CFG_OVFRPTSUP;
 }
 
 void t7_data_sync(const txx_data_t *ptr, u8 rw)
@@ -39,10 +38,7 @@ void object_t7_start(u8 loaded)
 {
 	t7_data_t *ptr = &t7_data_status;
 	
-	if (loaded)
-		return;
-	
-	t7_data_sync(ptr, OP_READ);
+	t7_data_sync(ptr, loaded ? OP_WRITE : OP_READ);
 }
 
 void object_t7_data_sync(u8 rw)

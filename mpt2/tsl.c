@@ -8,14 +8,16 @@
 #include <string.h>
 #include <touch_api_ptc.h>
 #include "mptt.h"
+#include "interface.h"
 #include "tsl.h"
+#include "pinconf.h"
 
 #ifdef TOUCH_API_KEYS_H
 #ifdef OBJECT_T15
 #define TOUCH_API_BUTTON
 #endif
 /* Node configure parameters */
-extern qtm_acq_t161x_node_config_t ptc_seq_node_cfg1[];
+extern qtm_acq_t321x_node_config_t ptc_seq_node_cfg1[];
 
 /* Key Configurations */
 extern qtm_touch_key_config_t qtlib_key_configs_set1[];
@@ -75,6 +77,10 @@ extern qtm_surface_cs_control_t qtm_surface_cs_control1;
 extern uint8_t qtlib_time_elapsed_since_update;
 #endif
 
+#ifdef OBJECT_T25
+extern uint8_t qtlib_suspend;
+#endif
+
 #ifdef OBJECT_T15
 #ifndef TOUCH_API_BUTTON
 #error "Defined OBJECT T15 But no Button"
@@ -83,7 +89,7 @@ extern uint8_t qtlib_time_elapsed_since_update;
 
 #ifdef OBJECT_T9
 #if !(defined(TOUCH_API_SURFACE) || defined(TOUCH_API_SCROLLER))
-#error "Defined OBJECT T9 But no surface"
+//#error "Defined OBJECT T9 But no surface"
 #endif
 #endif
 
@@ -109,10 +115,10 @@ tch_config_callback_t touch_config_list[] ={
 	//TBD
 	{DEF_SEL_FREQ_INIT, &ptc_qtlib_acq_gen1.freq_option_select, sizeof(ptc_qtlib_acq_gen1.freq_option_select), 0 },
 	
-	//qtm_init_sensor_key() + qtm_calibrate_sensor_node()
+	//qtm_init_sensor_key() + calibrate_node()
 	{DEF_SENSOR_TYPE, &ptc_qtlib_acq_gen1.acq_sensor_type, sizeof(ptc_qtlib_acq_gen1.acq_sensor_type), 0 },
 	
-	//qtm_init_sensor_key() + qtm_calibrate_sensor_node()
+	//qtm_init_sensor_key() + calibrate_node()
 	{NODE_PARAMS_CSD, &ptc_seq_node_cfg1[0].node_csd, sizeof(ptc_seq_node_cfg1[0].node_csd), sizeof(ptc_seq_node_cfg1[0]) },
 	{NODE_PARAMS_RESISTOR_PRESCALER, &ptc_seq_node_cfg1[0].node_rsel_prsc, sizeof(ptc_seq_node_cfg1[0].node_rsel_prsc), sizeof(ptc_seq_node_cfg1[0]) },
 	{NODE_PARAMS_GAIN, &ptc_seq_node_cfg1[0].node_gain, sizeof(ptc_seq_node_cfg1[0].node_gain), sizeof(ptc_seq_node_cfg1[0]) },
@@ -150,7 +156,7 @@ tch_config_callback_t touch_config_list[] ={
 	{SURFACE_CS_NUM_KEYS_H, &qtm_surface_cs_config1.number_of_keys_h, sizeof(qtm_surface_cs_config1.number_of_keys_h), 0 },
 	{SURFACE_CS_POS_HYST, &qtm_surface_cs_config1.position_hysteresis, sizeof(qtm_surface_cs_config1.position_hysteresis), 0 },
 	{SURFACE_CS_FILT_CFG, &qtm_surface_cs_config1.position_filter, sizeof(qtm_surface_cs_config1.position_filter), 0 },
-	//{SURFACE_CS_MIN_CONTACT, }
+	{SURFACE_CS_MIN_CONTACT, &qtm_surface_cs_config1.contact_min_threshold, sizeof(qtm_surface_cs_config1.contact_min_threshold), 0 }
 #endif
 };
 
@@ -159,8 +165,10 @@ tch_config_callback_t touch_config_list[] ={
 void force_init_sensor_key(u8 sensor_node, u8 cal)
 {
 	qtm_init_sensor_key(&qtlib_key_set1, sensor_node, &ptc_qtlib_node_stat1[sensor_node]);
-	if (cal)
-		qtm_calibrate_sensor_node(&qtlib_acq_set1, sensor_node);
+	if (cal) {
+        //qtm_calibrate_sensor_node(&qtlib_acq_set1, sensor_node);
+        calibrate_node(sensor_node);	
+    }
 }
 
 void force_init_all_sensor_key(void) {
@@ -264,7 +272,7 @@ static inline ssint tch_config_rw(const tch_config_callback_t *param, void *buf,
 	if (rw == OP_READ) {	//read: 1, write: 0
 		dst = buf;
 		src = param->buf + trunk_size;
-	}else {
+	} else {
 		dst = param->buf + trunk_size;
 		src = buf;
 	}
@@ -307,17 +315,17 @@ void tch_calibrate(void)
 	for (i = 0; i < (u8)qtacq->num_sensor_nodes; i++) {
 		/* Calibrate Node */
 		
-		//calibrate_node(i);
-		qtm_calibrate_sensor_node(&qtlib_acq_set1, i);
+		calibrate_node(i);
+		//qtm_calibrate_sensor_node(&qtlib_acq_set1, i);
 	}
 }
 
 #ifdef TOUCH_API_BUTTON
 qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 #ifdef EVK_QT1
-// Note QT1 need modify circle to support QT1
-{ .node = {	.origin = 0, .size = 2 } },	// Button
-{ .node = {	.origin = 2, .size = 4 } },	// Surface slider
+	// Note QT1 need modify circle to support QT1
+	{ .node = {	.origin = 0, .size = 2 } },	// Button
+	{ .node = {	.origin = 2, .size = 4 } },	// Surface slider
 #endif
 #ifdef EVK_QT7	
 	{ .node = {	.origin = 0, .size = 2 } },	// Button
@@ -331,13 +339,23 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 	{ .node = {	.origin = 0, .size = 11 } },	// Surface slider
 	{ .node = {	.origin = 11, .size = 2 } },	// Button
 #endif
+#ifdef PROJECT_EX11
+	//{ .node = {	.origin = 0, .size = 6 } },	// Surface x
+	//{ .node = {	.origin = 6, .size = 5 } },	// Surface y
+#endif
 };
 #endif
 
-#if defined(TOUCH_API_SURFACE) || defined(TOUCH_API_SCROLLER)
+#if defined(OBJECT_T9)
 // For simpling the algorithm, we set v for x, h for y, but must care, v should start first, h follow up
 qsurface_config_t surfaces_sliders_config[MXT_TOUCH_MULTI_T9_INST] = {
-	//{ { .origin = 5, .size = 4 }, { .origin = 9, .size = 13 } },
+	{
+	#ifdef PROJECT_EX11
+		.nodes = { { .origin = 0, .size = 6 }, { .origin = 6, .size = 5 } }, 
+	#endif
+		/*.resolution_bit = 8,	*/
+		/*.resolution_max = (1 << 8) -1,	*/
+	}
 };
 #endif
 
@@ -346,10 +364,13 @@ qtouch_config_t tsl_qtouch_def = {
 	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 4}},
 #endif
 #ifdef EVK_QT7
-	.matrix_nodes = {{.origin = 0, .size = 3}, {.origin =  2, .size = 3}},
+	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 3}},
 #endif
 #ifdef EVK_WATER_SURFACE
 	.matrix_nodes = {{.origin = 0, .size = 5}, {.origin =  5, .size = 8}},
+#endif
+#ifdef PROJECT_EX11
+	.matrix_nodes = {{.origin = 0, .size = 6}, {.origin =  6, .size = 5}},
 #endif
 #ifdef TOUCH_API_BUTTON
 	//If define num_button, should filled the buttons_config
@@ -358,7 +379,7 @@ qtouch_config_t tsl_qtouch_def = {
 	/*.num_buttons_channel_count,*/
 #endif
 
-#if defined(TOUCH_API_SURFACE) || defined(TOUCH_API_SCROLLER)
+#if defined(OBJECT_T9)
 	//If define num_surfaces_slider, should filled the surfaces_sliders_config
 	.surface_sliders = &surfaces_sliders_config[0],
 	.num_surfaces_slider = ARRAY_SIZE(surfaces_sliders_config),
@@ -369,7 +390,7 @@ qtouch_config_t tsl_qtouch_def = {
 
 	.params = {
 		.max_prsc_div = PRSC_DIV_SEL_128,
-		.max_gain = GAIN_32,
+		.max_gain = GAIN_16,
 		.max_filter_count = FILTER_LEVEL_64,
 		.max_resl = RSEL_VAL_200,
 	},
@@ -542,7 +563,7 @@ void tch_ref_signal_update(void)
 #endif
 }
 
-u8 tch_update_chip_state(void)
+u8 tch_update_chip_state(uint8_t done)
 {
 	u8 state = 0;
 #ifdef OBJECT_T6
@@ -557,7 +578,7 @@ u8 tch_update_chip_state(void)
 		cal = qtns[i].node_acq_status & NODE_CAL_MASK;
 		if (cal) {
 			state = MXT_T6_STATUS_CAL;
-		}else {
+		} else {
 			sensor_state = qtkds[i].sensor_state & ~KEY_TOUCHED_MASK;
 			switch (sensor_state) {
 				case QTM_KEY_STATE_DISABLE:
@@ -582,16 +603,21 @@ u8 tch_update_chip_state(void)
 		mpt_api_set_chip_status(state, 1);
 	} else {
 		mpt_api_set_chip_status(MXT_T6_STATUS_RESET|MXT_T6_STATUS_CAL|MXT_T6_STATUS_SIGERR, 0);
-		tch_ref_signal_update();
+	}
+	
+	if (done) {
+		if (mptt_get_bus_state() != BUS_READ)	//the ref/signal is 16bits, data may crashed when bus is reading and update.
+			tch_ref_signal_update();
 	}
 #endif
 
 	return state;
 }
 
-void tsl_process(void)
+void tsl_process(uint8_t done)
 {
-	tch_update_chip_state();
+	tch_update_chip_state(done);
+	tch_assert_irq();
 }
 
 #ifdef TOUCH_API_BUTTON
@@ -604,7 +630,7 @@ void tch_button_press_report(void)
 	for (i = 0; i < qttkg->num_key_sensors; i++) {
 		if (qtkds[i].sensor_state & KEY_TOUCHED_MASK) {
 			status = 1;
-		}else {
+		} else {
 			status = 0;
 		}
 		mpt_api_set_button_status(i, status);
@@ -670,14 +696,13 @@ void tsl_post_process(void)
 #ifdef TOUCH_API_BUTTON
 	tch_button_press_report();
 #endif
-	
-#ifdef OBJECT_WRITEBACK
-	//mpt_api_process();
+}
+
+void tsl_suspend(uint8_t suspend)
+{
+#ifdef OBJECT_T25
+	qtlib_suspend = suspend;
 #endif
-		
-	//mpt_api_report_status();
-	
-	tch_assert_irq();
 }
 
 ssint tsl_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)

@@ -26,6 +26,22 @@ extern "C" {
 #endif // __cplusplus
 
 /*----------------------------------------------------------------------------
+ *     Package information
+ *----------------------------------------------------------------------------*/
+/*
+The below definition is used for cupdi package tool.
+	Firmware version is a 32bit hexi value, which will be packed into eeprom segment.
+	Fuse content is a hexi byte array, NULL indicate ignored byte. THe information will be packed into fuse segment.
+	Warning: Support '//' comment mark, but not support '/ * * /' comment mark inside the definition
+*/
+/* Firmware version*/
+#define FIRMWARE_VERSION 0x45580B10	/*EX11, 1.0*/
+
+/* Fuse content */
+// #define FUSES_CONTENT {0x00, 0x00, 0x02, 0xFF, 0x00, 0xF7, 0x07, 0x00, 0x00, 0xFF, 0xC5}
+#define FUSES_CONTENT {0x00, 0x6A, 0x7D, 0xFF, 0x00, 0xE6, 0xFF, 0x00, 0x00, 0xFF, 0xC5}	/*BYTE order, ignore set as NULL or the value*/
+
+/*----------------------------------------------------------------------------
  *     include files
  *----------------------------------------------------------------------------*/
 
@@ -196,13 +212,13 @@ extern "C" {
  * Range: REBURST_NONE / REBURST_UNRESOLVED / REBURST_ALL
  * Default value: REBURST_UNRESOLVED
  */
-#define DEF_REBURST_MODE REBURST_UNRESOLVED
+#define DEF_REBURST_MODE REBURST_NONE
 
 /* Sensor maximum ON duration upon touch.
  * Range: 0-255
  * Default value: 0
  */
-#define DEF_MAX_ON_DURATION 0
+#define DEF_MAX_ON_DURATION 250 //200ms
 
 /**********************************************************/
 /***************** Slider/Wheel Parameters ****************/
@@ -235,25 +251,7 @@ extern "C" {
 #define NUM_FREQ_STEPS 3
 
 /* PTC Sampling Delay Selection - 0 to 15 PTC CLK cycles */
-#define DEF_MEDIAN_FILTER_FREQUENCIES FREQ_SEL_0, FREQ_SEL_1, FREQ_SEL_2
-
-/* Enable / Disable the frequency hop auto tune
- * Range: 0 / 1
- * Default value: 1
- */
-#define DEF_FREQ_AUTOTUNE_ENABLE 1
-
-/* sets the maximum variance for Frequency Hop Auto tune.
- * Range: 1 to 255.
- * Default value: 15
- */
-#define FREQ_AUTOTUNE_MAX_VARIANCE 15
-
-/* sets the Tune in count for Frequency Hop Auto tune.
- * Range: 1 to 255.
- * Default value: 6
- */
-#define FREQ_AUTOTUNE_COUNT_IN 6
+#define DEF_MEDIAN_FILTER_FREQUENCIES FREQ_SEL_0, FREQ_SEL_7, FREQ_SEL_15
 
 /**********************************************************/
 /***************** Communication - Data Streamer ******************/

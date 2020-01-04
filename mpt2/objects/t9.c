@@ -20,7 +20,8 @@ ssint object_t9_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, con
 
 	for (i = 0; i < MXT_TOUCH_MULTI_T9_INST; i++) {
 		object_txx_init(&ptr[i].common, rid, def, (object_t9_t *)mem + i, cb);
-		ptr[i].surdef = &qdef->surface_sliders[i];
+		if (i < qdef->num_surfaces_slider)
+			ptr[i].surdef = &qdef->surface_sliders[i];
 		rid += MXT_TOUCH_MULTI_T9_RIDS;
 	}
 	
@@ -33,11 +34,13 @@ void t9_set_unsupport_area(t9_data_t *ptr)
 	const qsurface_config_t *surdef = (qsurface_config_t *)ptr->surdef;
 	object_t9_t *mem = (object_t9_t *) ptr->common.mem;
 	
-	// For MTA compatible, we set T9 size to matrix size to show at QTServer here, but in configurable we still use actual surface size
 	mem->xorigin = 0;
 	mem->xsize = qcfg->matrix_nodes[NODE_X].size;
 	mem->yorigin = 0;
 	mem->ysize = qcfg->matrix_nodes[NODE_Y].size;
+
+	if (!surdef)
+		return;
 
 #ifndef OBJECT_WRITEBACK
 	if (mem->xsize || mem->ysize)
@@ -47,6 +50,7 @@ void t9_set_unsupport_area(t9_data_t *ptr)
 		
 	mem->ctrl |= MXT_T9_CTRL_RPTEN;
 #endif
+    mem->ctrl |= MXT_T9_CTRL_RPTEN|MXT_T9_CTRL_ENABLE;
 
 	if (!mem->xrange || mem->xrange > surdef->resolution_max)
 		mem->xrange = surdef->resolution_max;
@@ -63,7 +67,6 @@ void t9_set_unsupport_area(t9_data_t *ptr)
 	mem->numtouch = 1;
 	mem->mrghyst = 0;
 	mem->mrgthr = 0;
-	mem->amphyst = 0;	
 	
 	mem->xloclip = 0;
 	mem->xhiclip = 0;
@@ -84,64 +87,101 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 {
 	const qsurface_config_t *surdef = (qsurface_config_t *)ptr->surdef;
 	object_t9_t *mem = (object_t9_t *) ptr->common.mem;
+	/*
+	u16 xorigin = mem->xorigin, yorigin = mem->yorigin + ptr->surdef->nodes[NODE_X].origin + ptr->surdef->nodes[NODE_X].size;
+	
+	txx_cb_param_t params_channel[] = {
+		// v for x, h for y
+		{ SURFACE_CS_START_KEY_V, &xorigin, sizeof(xorigin) },
+		{ SURFACE_CS_START_KEY_H, &yorigin, sizeof(yorigin) },
+		{ SURFACE_CS_NUM_KEYS_V, &mem->xsize, sizeof(mem->xsize) },
+		{ SURFACE_CS_NUM_KEYS_H, &mem->ysize, sizeof(mem->ysize) },
+	};
+	*/
 
 	u8 i;
+#ifdef MPTT_MATRIX_NODES
+	u8 j, count;	/*	Max nodes should less than 255, or the count may overrun */
+#endif
 	txx_cb_param_t params_sensor[] = {
 		{ NODE_PARAMS_GAIN, &mem->blen, sizeof(mem->blen) },
 		{ KEY_PARAMS_THRESHOLD, &mem->tchthr, sizeof(mem->tchthr) },
 		{ KEY_PARAMS_HYSTERESIS, &mem->tchhyst, sizeof(mem->tchhyst) }
 	};
 	
-	nibble_t  movfilter;
+	nibble_t  movfilter = { .value = 0 };
+	u16 amplitude = 0;
 	txx_cb_param_t params_touch[] = {
 		{ DEF_TOUCH_DET_INT, &mem->tchdi, sizeof(mem->tchdi) },
 		{ DEF_ANTI_TCH_DET_INT, &mem->nexttchdi, sizeof(mem->nexttchdi) },
 		{ SURFACE_CS_POS_HYST, &mem->movhysti, sizeof(mem->movhysti) },
 		//{ SURFACE_CS_POS_HYST, &mem->movhystn, sizeof(mem->movhystn) },
+		//* Bits 1:0 = IIR (0% / 25% / 50% / 75%), Bit 4 = Enable Median Filter (3-point) */
 		{ SURFACE_CS_FILT_CFG, &movfilter, sizeof(movfilter) },
+		{ SURFACE_CS_MIN_CONTACT, &amplitude, sizeof(amplitude) },
 	};
 
-	if (rw == OP_WRITE) {	//write		
-		// Channel using
-		t9_set_unsupport_area(ptr);
-		movfilter.lo = (mem->movfilter >> 4);
+	if (rw == OP_WRITE) {	//write	
+		movfilter.hi = !(mem->movfilter.hi & 0x8);
+		movfilter.lo = (mem->movfilter.hi & 0x7);
+		amplitude = mem->amphyst;
 	}
 	
-	// Note: for read operation, there first Y channel value be valid
+	if ((mem->ctrl & MXT_T9_CTRL_ENABLE) || (rw == OP_READ)) {
+		if (surdef) {
+	#ifdef MPTT_MATRIX_NODES
+			// Note: for read operation, there first XY channel value be valid
 	
-	// Sensor channel parameter for X channel 
-	if (rw == OP_WRITE) {
-		for (i = surdef->nodes[NODE_X].origin; i < surdef->nodes[NODE_X].origin + surdef->nodes[NODE_X].size; i++) {
-			object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);		
+			for (count = 0, i = surdef->nodes[NODE_X].origin; i < surdef->nodes[NODE_X].origin + surdef->nodes[NODE_X].size; i++) {
+				for (j = surdef->nodes[NODE_Y].origin; j < surdef->nodes[NODE_Y].origin + surdef->nodes[NODE_Y].size; j++, count++) {
+					object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), count, rw);
+		
+					if (rw == OP_READ)
+						break;
+				}
+		
+				if (rw == OP_READ)
+					break;
+			}
+	#else
+			// Note: for read operation, there first Y channel value be valid
+
+			// Sensor channel parameter for X channel 
+			if (rw == OP_WRITE) {
+				for (i = surdef->nodes[NODE_X].origin; i < surdef->nodes[NODE_X].origin + surdef->nodes[NODE_X].size; i++) {
+					object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);		
+				}
+			}
+	
+			//  Sensor channel parameter for Y channel
+			for (i = surdef->nodes[NODE_Y].origin; i < surdef->nodes[NODE_Y].origin + surdef->nodes[NODE_Y].size; i++) {
+				object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
+				if (rw == OP_READ)
+					break;
+			}
+	#endif
 		}
-	}
-	
-	//  Sensor channel parameter for Y channel
-	for (i = surdef->nodes[NODE_Y].origin; i < surdef->nodes[NODE_Y].origin + surdef->nodes[NODE_Y].size; i++) {
-		object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
-		if (rw == OP_READ)
-			break;
 	}
 	
 	// Touch parameters
 	object_txx_op(&ptr->common, params_touch, ARRAY_SIZE(params_touch), 0, rw);
 	
 	if (rw == OP_READ) {	// read
-		mem->movfilter = (movfilter.value << 4);
-		t9_set_unsupport_area(ptr);
+		mem->movfilter.hi = (movfilter.lo & 0x7) | (movfilter.hi ? 0 : 0x8);
+		mem->movfilter.lo = 0;
+		mem->amphyst = amplitude & 0xff;
 	}
+	
+	t9_set_unsupport_area(ptr);
 }
 
 void object_t9_start(u8 loaded)
 {
 	t9_data_t *ptr = &t9s_data_status[0];
 	u8 i;
-			
-	if (loaded)
-		return;
 		
 	for (i = 0; i < MXT_TOUCH_MULTI_T9_INST; i++) {
-		t9_data_sync(ptr + i, OP_READ);
+		t9_data_sync(ptr + i, loaded ? OP_WRITE : OP_READ);
 	}
 }
 
@@ -157,6 +197,7 @@ void object_t9_data_sync(u8 rw)
 
 void t9_report_status(u8 rid, const t9_point_status_t *pt, u8 res_bit, const mpt_api_callback_t *cb)
 {
+#ifdef OBJECT_T5
 	object_t5_t message;
 	
 	memset(&message, 0, sizeof(message));
@@ -168,7 +209,7 @@ void t9_report_status(u8 rid, const t9_point_status_t *pt, u8 res_bit, const mpt
 		message.data[1] = (pt->pos.x >> 2);
 		message.data[2] = (pt->pos.y >> 2);
 		message.data[3] = ((pt->pos.x & 0x3F) << 2) | (pt->pos.y & 0x3F);
-	}else {
+	} else {
 		message.data[1] = (pt->pos.x >> 4);
 		message.data[2] = (pt->pos.y >> 4);
 		message.data[3] = ((pt->pos.x & 0xF) << 4) | (pt->pos.y & 0xF);
@@ -178,11 +219,13 @@ void t9_report_status(u8 rid, const t9_point_status_t *pt, u8 res_bit, const mpt
 	message.data[5] = 1;
 	
 	MPT_API_CALLBACK(cb, cb_write_message)(&message);
+#endif
 }
 
 void object_t9_report_status(u8 force)
 {
 	t9_data_t *ptr = &t9s_data_status[0];
+	const qsurface_config_t *surdef;
 	u8 i, j;
 	
 	if (!force)
@@ -190,39 +233,53 @@ void object_t9_report_status(u8 force)
 	
 	for (i = 0; i < MXT_TOUCH_MULTI_T9_INST; i++) {
 		for (j = 0; j < MXT_TOUCH_MULTI_T9_RIDS; j++) {
-#ifndef	OBJECT_T9_REPORT_DUMMY
-			t9_report_status(ptr[i].common.rid + j, &ptr[i].points[j], ((qsurface_config_t *)ptr[i].surdef)->resolution_bit, ptr[i].common.cb);
-#else
-			object_txx_report_msg(&ptr[i].common, NULL, 0);
-#endif
+			surdef = ((const qsurface_config_t *)ptr[i].surdef);
+			if (surdef)
+				t9_report_status(ptr[i].common.rid + j, &ptr[i].points[j], surdef->resolution_bit, ptr[i].common.cb);
 		}
 	}
 }
 
 //Note: Since there is only 1 Gain in surface, the first X gain will be decided as base gain. If different Gain set in touch.h, need extra code to detect
-u16 object_t9_get_surface_slider_base_ref(u8 inst)
+u16 object_t9_get_surface_slider_base_ref(u8 inst, u8 channel)
 {
 	t9_data_t *ptr =  &t9s_data_status[0];
 	object_t9_t *mem;
-
+	const qsurface_config_t *surdef = (qsurface_config_t *)ptr->surdef;
 	if (inst >= MXT_TOUCH_MULTI_T9_INST)
+		return 0;
+
+	if (!surdef)
 		return 0;
 	
 	mem = (object_t9_t *)ptr[inst].common.mem;
 	if (!(mem->ctrl & MXT_T9_CTRL_ENABLE))
 		return 0;
-		
+
+#ifdef MPTT_MATRIX_NODES
+	//FIXME: to decide whether itself?
+#else
+	if (!((channel >=  surdef->nodes[NODE_X].origin && channel <surdef->nodes[NODE_X].origin + surdef->nodes[NODE_X].size) ||
+		(channel >=  surdef->nodes[NODE_Y].origin && channel < surdef->nodes[NODE_Y].origin + surdef->nodes[NODE_Y].size)))
+		return 0;
+#endif
 	return (SENSOR_BASE_REF_VALUE << /*NODE_GAIN_DIG*/(((object_t9_t *)ptr[inst].common.mem)->blen & 0xF));
 }
 
+#ifdef OBJECT_T9_ORIENT
 //Note this resolution transform only could room in, if you want larger resolution, should modify in the qtouch lib 
 void transfer_pos(t9_data_t *ptr, t9_range_t *ppos)
 {
 	object_t9_t *mem = (object_t9_t *) ptr->common.mem;
 	const qsurface_config_t *surdef = (qsurface_config_t *)ptr->surdef;
-	const u16 resol_max = surdef->resolution_max;
+	u16 resol_max;
 	t9_range_t point;
 	u16 xrange, yrange, tmp;
+	
+	if (!surdef)
+		return;
+	
+	resol_max = surdef->resolution_max
 	
 	xrange = mem->xrange ? mem->xrange : resol_max;
 	yrange =  mem->yrange ? mem->yrange : resol_max;
@@ -235,7 +292,7 @@ void transfer_pos(t9_data_t *ptr, t9_range_t *ppos)
 	
 	if (yrange < resol_max) {
 		point.y = (u16) (((u32)ppos->y * (yrange + 1)) >> surdef->resolution_bit);
-	}else
+	} else
 		point.y = ppos->y;
 	
 	// Switch orientation
@@ -259,11 +316,12 @@ void transfer_pos(t9_data_t *ptr, t9_range_t *ppos)
 	ppos->x = point.x;
 	ppos->y = point.y;
 }
+#endif
 
 ssint object_api_t9_set_pointer_location(u8 inst, /* Slot id */u8 id, u8 status, u16 x, u16 y)
 {
-#ifndef OBJECT_T9_REPORT_DUMMY
 	t9_data_t *ptr;
+	const qsurface_config_t *surdef;
 	object_t9_t *mem;
 	t9_point_status_t point, *pt;
 
@@ -275,6 +333,10 @@ ssint object_api_t9_set_pointer_location(u8 inst, /* Slot id */u8 id, u8 status,
 	
 	ptr =  &t9s_data_status[inst];
 	mem = (object_t9_t *) ptr->common.mem;
+	surdef = (const qsurface_config_t *)ptr->surdef;
+	
+	if (!surdef)
+		return -4;
 		
 	if (mem->ctrl & MXT_T9_CTRL_ENABLE) {
 		pt = &ptr->points[id];
@@ -288,11 +350,10 @@ ssint object_api_t9_set_pointer_location(u8 inst, /* Slot id */u8 id, u8 status,
 			transfer_pos(ptr, &point.pos);
 		#endif
 			if (mem->ctrl & MXT_T9_CTRL_RPTEN)
-				t9_report_status(ptr->common.rid + id, &point, ((qsurface_config_t *)ptr->surdef)->resolution_bit, ptr->common.cb);	//Each Touch finger has own ID
+				t9_report_status(ptr->common.rid + id, &point, surdef->resolution_bit, ptr->common.cb);	//Each Touch finger has own ID
 		}
 	}
-#endif
-
+	
 	return 0;
 }
 

@@ -31,13 +31,16 @@ Copyright (c) 2019 Microchip. All rights reserved.
 
 #include "port.h"
 
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
+#include "datastreamer/datastreamer.h"
+#endif
 /*----------------------------------------------------------------------------
  *   prototypes
  *----------------------------------------------------------------------------*/
 
 /*! \brief configure the ptc port pins to Input
  */
-static void touch_ptc_pin_config(void);
+/* static */void touch_ptc_pin_config(void);
 
 /*! \brief configure binding layer config parameter
  */
@@ -102,24 +105,20 @@ qtm_acquisition_control_t qtlib_acq_set1 = {&ptc_qtlib_acq_gen1, &ptc_seq_node_c
 /* Buffer used with various noise filtering functions */
 uint16_t noise_filter_buffer[DEF_NUM_SENSORS * NUM_FREQ_STEPS];
 uint8_t  freq_hop_delay_selection[NUM_FREQ_STEPS] = {DEF_MEDIAN_FILTER_FREQUENCIES};
-uint8_t  freq_hop_autotune_counters[NUM_FREQ_STEPS];
 
 /* Configuration */
-qtm_freq_hop_autotune_config_t qtm_freq_hop_autotune_config1 = {DEF_NUM_CHANNELS,
-                                                                NUM_FREQ_STEPS,
-                                                                &ptc_qtlib_acq_gen1.freq_option_select,
-                                                                &freq_hop_delay_selection[0],
-                                                                DEF_FREQ_AUTOTUNE_ENABLE,
-                                                                FREQ_AUTOTUNE_MAX_VARIANCE,
-                                                                FREQ_AUTOTUNE_COUNT_IN};
+qtm_freq_hop_config_t qtm_freq_hop_config1 = {
+    DEF_NUM_CHANNELS,
+    NUM_FREQ_STEPS,
+    &ptc_qtlib_acq_gen1.freq_option_select,
+    &freq_hop_delay_selection[0],
+};
 
 /* Data */
-qtm_freq_hop_autotune_data_t qtm_freq_hop_autotune_data1
-    = {0, 0, &noise_filter_buffer[0], &ptc_qtlib_node_stat1[0], &freq_hop_autotune_counters[0]};
+qtm_freq_hop_data_t qtm_freq_hop_data1 = {0, 0, &noise_filter_buffer[0], &ptc_qtlib_node_stat1[0]};
 
 /* Container */
-qtm_freq_hop_autotune_control_t qtm_freq_hop_autotune_control1
-    = {&qtm_freq_hop_autotune_data1, &qtm_freq_hop_autotune_config1};
+qtm_freq_hop_control_t qtm_freq_hop_control1 = {&qtm_freq_hop_data1, &qtm_freq_hop_config1};
 
 /**********************************************************/
 /*********************** Keys Module **********************/
@@ -186,13 +185,13 @@ qtm_scroller_control_t qtm_scroller_control1
 #ifdef TOUCH_API_SCROLLER_H
 #define LIB_MODULES_PROC_LIST                                                                                          \
 	{                                                                                                                  \
-		(module_proc_t) & qtm_freq_hop_autotune, (module_proc_t)&qtm_key_sensors_process,                              \
+		(module_proc_t) & qtm_freq_hop, (module_proc_t)&qtm_key_sensors_process,                              \
 		    (module_proc_t)&qtm_scroller_process, null                      \
 	}
 #else
 #define LIB_MODULES_PROC_LIST                                                                                          \
 	{                                                                                                                  \
-		(module_proc_t) & qtm_freq_hop_autotune, (module_proc_t)&qtm_key_sensors_process,                              \
+		(module_proc_t) & qtm_freq_hop, (module_proc_t)&qtm_key_sensors_process,                              \
 		    /*(module_proc_t)&qtm_scroller_process,*/ null                      \
 	}
 #endif
@@ -204,12 +203,12 @@ qtm_scroller_control_t qtm_scroller_control1
 #ifdef TOUCH_API_SCROLLER_H
 #define LIB_DATA_MODELS_PROC_LIST                                                                                      \
 	{                                                                                                                  \
-		(void *)&qtm_freq_hop_autotune_control1, (void *)&qtlib_key_set1, (void *)&qtm_scroller_control1, null         \
+		(void *)&qtm_freq_hop_control1, (void *)&qtlib_key_set1, (void *)&qtm_scroller_control1, null         \
 	}
 #else
 #define LIB_DATA_MODELS_PROC_LIST                                                                                      \
 	{                                                                                                                  \
-		(void *)&qtm_freq_hop_autotune_control1, (void *)&qtlib_key_set1, /*(void *)&qtm_scroller_control1,*/ null         \
+		(void *)&qtm_freq_hop_control1, (void *)&qtlib_key_set1, /*(void *)&qtm_scroller_control1,*/ null         \
 	}
 #endif
 #define LIB_MODULES_ACQ_ENGINES_LIST                                                                                   \
@@ -277,7 +276,8 @@ static void build_qtm_config(qtm_control_t *qtm)
 	qtm->qtm_post_process_callback     = qtm_post_process_complete;
 }
 
-static void touch_ptc_pin_config(void)
+#ifndef USE_MPTT_WRAPPER
+void touch_ptc_pin_config(void)
 {
 
 	PORTA_set_pin_pull_mode(4, PORT_PULL_OFF);
@@ -322,6 +322,7 @@ static void touch_ptc_pin_config(void)
 	PORTB_set_pin_pull_mode(4, PORT_PULL_OFF);
 	PORTB_pin_set_isc(4, PORT_ISC_INPUT_DISABLE_gc);
 }
+#endif
 
 /*============================================================================
 static touch_ret_t touch_sensors_config(void)
@@ -453,6 +454,8 @@ static void qtm_error_callback(uint8_t error)
 		module_error_code = (error & 0x0F) + 2;
 	}
 
+	measurement_done_touch = 2;
+
 #if DEF_TOUCH_DATA_STREAMER_ENABLE == 1
 	datastreamer_output();
 #endif
@@ -498,6 +501,10 @@ void touch_init(void)
 
 	/* get a pointer to the binding layer control */
 	p_qtm_control = qmt_get_binding_layer_ptr();
+	
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
+	datastreamer_init();
+#endif
 }
 
 /*============================================================================
@@ -547,10 +554,20 @@ void touch_process(void)
 			p_qtm_control->binding_layer_flags |= (1u << time_to_measure_touch);
 			p_qtm_control->binding_layer_flags &= ~(1u << reburst_request);
 		}
+
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
+		datastreamer_output();
+#endif
 	}
 }
 
 uint8_t interrupt_cnt;
+
+#ifdef OBJECT_T25
+/* set to non zero suspend the sampling */
+uint8_t qtlib_suspend = 0;
+#endif
+
 /* Put DEF_TOUCH_MEASUREMENT_PERIOD_MS into Global variable so that we could dynamic modify it */
 uint8_t qtlib_time_elapsed_since_update = DEF_TOUCH_MEASUREMENT_PERIOD_MS;
 /*============================================================================
@@ -564,6 +581,10 @@ Notes  :
 ============================================================================*/
 void touch_timer_handler(void)
 {
+	//suspend mode
+	if (qtlib_suspend || !qtlib_time_elapsed_since_update)
+		return;
+
 	interrupt_cnt++;
 	if (interrupt_cnt >= qtlib_time_elapsed_since_update) {
 		interrupt_cnt = 0;

@@ -16,14 +16,15 @@ int main(void)
 	
 	/* Replace with your application code */
 	while (1) {
+#ifdef USE_MPTT_WRAPPER
 		mptt_pre_process();
-		
+#endif
 		touch_process();
 
 #ifdef USE_MPTT_WRAPPER
-		mptt_process();
+		mptt_process(measurement_done_touch);
 #endif		
-		if (measurement_done_touch == 1) {
+		if (measurement_done_touch /*== 1*/) {	//1 : success, other value : error
 			measurement_done_touch = 0;
 
 #ifdef USE_MPTT_WRAPPER

@@ -46,6 +46,8 @@ ssint object_t8_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, con
 void object_t8_start(u8 loaded);
 void object_t8_data_sync(u8 rw);
 
+u8 object_api_t8_ref_mode(void);
+
 u8 object_t8_get_measure_mode(u8 *meas);
 u8 object_api_t8_measuring_self(void);
 u8 object_api_t8_measuring_mutual(void);

@@ -19,8 +19,8 @@ ssint object_t15_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, co
 
 	for (i = 0; i < MXT_TOUCH_KEYARRAY_T15_INST; i++) {
 		object_txx_init(&ptr[i].common, rid, def, (object_t15_t *)mem + i, cb);
-		ptr[i].btndef = &qdef->buttons[i];
-		ptr[i].idx = i;
+		if (i < qdef->num_button)
+			ptr[i].btndef = &qdef->buttons[i];
 		rid += MXT_TOUCH_KEYARRAY_T15_RIDS;
 	}
 	
@@ -32,10 +32,13 @@ void t15_set_unsupport_area(t15_data_t *ptr)
 	const qbutton_config_t *btndef = (qbutton_config_t *)ptr->btndef;
 	object_t15_t *mem = (object_t15_t *) ptr->common.mem;
 	
-	// T15 use Y as sensor channel: x origin set as instance, x size set as 1; Y origin set as 0, Y size set as channel size
-	mem->xorigin = /*btndef->node.origin*/ ptr->idx;
-	mem->xsize = /*btndef->node.size*/ 1;
-	mem->yorigin = /*btndef->node.origin*/0;
+	if (!btndef)
+		return;
+	
+	// T15 use Y as sensor channel
+	mem->xorigin = /*btndef->node.origin*/ 0;
+	mem->xsize = /*btndef->node.size*/ 0;
+	mem->yorigin = btndef->node.origin;
 	mem->ysize = btndef->node.size;
 
 #ifndef OBJECT_WRITEBACK	
@@ -69,21 +72,19 @@ void t15_data_sync(t15_data_t *ptr, u8 rw)
 		{ KEY_PARAMS_HYSTERESIS, &mem->tchhyst, sizeof(mem->tchhyst)}
 	};
 	
-	if (rw == OP_WRITE) {	//write		
-		t15_set_unsupport_area(ptr);
-	}
-	
-	// Sensor channel parameter
-	for (i = btndef->node.origin; i < btndef->node.origin + btndef->node.size; i++) {
-		object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
+	if ((mem->ctrl & MXT_T15_CTRL_ENABLE) || rw == OP_READ) {
+		if (btndef) {
+			// Sensor channel parameter
+			for (i = btndef->node.origin; i < btndef->node.origin + btndef->node.size; i++) {
+				object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
 		
-		if (rw == OP_READ)
-			break;
+				if (rw == OP_READ)
+					break;
+			}
+		}
 	}
 	
-	if (rw == OP_READ) {	// read
-		t15_set_unsupport_area(ptr);
-	}
+	t15_set_unsupport_area(ptr);
 }
 
 void object_t15_start(u8 loaded)
@@ -91,11 +92,8 @@ void object_t15_start(u8 loaded)
 	t15_data_t *ptr = &t15s_data_status[0];
 	u8 i;
 	
-	if (loaded)
-		return;
-	
 	for (i = 0; i < MXT_TOUCH_KEYARRAY_T15_INST; i++) {
-		t15_data_sync(ptr + i, OP_READ);
+		t15_data_sync(ptr + i, loaded ? OP_WRITE : OP_READ);
 	}
 }
 
@@ -139,7 +137,6 @@ u16 object_t15_get_button_base_ref(u8 inst)
 
 ssint object_api_t15_set_button_status(/* Slot id */u8 id, u8 pressed)
 {
-#ifndef OBJECT_T15_REPORT_DUMMY
 	t15_data_t *ptr =  &t15s_data_status[0];
 	object_t15_t *mem = (object_t15_t *) ptr->common.mem;
 	const qbutton_config_t *btndef;
@@ -149,6 +146,8 @@ ssint object_api_t15_set_button_status(/* Slot id */u8 id, u8 pressed)
 	for (i = 0, offset = 0; i < MXT_TOUCH_KEYARRAY_T15_INST; i++) {
 		mem = (object_t15_t *) ptr[i].common.mem;
 		btndef = (qbutton_config_t *)ptr[i].btndef;
+		if (!btndef)
+			continue;
 		
 		if (mem->ctrl & MXT_T15_CTRL_ENABLE) {
 			if (id >= btndef->node.origin &&  id < btndef->node.origin + btndef->node.size) {
@@ -170,7 +169,7 @@ ssint object_api_t15_set_button_status(/* Slot id */u8 id, u8 pressed)
 			}
 		}
 	}
-#endif
+	
 	return 0;
 }
 

@@ -33,15 +33,6 @@
 #include "tsl.h"
 #include "interface.h"
 
-enum {
-	BUS_STOP = 0,	//Default is STOP status, this is not real STOP signal at BUS
-	BUS_READ,
-	BUS_WRITE,
-	BUS_COLLISION,
-	BUS_ERROR,
-	NUM_BUS_STATES
-};
-
 typedef struct bus_monitor {
 	size_t counter[NUM_BUS_STATES];
 	union {
@@ -57,6 +48,10 @@ typedef struct bus_monitor {
 } bus_monitor_t;
 
 bus_monitor_t data_bus;
+u8 mptt_get_bus_state(void) 
+{
+	return data_bus.state;
+}
 
 #define CHG_DUTY_CYCLES	4
 #define CHG_SET_DUTY_ON_CYCLE 0
@@ -86,23 +81,25 @@ void bus_release_chg(void)
 
 void bus_assert_irq(u8 assert, bool retrigger)
 {
-	bus_monitor_t *bus = &data_bus;
+	//bus_monitor_t *bus = &data_bus;
 	const u8 ticks = current_tick();
 	
+	/*
 	if (!bus->state == BUS_STOP)	// THis stop is a state, not mean real STOP signal at bus
 		return;
+	*/
 	
 	if (!assert) {
 		bus_release_chg();
-	}else {
+	} else {
 		if (ticks == CHG_SET_DUTY_ON_CYCLE) {
 			bus_assert_chg();
-		}else {
+		} else {
 #ifdef OBJECT_T18
 			if (retrigger) {
 				if (ticks == CHG_SET_DUTY_ON_CYCLE + 1) {
 					bus_release_chg();
-					}else if (ticks == CHG_SET_DUTY_ON_CYCLE + 2) {
+					} else if (ticks == CHG_SET_DUTY_ON_CYCLE + 2) {
 					bus_assert_chg();
 				}
 			}
@@ -122,7 +119,7 @@ ssint handle_bus_event(u8 state, u8 *val)
 			count = bus->counter[BUS_WRITE]++;
 			if (count < sizeof(bus->regaddr)) {
 				bus->regaddr.val[count] = *val;
-			}else {
+			} else {
 				result = tsl_mem_write(bus->regaddr.value, count - sizeof(bus->regaddr), *val);
 			}
 		break;
@@ -153,14 +150,15 @@ void bus_address_handler(void)
 	addr8 = I2C_read();
 	if ((addr8 >> 1) == I2C_SLAVE_ADDRESS) {
 		if (addr8 & 0x1) {
-			bus->state = BUS_READ;
-		}else {
+            bus->state = BUS_READ;
+            bus->counter[BUS_READ] = 0;
+		} else {
 			bus->state = BUS_WRITE;
+            bus->counter[BUS_WRITE] = 0;
 		}
 		I2C_send_ack(); // or send_nack() if we don't want to ack the address
-		
-		bus_release_chg();
 	} else {
+        memset(bus->counter, 0, sizeof(bus->counter));
 		I2C_send_nack();
 	}
 }
@@ -227,7 +225,7 @@ void sys_reset(void)
 #ifdef FLASH_SAVE_CONFIG
 ssint inf_load_cfg(u8 *data, size_t len)
 {
-	if (len > OFFSET_CONFIG_IN_EEPROM + EEPROM_SIZE)
+	if (len >  EEPROM_SIZE - OFFSET_CONFIG_IN_EEPROM)
 		return -2;
 
 	/* Read EEPROM */
@@ -238,7 +236,7 @@ ssint inf_load_cfg(u8 *data, size_t len)
 
 ssint inf_save_cfg(const u8 *data, size_t len)
 {
-	if (len > OFFSET_CONFIG_IN_EEPROM + EEPROM_SIZE)
+	if (len >  EEPROM_SIZE - OFFSET_CONFIG_IN_EEPROM)
 		return -2;
 
 	/* Write EEPROM */
@@ -272,9 +270,9 @@ void mptt_pre_process(void)
 	tsl_pre_process();
 }
 
-void mptt_process(void)
+void mptt_process(uint8_t done)
 {
-	tsl_process();	
+	tsl_process(done);	
 }
 
 void mptt_post_process(void)

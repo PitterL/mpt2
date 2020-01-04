@@ -20,11 +20,6 @@ ssint object_t109_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, c
 	return 0;
 }
 
-void object_t109_start(u8 unused)
-{
-	
-}
-
 void t109_report_status(t109_data_t *ptr)
 {
 	object_t109_t *mem = (object_t109_t *)ptr->common.mem;
@@ -37,7 +32,7 @@ void t109_report_status(t109_data_t *ptr)
 	
 	object_txx_report_msg(&ptr->common, &ptr->status.result, sizeof(ptr->status.result));
 	
-	//memset(&ptr->status.result, 0, sizeof(ptr->status.result));
+	memset(&ptr->status.result, 0, sizeof(ptr->status.result));
 }
 
 void t109_data_sync(t109_data_t *ptr, u8 rw)
@@ -50,6 +45,7 @@ void t109_data_sync(t109_data_t *ptr, u8 rw)
 	};
 		
 	// Sensor channel parameter
+	// Fix me: if mutual cap node by node mode, the node_comp_caps may not enough?
 	for (i = 0; i < QTOUCH_CONFIG_VAL(ptr->common.def, maxtrix_channel_count) && i < ARRAY_SIZE(ptr->status.node_comp_caps); i++) {
 		compcap = ptr->status.node_comp_caps[i];
 		object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
@@ -57,6 +53,13 @@ void t109_data_sync(t109_data_t *ptr, u8 rw)
 			ptr->status.node_comp_caps[i] = compcap;
 		}
 	}
+}
+
+void object_t109_start(u8 loaded)
+{
+	t109_data_t *ptr = &t109_data_status;
+	
+	t109_data_sync(ptr, loaded? OP_WRITE : OP_READ);
 }
 
 void object_t109_report_status(u8 force)
@@ -84,11 +87,13 @@ void object_t109_data_sync(u8 rw)
 	switch(mem->cmd) {
 		case CMD_NONE:
 			break;
+#ifndef MPTT_MATRIX_NODES
 		case CMD_TUNE:
 			/* performance calibration */
 			MPT_API_CALLBACK(ptr->common.cb, calibrate)();
 			
 			memset(&ptr->status, 0, sizeof(ptr->status));
+#endif
 		default:
 			ptr->status.result.cmd = mem->cmd;
 			mem->cmd = CMD_NONE;

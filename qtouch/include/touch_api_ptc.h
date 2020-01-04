@@ -35,7 +35,7 @@ extern "C" {
 #include "qtm_binding_layer_0x0005_api.h"
 #include "qtm_acq_t321x_0x0017_api.h"
 #include "qtm_touch_key_0x0002_api.h"
-#include "qtm_freq_hop_auto_0x0004_api.h"
+#include "qtm_freq_hop_0x0006_api.h"
 #ifdef OBJECT_T9
 #include "qtm_scroller_0x000b_api.h"
 //#include "qtm_surface_cs_0x0021_api.h"

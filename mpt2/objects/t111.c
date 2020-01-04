@@ -22,7 +22,7 @@ ssint object_t111_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, c
 		if (i < qdef->num_surfaces_slider) {
 			tid = qdef->num_surfaces ? i + qdef->num_slider: i;
 			ptr[i].ns = qdef->surface_sliders[tid].nodes;
-		}else {
+		} else {
 			ptr[i].ns = qdef->matrix_nodes;
 		}
 	}
@@ -47,7 +47,9 @@ void t111_set_unsupport_area(object_t111_t *mem)
 
 void t111_data_sync(const t111_data_t *ptr, u8 rw)
 {
+#ifndef MPTT_MATRIX_NODES
 	const nodes_desc_t *ns = (nodes_desc_t *)ptr->ns;
+#endif
 	const qtouch_params_t *param = (qtouch_params_t *)&QTOUCH_CONFIG_VAL(ptr->common.def, params);
 	object_t111_t *mem = (object_t111_t *)ptr->common.mem;
 	
@@ -72,20 +74,29 @@ void t111_data_sync(const t111_data_t *ptr, u8 rw)
 		{ NODE_PARAMS_CSD, &delay_y, sizeof(delay_y)},
 		{ NODE_PARAMS_ADC_OVERSAMPLING, &mem->actvsyncsperl, sizeof(mem->actvsyncsperl)},
 	};
-	
+
+#ifndef MPTT_MATRIX_NODES	
 	txx_cb_param_t xparams[] = {
 		{ NODE_PARAMS_RESISTOR_PRESCALER, &resprsc_x.value, sizeof(resprsc_x.value)},
 		{ NODE_PARAMS_CSD, &delay_x, sizeof(delay_x)},
 		{ NODE_PARAMS_ADC_OVERSAMPLING, &mem->actvsyncsperl, sizeof(mem->actvsyncsperl)},
 	};
-	
+#endif
+
 	const txx_cb_param_t params[] = {
 		{ DEF_TCH_DRIFT_RATE, &mem->drift, sizeof(mem->drift)},
 		{ DEF_DRIFT_HOLD_TIME, &mem->driftst, sizeof(mem->driftst) }
 	};
 	
 	u8 i;
-	
+
+#ifdef MPTT_MATRIX_NODES
+	for (i = 0; i < QTOUCH_CONFIG_VAL(ptr->common.def, maxtrix_channel_count); i++) {
+		object_txx_op(&ptr->common, yparams, ARRAY_SIZE(yparams), i, rw);
+			if (rw == OP_READ)
+				break;
+	}
+#else
 	// Sensor channel parameter for X channel
 	for (i = ns[NODE_X].origin; i < ns[NODE_X].origin + ns[NODE_X].size; i++) {
 		object_txx_op(&ptr->common, xparams, ARRAY_SIZE(xparams), i, rw);
@@ -99,7 +110,7 @@ void t111_data_sync(const t111_data_t *ptr, u8 rw)
 		if (rw == OP_READ)
 			break;
 	}
-	
+#endif
 	// Common parameters
 	object_txx_op(&ptr->common, params, ARRAY_SIZE(params), 0, rw);
 	
@@ -120,12 +131,9 @@ void object_t111_start(u8 loaded)
 #ifndef OBJECT_T111_DUMMY
 	t111_data_t *ptr = &t111s_data_status[0];
 	u8 i;
-	
-	if (loaded)
-		return;
-	
+		
 	for (i = 0; i < MXT_SPT_SELFCAPCONFIG_T111_INST; i++) {
-		t111_data_sync(ptr + i, OP_READ);
+		t111_data_sync(ptr + i, loaded ? OP_WRITE : OP_READ);
 	}
 #endif
 }

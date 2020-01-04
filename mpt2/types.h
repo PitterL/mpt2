@@ -52,7 +52,24 @@ typedef union {
 	u8 value;
 } nibble_t;
 
-#define BIT(_v) (1 << (_v))
+#define VALID_PTR(_ptr) ((_ptr) && (size_t)(_ptr) != ERROR_PTR)
+
+#if defined(UTILS_COMPILER_H_INCLUDED)
+#define SET_BIT(_x, _bit) Set_bits((_x), (1 << (_bit)))
+#define CLR_BIT(_x, _bit) Clr_bits((_x), (1 << (_bit)))
+#define TEST_BIT(_x, _bit) Tst_bits((_x), (1 << (_bit)))
+#else
+#define SET_BIT(_x, _bit) ((_x) |= (1 << (_bit)))
+#define CLR_BIT(_x, _bit) ((_x) &= ~(1 << (_bit)))
+#define TEST_BIT(_x, _bit) ((_x) & (1 << (_bit)))
+#endif
+#define BIT(_bit) (1 << (_bit))
+#define BIT_MASK(_v) BIT(_v)
+
+#define SET_AND_CLR_BIT(_x, _sbit, _cbit) (SET_BIT((_x), (_sbit)), CLR_BIT((_x), (_cbit)))
+
+#define L8_TO_LT16(__v0, __v1) ((((short)(__v1)) << 8) | ((short)(__v0)))
+#define L16_TO_LT32(__v0, __v1) ((((short)(__v1)) << 16) | ((short)(__v0)))
 
 #include <utils.h>
 #include <stdbool.h>

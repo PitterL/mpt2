@@ -84,10 +84,10 @@ typedef void (*cb_calibrate_t)(void);
 
 typedef union {
 	struct {
-		u8 origin: 4;
-		u8 size: 4;
+		u8 origin;
+		u8 size;
 	};
-	u8 value;
+	u16 value;
 } nodes_desc_t;
 
 typedef struct qbutton_config {
@@ -115,7 +115,7 @@ typedef struct qtouch_params {
 
 typedef struct qtouch_config {
 	nodes_desc_t matrix_nodes[NUM_NODE_2D];
-	u8 maxtrix_channel_count;
+	u8 maxtrix_channel_count;	//	logical channels count(actual channels for selfcap or nodes for mutualcap)
 
 	qbutton_config_t *buttons;
 	u8 num_button;
@@ -152,7 +152,7 @@ typedef struct mpt_api_callback {
 #ifdef OBJECT_T6	
 	void (*reset)(void);
 	void (*calibrate)(void);
-	ssint (*backup)(void);
+	ssint (*backup)(/*data_crc24_t*/ void *crc_ptr);
 	void (*report_all)(void);
 	void (*cb_get_config_crc)(/*data_crc24_t*/void *crc_ptr);
 	void (*cb_assert_irq)(u8 assert, bool retrigger);
@@ -175,7 +175,7 @@ enum {
 
 /* 
 	cc value formula:
-		(val & 0x0F)*0.00675 + ((val >> 4) & 0x0F)*0.0675 + ((val >> 8) & 0x0F)*0.675 + ((val >> 12) & 0x3) * 6.75
+		(val & 0x0F)*0.00675 + ((val >> 4) & 0x0F)*0.0675 + ((val >> 8) & 0x0F)*0.675 + ((val >> 12) & 0x7) * 6.75
 	Here, multiply 1000 for calculation:
 */
 
@@ -191,8 +191,14 @@ enum {
 // 6750 = 4096 + 2048 + 512 + 64 + 32 - 2 = 2^12 + 2^11 + 2^9 + 2^6 + 2^5 - 2^1
 #define MUL_6750(_v3) (((_v3) << 12) + ((_v3) << 11) + ((_v3) << 9) + ((_v3) << 6) + ((_v3) << 5) - ((_v3) << 2))
 
-//#define CALCULATE_CAP(_v) (MUL_7((_v) & 0x0F) + MUL_68(((_v) >> 4) & 0x0F) + MUL_675(((_v) >> 8) & 0x0F) + MUL_6750(((_v) >> 12) & 0x3))
-#define CALCULATE_CAP(_v) (((_v) & 0x0F) * 7 + (((_v) >> 4) & 0x0F) * 68 + (((_v) >> 8) & 0x0F) *675 + (((_v) >> 12) & 0x3) * 6750)
+// Note: maxStudio use 16bit signed number
+//#define CALCULATE_CAP(_v) (MUL_7((_v) & 0x0F) + MUL_68(((_v) >> 4) & 0x0F) + MUL_675(((_v) >> 8) & 0x0F) + MUL_6750(((_v) >> 12) & 0x03)) + MUL_6750(((_v) >> 14) & 0x03))
+
+// Use 1/1000 pf as unit, the max value 675 * 8 = 54000, less than 16bit, but will show negative value in studio if more thant 32767
+#define CALCULATE_CAP(_v) (((_v) & 0x0F) * 7 + (((_v) >> 4) & 0x0F) * 68 + (((_v) >> 8) & 0x0F) *675 + ((((_v) >> 12) & 0x03) + (((_v) >> 14) & 0x03)) * 6750)
+
+// Use 1/100 pf as unit
+//#define CALCULATE_CAP(_v) ((((_v) >> 2) & 0x02) * 3 + (((_v) >> 4) & 0x0F) * 7 + (((_v) >> 8) & 0x0F) *68 + (((_v) >> 12) & 0x03) * 675) + (((_v) >> 4) & 0x03) * 675)
 
 #define SENSOR_BASE_REF_VALUE 512
 

@@ -94,7 +94,7 @@ u32 calc_blocks_crc24(const crc_data_blocks_t *blk, size_t count)
 				firstbyte = odd;
 				secondbyte = *ptr++;
 				odd = *ptr++;
-			}else {
+			} else {
 				firstbyte = *ptr++;
 				secondbyte = *ptr++;
 			}
@@ -110,7 +110,7 @@ u32 calc_blocks_crc24(const crc_data_blocks_t *blk, size_t count)
 				/* if len is odd, fill the last byte with 0 */
 				crc = crc24(crc, odd, 0);
 			}
-		}else {
+		} else {
 			if (sum & 0x1) {	//sum is even, but both blocks are odd
 				crc = crc24(crc, odd, *ptr);		
 			}

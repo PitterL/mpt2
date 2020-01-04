@@ -164,7 +164,7 @@ void I2C_isr()
 			if(send_firstbyte){
 				I2C_read_callback();
 				send_firstbyte = false;
-			}else{		
+			} else {		
 				if (!(TWI0.SSTATUS & TWI_RXACK_bm)) {
 					// Received ACK from master
 					I2C_read_callback();
