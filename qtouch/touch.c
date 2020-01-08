@@ -412,6 +412,10 @@ static void qtm_post_process_complete(void)
 	} else {
 		measurement_done_touch = 1;
 	}
+
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
+	datastreamer_output();
+#endif
 }
 
 /*============================================================================
@@ -456,7 +460,7 @@ static void qtm_error_callback(uint8_t error)
 
 	measurement_done_touch = 2;
 
-#if DEF_TOUCH_DATA_STREAMER_ENABLE == 1
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
 	datastreamer_output();
 #endif
 }
@@ -501,7 +505,7 @@ void touch_init(void)
 
 	/* get a pointer to the binding layer control */
 	p_qtm_control = qmt_get_binding_layer_ptr();
-	
+
 #ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
 	datastreamer_init();
 #endif
@@ -554,10 +558,6 @@ void touch_process(void)
 			p_qtm_control->binding_layer_flags |= (1u << time_to_measure_touch);
 			p_qtm_control->binding_layer_flags &= ~(1u << reburst_request);
 		}
-
-#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
-		datastreamer_output();
-#endif
 	}
 }
 
@@ -581,8 +581,14 @@ Notes  :
 ============================================================================*/
 void touch_timer_handler(void)
 {
+#ifdef OBJECT_T25
 	//suspend mode
-	if (qtlib_suspend || !qtlib_time_elapsed_since_update)
+    if (qtlib_suspend)
+        return;
+#endif
+
+    //inactive mode
+	if (!qtlib_time_elapsed_since_update)
 		return;
 
 	interrupt_cnt++;

@@ -7,7 +7,7 @@
 #ifdef OBJECT_T15
 
 #include <string.h>
-#include "../tslapi.h"
+#include "arch/tslapi.h"
 #include "txx.h"
 
 t15_data_t t15s_data_status[MXT_TOUCH_KEYARRAY_T15_INST];
@@ -64,12 +64,12 @@ void t15_data_sync(t15_data_t *ptr, u8 rw)
 	u8 i;
 	
 	txx_cb_param_t params_sensor[] = {
-		{ KEY_PARAMS_AKS_GROUP, &mem->akscfg, sizeof(mem->akscfg) },
-		{ NODE_PARAMS_GAIN, &mem->blen, sizeof(mem->blen) },
-		{ KEY_PARAMS_THRESHOLD, &mem->tchthr, sizeof(mem->tchthr) },
-		{ DEF_TOUCH_DET_INT, &mem->tchdi, sizeof(mem->tchdi) },
-		{ DEF_ANTI_TCH_DET_INT, &mem->tchdi, sizeof(mem->tchdi) },
-		{ KEY_PARAMS_HYSTERESIS, &mem->tchhyst, sizeof(mem->tchhyst)}
+		{ API_KEY_PARAMS_AKS_GROUP, &mem->akscfg, sizeof(mem->akscfg) },
+		{ API_NODE_PARAMS_GAIN, &mem->blen, sizeof(mem->blen) },
+		{ API_KEY_PARAMS_THRESHOLD, &mem->tchthr, sizeof(mem->tchthr) },
+		{ API_DEF_TOUCH_DET_INT, &mem->tchdi, sizeof(mem->tchdi) },
+		{ API_DEF_ANTI_TCH_DET_INT, &mem->tchdi, sizeof(mem->tchdi) },
+		{ API_KEY_PARAMS_HYSTERESIS, &mem->tchhyst, sizeof(mem->tchhyst)}
 	};
 	
 	if ((mem->ctrl & MXT_T15_CTRL_ENABLE) || rw == OP_READ) {
@@ -132,7 +132,7 @@ u16 object_t15_get_button_base_ref(u8 inst)
 	if (!(mem->ctrl & MXT_T15_CTRL_ENABLE))
 		return 0;
 	
-	return (SENSOR_BASE_REF_VALUE << /*NODE_GAIN_DIG*/(((object_t15_t *)ptr[inst].common.mem)->blen & 0xF));
+	return (tsapi_t6_get_sensor_base_ref() << /*NODE_GAIN_DIG*/(((object_t15_t *)ptr[inst].common.mem)->blen & 0xF));
 }
 
 ssint object_api_t15_set_button_status(/* Slot id */u8 id, u8 pressed)

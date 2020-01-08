@@ -9,8 +9,6 @@
 #ifndef T7_H_
 #define T7_H_
 
-#include "../types.h"
-
 /* MXT_GEN_POWER_T7 field */
 struct t7_config {
 	u8 idle;

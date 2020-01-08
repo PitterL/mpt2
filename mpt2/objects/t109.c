@@ -7,7 +7,7 @@
 #ifdef OBJECT_T109
 
 #include <string.h>
-#include "../tslapi.h"
+#include "arch/tslapi.h"
 #include "txx.h"
 
 t109_data_t t109_data_status;
@@ -41,7 +41,7 @@ void t109_data_sync(t109_data_t *ptr, u8 rw)
 	u8 i;
 	
 	txx_cb_param_t params_sensor[] = {
-		{ NODE_COMPCAP_VALUE, &compcap, sizeof(compcap) },
+		{ API_NODE_COMPCAP_VALUE, &compcap, sizeof(compcap) },
 	};
 		
 	// Sensor channel parameter

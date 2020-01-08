@@ -71,7 +71,15 @@ typedef union {
 #define L8_TO_LT16(__v0, __v1) ((((short)(__v1)) << 8) | ((short)(__v0)))
 #define L16_TO_LT32(__v0, __v1) ((((short)(__v1)) << 16) | ((short)(__v0)))
 
+#ifdef __GNUC__
 #include <utils.h>
+#else
+/**
+ * \brief Retrieve array size
+ */
+#define ARRAY_SIZE(_a) (sizeof(_a) / sizeof(_a[0]))
+#endif
+
 #include <stdbool.h>
 
 #endif /* TYPES_H_ */

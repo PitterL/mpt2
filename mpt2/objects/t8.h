@@ -9,8 +9,6 @@
 #ifndef T8_H_
 #define T8_H_
 
-#include "../types.h"
-
 /* T8 Memory Space */
 typedef struct object_t8 {
 	u8 chrgtime;

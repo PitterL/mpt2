@@ -4,9 +4,8 @@
  * Created: 6/7/2019 9:48:06 PM
  *  Author: A41450
  */ 
-#include "types.h"
+#include "include/types.h"
 #include "crc.h"
-
 /*
 calculate one byte input value with CRC 8 Bit
     @crc: last crc value

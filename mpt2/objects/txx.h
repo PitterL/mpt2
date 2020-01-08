@@ -9,8 +9,6 @@
 #ifndef TXX_H_
 #define TXX_H_
 
-#include "../types.h"
-
 /* Object types */
 #define MXT_DEBUG_DIAGNOSTIC_T37	37
 #define MXT_GEN_MESSAGE_T5		5

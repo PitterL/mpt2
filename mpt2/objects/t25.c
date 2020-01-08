@@ -7,8 +7,8 @@
 #ifdef OBJECT_T25
 
 #include <string.h>
-#include "../tslapi.h"
-#include "../pinconf.h"
+#include "arch/tslapi.h"
+#include "arch/pinconf.h"
 #include "txx.h"
 
 t25_data_t t25_data_status;

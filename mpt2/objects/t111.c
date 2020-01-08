@@ -6,7 +6,7 @@
  */ 
 #ifdef OBJECT_T111
 
-#include "../tslapi.h"
+#include "arch/tslapi.h"
 #include "txx.h"
 
 t111_data_t t111s_data_status[MXT_SPT_SELFCAPCONFIG_T111_INST];
@@ -70,22 +70,22 @@ void t111_data_sync(const t111_data_t *ptr, u8 rw)
 	u8 delay_x = mem->altdelaytimex ? mem->altdelaytimex : delay_y;
 	
 	txx_cb_param_t yparams[] = {
-		{ NODE_PARAMS_RESISTOR_PRESCALER, &resprsc_y.value, sizeof(resprsc_y.value)},
-		{ NODE_PARAMS_CSD, &delay_y, sizeof(delay_y)},
-		{ NODE_PARAMS_ADC_OVERSAMPLING, &mem->actvsyncsperl, sizeof(mem->actvsyncsperl)},
+		{ API_NODE_PARAMS_RESISTOR_PRESCALER, &resprsc_y.value, sizeof(resprsc_y.value)},
+		{ API_NODE_PARAMS_CSD, &delay_y, sizeof(delay_y)},
+		{ API_NODE_PARAMS_ADC_OVERSAMPLING, &mem->actvsyncsperl, sizeof(mem->actvsyncsperl)},
 	};
 
 #ifndef MPTT_MATRIX_NODES	
 	txx_cb_param_t xparams[] = {
-		{ NODE_PARAMS_RESISTOR_PRESCALER, &resprsc_x.value, sizeof(resprsc_x.value)},
-		{ NODE_PARAMS_CSD, &delay_x, sizeof(delay_x)},
-		{ NODE_PARAMS_ADC_OVERSAMPLING, &mem->actvsyncsperl, sizeof(mem->actvsyncsperl)},
+		{ API_NODE_PARAMS_RESISTOR_PRESCALER, &resprsc_x.value, sizeof(resprsc_x.value)},
+		{ API_NODE_PARAMS_CSD, &delay_x, sizeof(delay_x)},
+		{ API_NODE_PARAMS_ADC_OVERSAMPLING, &mem->actvsyncsperl, sizeof(mem->actvsyncsperl)},
 	};
 #endif
 
 	const txx_cb_param_t params[] = {
-		{ DEF_TCH_DRIFT_RATE, &mem->drift, sizeof(mem->drift)},
-		{ DEF_DRIFT_HOLD_TIME, &mem->driftst, sizeof(mem->driftst) }
+		{ API_DEF_TCH_DRIFT_RATE, &mem->drift, sizeof(mem->drift)},
+		{ API_DEF_DRIFT_HOLD_TIME, &mem->driftst, sizeof(mem->driftst) }
 	};
 	
 	u8 i;

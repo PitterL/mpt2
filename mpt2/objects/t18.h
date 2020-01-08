@@ -9,8 +9,6 @@
 #ifndef T18_H_
 #define T18_H_
 
-#include "../types.h"
-
 /* MXT_SPT_COMMSCONFIG_T18 */
 #define MXT_COMMS_CTRL		0
 #define MXT_COMMS_CMD		1

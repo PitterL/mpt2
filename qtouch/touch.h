@@ -35,11 +35,11 @@ The below definition is used for cupdi package tool.
 	Warning: Support '//' comment mark, but not support '/ * * /' comment mark inside the definition
 */
 /* Firmware version*/
-#define FIRMWARE_VERSION 0x45580B10	/*EX11, 1.0*/
+#define FIRMWARE_VERSION 0x51543710	/*QT7, 1.0*/
 
 /* Fuse content */
-// #define FUSES_CONTENT {0x00, 0x00, 0x02, 0xFF, 0x00, 0xF7, 0x07, 0x00, 0x00, 0xFF, 0xC5}
-#define FUSES_CONTENT {0x00, 0x6A, 0x7D, 0xFF, 0x00, 0xE6, 0xFF, 0x00, 0x00, 0xFF, 0xC5}	/*BYTE order, ignore set as NULL or the value*/
+// BOD level 2, OSC 16Mhz, EEPROM erased
+#define FUSES_CONTENT {0x00, 0x46, 0x7D, 0xFF, 0x00, 0xF6, 0xFF, 0x00, 0x00, 0xFF }	/*BYTE order, ignore set as NULL or the value*/
 
 /*----------------------------------------------------------------------------
  *     include files

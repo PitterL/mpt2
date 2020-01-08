@@ -7,7 +7,7 @@
 #ifdef OBJECT_T9
 
 #include <string.h>
-#include "../tslapi.h"
+#include "arch/tslapi.h"
 #include "txx.h"
 
 t9_data_t t9s_data_status[MXT_TOUCH_MULTI_T9_INST];
@@ -92,10 +92,10 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 	
 	txx_cb_param_t params_channel[] = {
 		// v for x, h for y
-		{ SURFACE_CS_START_KEY_V, &xorigin, sizeof(xorigin) },
-		{ SURFACE_CS_START_KEY_H, &yorigin, sizeof(yorigin) },
-		{ SURFACE_CS_NUM_KEYS_V, &mem->xsize, sizeof(mem->xsize) },
-		{ SURFACE_CS_NUM_KEYS_H, &mem->ysize, sizeof(mem->ysize) },
+		{ API_SURFACE_CS_START_KEY_V, &xorigin, sizeof(xorigin) },
+		{ API_SURFACE_CS_START_KEY_H, &yorigin, sizeof(yorigin) },
+		{ API_SURFACE_CS_NUM_KEYS_V, &mem->xsize, sizeof(mem->xsize) },
+		{ API_SURFACE_CS_NUM_KEYS_H, &mem->ysize, sizeof(mem->ysize) },
 	};
 	*/
 
@@ -104,21 +104,21 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 	u8 j, count;	/*	Max nodes should less than 255, or the count may overrun */
 #endif
 	txx_cb_param_t params_sensor[] = {
-		{ NODE_PARAMS_GAIN, &mem->blen, sizeof(mem->blen) },
-		{ KEY_PARAMS_THRESHOLD, &mem->tchthr, sizeof(mem->tchthr) },
-		{ KEY_PARAMS_HYSTERESIS, &mem->tchhyst, sizeof(mem->tchhyst) }
+		{ API_NODE_PARAMS_GAIN, &mem->blen, sizeof(mem->blen) },
+		{ API_KEY_PARAMS_THRESHOLD, &mem->tchthr, sizeof(mem->tchthr) },
+		{ API_KEY_PARAMS_HYSTERESIS, &mem->tchhyst, sizeof(mem->tchhyst) }
 	};
 	
 	nibble_t  movfilter = { .value = 0 };
 	u16 amplitude = 0;
 	txx_cb_param_t params_touch[] = {
-		{ DEF_TOUCH_DET_INT, &mem->tchdi, sizeof(mem->tchdi) },
-		{ DEF_ANTI_TCH_DET_INT, &mem->nexttchdi, sizeof(mem->nexttchdi) },
-		{ SURFACE_CS_POS_HYST, &mem->movhysti, sizeof(mem->movhysti) },
-		//{ SURFACE_CS_POS_HYST, &mem->movhystn, sizeof(mem->movhystn) },
+		{ API_DEF_TOUCH_DET_INT, &mem->tchdi, sizeof(mem->tchdi) },
+		{ API_DEF_ANTI_TCH_DET_INT, &mem->nexttchdi, sizeof(mem->nexttchdi) },
+		{ API_SURFACE_CS_POS_HYST, &mem->movhysti, sizeof(mem->movhysti) },
+		//{ API_SURFACE_CS_POS_HYST, &mem->movhystn, sizeof(mem->movhystn) },
 		//* Bits 1:0 = IIR (0% / 25% / 50% / 75%), Bit 4 = Enable Median Filter (3-point) */
-		{ SURFACE_CS_FILT_CFG, &movfilter, sizeof(movfilter) },
-		{ SURFACE_CS_MIN_CONTACT, &amplitude, sizeof(amplitude) },
+		{ API_SURFACE_CS_FILT_CFG, &movfilter, sizeof(movfilter) },
+		{ API_SURFACE_CS_MIN_CONTACT, &amplitude, sizeof(amplitude) },
 	};
 
 	if (rw == OP_WRITE) {	//write	
@@ -218,7 +218,7 @@ void t9_report_status(u8 rid, const t9_point_status_t *pt, u8 res_bit, const mpt
 	message.data[4] = 1;
 	message.data[5] = 1;
 	
-	MPT_API_CALLBACK(cb, cb_write_message)(&message);
+	MPT_API_CALLBACK(cb, write_message)(&message);
 #endif
 }
 
@@ -263,7 +263,7 @@ u16 object_t9_get_surface_slider_base_ref(u8 inst, u8 channel)
 		(channel >=  surdef->nodes[NODE_Y].origin && channel < surdef->nodes[NODE_Y].origin + surdef->nodes[NODE_Y].size)))
 		return 0;
 #endif
-	return (SENSOR_BASE_REF_VALUE << /*NODE_GAIN_DIG*/(((object_t9_t *)ptr[inst].common.mem)->blen & 0xF));
+	return (tsapi_t6_get_sensor_base_ref() << /*NODE_GAIN_DIG*/(((object_t9_t *)ptr[inst].common.mem)->blen & 0xF));
 }
 
 #ifdef OBJECT_T9_ORIENT
@@ -279,7 +279,7 @@ void transfer_pos(t9_data_t *ptr, t9_range_t *ppos)
 	if (!surdef)
 		return;
 	
-	resol_max = surdef->resolution_max
+	resol_max = surdef->resolution_max;
 	
 	xrange = mem->xrange ? mem->xrange : resol_max;
 	yrange =  mem->yrange ? mem->yrange : resol_max;

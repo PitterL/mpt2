@@ -6,7 +6,7 @@
  */ 
 #ifdef OBJECT_T37
 #include <string.h>
-#include "../tslapi.h"
+#include "arch/tslapi.h"
 #include "txx.h"
 
 t37_data_t t37_data_status;

@@ -6,7 +6,7 @@
  */ 
 
 #include <string.h>
-#include "../tslapi.h"
+#include "arch/tslapi.h"
 #include "txx.h"
 
 ssint object_txx_init(txx_data_t *ptr, u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb)
@@ -33,7 +33,7 @@ void object_txx_report_msg(const txx_data_t *ptr, const void *data, u8 size)
 	message.reportid = ptr->rid;
 	memcpy(message.data, data, size);
 
-	MPT_API_CALLBACK(ptr->cb, cb_write_message)(&message);
+	MPT_API_CALLBACK(ptr->cb, write_message)(&message);
 #endif
 }
 

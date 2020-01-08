@@ -6,7 +6,7 @@
  */ 
 #ifdef OBJECT_T18
 
-#include "../tslapi.h"
+#include "arch/tslapi.h"
 #include "txx.h"
 
 t18_data_t t18_data_status;
@@ -22,7 +22,7 @@ void t18_set_unsupport_area(object_t18_t *mem)
 
 void t18_data_sync(const txx_data_t *ptr, u8 rw)
 {
-	object_t7_t *mem = (object_t7_t *)ptr->mem;
+	object_t18_t *mem = (object_t18_t *)ptr->mem;
 	
 	// Not paramenter to hw
 		

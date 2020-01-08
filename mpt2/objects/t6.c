@@ -7,7 +7,7 @@
 #ifdef OBJECT_T6
 
 #include <string.h>
-#include "../tslapi.h"
+#include "arch/tslapi.h"
 #include "txx.h"
 
 t6_data_t t6_data_status;
@@ -26,7 +26,7 @@ void object_t6_start(u8 unused)
 {
 	t6_data_t *ptr = &t6_data_status;
 	
-	MPT_API_CALLBACK(ptr->common.cb, cb_get_config_crc)(&ptr->status.crc);
+	MPT_API_CALLBACK(ptr->common.cb, get_config_crc)(&ptr->status.crc);
 }
 
 void t6_pulse_status(t6_data_t *ptr, u8 mask, u8 set)
@@ -66,7 +66,7 @@ void chip_reset(u8 arg)
 	} else if (arg != 0) {
 		/* Normal reset */
 
-		MPT_API_CALLBACK(ptr->common.cb, cb_assert_irq)(0, false);
+		MPT_API_CALLBACK(ptr->common.cb, assert_irq)(0, false);
 		
 		/* Do reset */
 		MPT_API_CALLBACK(ptr->common.cb, reset)();

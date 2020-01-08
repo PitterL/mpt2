@@ -6,7 +6,7 @@
  */ 
 #ifdef OBJECT_T104
 
-#include "../tslapi.h"
+#include "arch/tslapi.h"
 #include "txx.h"
 
 t104_data_t t104s_data_status[MXT_SPT_AUXTOUCHCONFIG_T104_INST];
@@ -48,15 +48,15 @@ void t104_data_sync(const t104_data_t *ptr, u8 rw)
 #ifndef MPTT_MATRIX_NODES
 	const nodes_desc_t *ns = (nodes_desc_t *)ptr->ns;
 	txx_cb_param_t xparams[] = {
-		{ NODE_PARAMS_GAIN, &mem->xgain, sizeof(mem->xgain) },
-		{ KEY_PARAMS_THRESHOLD, &mem->xtchthr, sizeof(mem->xtchthr) },
-		{ KEY_PARAMS_HYSTERESIS, &mem->xtchhyst, sizeof(mem->xtchhyst)}
+		{ API_NODE_PARAMS_GAIN, &mem->xgain, sizeof(mem->xgain) },
+		{ API_KEY_PARAMS_THRESHOLD, &mem->xtchthr, sizeof(mem->xtchthr) },
+		{ API_KEY_PARAMS_HYSTERESIS, &mem->xtchhyst, sizeof(mem->xtchhyst)}
 	};
 	
 	txx_cb_param_t yparams[] = {
-		{ NODE_PARAMS_GAIN, &mem->ygain, sizeof(mem->ygain) },
-		{ KEY_PARAMS_THRESHOLD, &mem->ytchthr, sizeof(mem->ytchthr) },
-		{ KEY_PARAMS_HYSTERESIS, &mem->ytchhyst, sizeof(mem->ytchhyst) },
+		{ API_NODE_PARAMS_GAIN, &mem->ygain, sizeof(mem->ygain) },
+		{ API_KEY_PARAMS_THRESHOLD, &mem->ytchthr, sizeof(mem->ytchthr) },
+		{ API_KEY_PARAMS_HYSTERESIS, &mem->ytchhyst, sizeof(mem->ytchhyst) },
 	};
 	u8 i;
 #endif

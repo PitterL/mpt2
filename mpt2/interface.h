@@ -9,8 +9,6 @@
 #ifndef _MPT_INTERFACE_H
 #define _MPT_INTERFACE_H
 
-#include "types.h"
-
 /* Call init before Touch init */
 void mptt_interface_init(void);
 
@@ -25,19 +23,5 @@ void mptt_process(uint8_t done);
 
 /* Call process when sampling finished each time*/
 void mptt_post_process(void);
-
-enum {
-	BUS_STOP = 0,	//Default is STOP status, this is not real STOP signal at BUS
-	BUS_READ,
-	BUS_WRITE,
-	BUS_COLLISION,
-	BUS_ERROR,
-	NUM_BUS_STATES
-};
-
-/* query current bus state */
-u8 mptt_get_bus_state(void);
-
-#define OFFSET_CONFIG_IN_EEPROM 0
 
 #endif

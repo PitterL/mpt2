@@ -6,8 +6,7 @@
  */ 
 #ifdef OBJECT_T8
 
-#include "../tslapi.h"
-#include "../include/touch_api_ptc.h"
+#include "arch/tslapi.h"
 #include "txx.h"
 
 t8_data_t t8_data_status;
@@ -29,57 +28,6 @@ void t8_set_unsupport_area(object_t8_t *mem)
 	//mem->refmode = 0;
 	mem->cfg = 0;
 }
-
-void t8_readback_sensing_mode(const txx_data_t *ptr)
-{
-	object_t8_t *mem = (object_t8_t *)ptr->mem;
-	u8 sensortype = 0;
-	txx_cb_param_t param = { DEF_SENSOR_TYPE, &sensortype, sizeof(sensortype) };
-	
-	object_txx_op(ptr, &param, 1, 0, 1);
-	
-	switch (sensortype) {
-		case NODE_SELFCAP:
-			mem->measactvdef = MXT_T8_MEASALLOW_SELFPROX;
-		case NODE_SELFCAP_SHIELD:
-			mem->measactvdef = MXT_T8_MEASALLOW_SELFTCH;
-		break;
-		case NODE_MUTUAL:
-			mem->measactvdef = MXT_T8_MEASALLOW_MUTUALTCH;
-			break;
-		case NODE_MUTUAL_4P:
-			mem->measactvdef = MXT_T8_MEASALLOW_MUTUALTCH_4P;
-			break;
-		case NODE_MUTUAL_8P:
-			mem->measactvdef = MXT_T8_MEASALLOW_MUTUALTCH_8P;
-		default:
-			;
-	}
-}
-
-void t8_writeback_sensing_mode(const txx_data_t *ptr)
-{
-	object_t8_t *mem = (object_t8_t *)ptr->mem;
-	u8 sensortype = NODE_MUTUAL;
-	txx_cb_param_t param = { DEF_SENSOR_TYPE, &sensortype, sizeof(sensortype) };
-	
-	if (mem->measactvdef & MXT_T8_MEASALLOW_SELFTCH) {
-		sensortype = NODE_SELFCAP_SHIELD;
-	} else if(mem->measactvdef & MXT_T8_MEASALLOW_MUTUALTCH) {
-		if (mem->measactvdef == MXT_T8_MEASALLOW_MUTUALTCH_8P) {
-			sensortype = NODE_MUTUAL_8P;
-		} else if (mem->measactvdef == MXT_T8_MEASALLOW_MUTUALTCH_4P) {
-			sensortype = NODE_MUTUAL_4P;
-		} else {
-			sensortype = NODE_MUTUAL;
-		}
-	} else if(mem->measactvdef & MXT_T8_MEASALLOW_SELFPROX) {
-		sensortype = NODE_SELFCAP;
-	}
-	
-	object_txx_op(ptr, &param, 1, 0, 0);
-}
-
 
 u8 object_api_t8_ref_mode(void)
 {
@@ -122,24 +70,24 @@ u8 object_api_t8_measuring_mutual(void)
 void t8_data_sync(const txx_data_t *ptr, u8 rw)
 {
 	object_t8_t *mem = (object_t8_t *)ptr->mem;
+    u8 sensortype;
 
 	txx_cb_param_t ct_params[] = {
-		{ NODE_PARAMS_CSD, &mem->chrgtime, sizeof(mem->chrgtime)},	//Compared to T111 Intdelay
+		{ API_NODE_PARAMS_CSD, &mem->chrgtime, sizeof(mem->chrgtime)},	//Compared to T111 Intdelay
 	};
 	u8 i;
 	
 	txx_cb_param_t params[] = {
-		{ DEF_TCH_DRIFT_RATE, &mem->tchdrift, sizeof(mem->tchdrift) },
-		{ DEF_ANTI_TCH_DRIFT_RATE, &mem->atchdrift, sizeof(mem->atchdrift) },	//Use rsv for anti touch drift
-		{ DEF_DRIFT_HOLD_TIME, &mem->driftst, sizeof(mem->driftst) },
-		{ DEF_MAX_ON_DURATION, &mem->tchautocal, sizeof(mem->tchautocal) },
-		{ DEF_ANTI_TCH_RECAL_THRSHLD, &mem->atchcalsthr, sizeof(mem->atchcalsthr) },
+        { API_DEF_SENSOR_TYPE, &sensortype, sizeof(sensortype) },
+		{ API_DEF_TCH_DRIFT_RATE, &mem->tchdrift, sizeof(mem->tchdrift) },
+		{ API_DEF_ANTI_TCH_DRIFT_RATE, &mem->atchdrift, sizeof(mem->atchdrift) },	//Use rsv for anti touch drift
+		{ API_DEF_DRIFT_HOLD_TIME, &mem->driftst, sizeof(mem->driftst) },
+		{ API_DEF_MAX_ON_DURATION, &mem->tchautocal, sizeof(mem->tchautocal) },
+		{ API_DEF_ANTI_TCH_RECAL_THRSHLD, &mem->atchcalsthr, sizeof(mem->atchcalsthr) },
 	};
 	
 	if (rw == OP_WRITE)
-		t8_writeback_sensing_mode(ptr);
-	else
-		t8_readback_sensing_mode(ptr);
+		sensortype = tsapi_t8_sensing_mode_translate(mem->measactvdef, rw);
 	
 	//T8 always write all channels
 	for (i = 0; i < QTOUCH_CONFIG_VAL(ptr->def, maxtrix_channel_count); i++) {
@@ -150,6 +98,9 @@ void t8_data_sync(const txx_data_t *ptr, u8 rw)
 	
 	object_txx_op(ptr, params, ARRAY_SIZE(params), 0, rw);
 	
+    if (rw == OP_READ)
+        mem->measactvdef = tsapi_t8_sensing_mode_translate(sensortype, rw);
+
 	t8_set_unsupport_area(mem);
 }
 
