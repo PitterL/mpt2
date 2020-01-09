@@ -29,23 +29,20 @@ void object_t25_start(u8 unused)
 void t25_report_status(t25_data_t *ptr, uint8_t report)
 {
 	object_t25_t *mem = (object_t25_t *)ptr->common.mem;
-	
-	if (!ptr->cache.data.status)
-		return;
 
 	mem->cmd = MXT_T25_CMD_COMPLETED;
 
 	if (report)
 		object_txx_report_msg(&ptr->common, &ptr->cache.data, sizeof(ptr->cache.data));
 
-	memset(&ptr->cache, 0 ,sizeof(ptr->cache));
+	//memset(&ptr->cache, 0 ,sizeof(ptr->cache));
 }
 
 void object_t25_report_status(u8 force)
 {
 	t25_data_t *ptr = &t25_data_status;
 	
-	if (force || ptr->cache.data.status) {
+	if (force) {
 		object_txx_report_msg(&ptr->common, &ptr->cache.data, sizeof(ptr->cache.data));
 	}
 }
@@ -62,6 +59,8 @@ void object_t25_data_sync(u8 rw)
 	if (rw != OP_WRITE)
 		return;
 		
+	memset(&ptr->cache, 0 ,sizeof(ptr->cache));	
+
 	switch(mem->cmd) {
 		case MXT_T25_CMD_TEST_AVDD:
 			testop = BIT_MASK(TEST_AVDD);
@@ -70,7 +69,7 @@ void object_t25_data_sync(u8 rw)
 			testop = BIT_MASK(TEST_PINFAULT);
 		break;
 		case MXT_T25_CMD_TEST_SIGNAL_LIMIT:
-			testop = BIT_MASK(TEST_SIGNAL_LIMIT);
+			testop = BIT_MASK(TEST_T9_SIGNAL_LIMIT) | BIT_MASK(TEST_T15_SIGNAL_LIMIT);
 		break;
 		case MXT_T25_CMD_TEST_ALL:
 			testop = TEST_ALL;
@@ -82,9 +81,10 @@ void object_t25_data_sync(u8 rw)
 			ptr->cache.data.status = MXT_T25_INFO_RESULT_INVALID;
 	}
 
-	ptr->cache.testop = testop;
-	
-	t25_report_status(ptr, 1);
+	if (testop)
+		ptr->cache.testop = testop;		
+	else
+		t25_report_status(ptr, 1);
 }
 
 #ifdef OBJECT_T15
@@ -129,6 +129,18 @@ ssint inspect_button_data(t25_data_t *ptr, u8 channel, u16 reference, u16 cap, o
 }
 #endif
 
+ssint t25_inspect_t15_sensor_data(t25_data_t *ptr, u8 channel, u16 reference, u16 cap)
+{
+	object_t25_result_t *tdat = &ptr->cache;
+	ssint done = 0;
+	
+#ifdef OBJECT_T15
+	done = inspect_button_data(ptr, channel, reference, cap, tdat);
+#endif
+	
+	return done;
+}
+
 #ifdef OBJECT_T9
 ssint inspect_surface_slider_data(t25_data_t *ptr, u8 channel, u16 reference, u16 cap, object_t25_result_t *rslt)
 {
@@ -170,31 +182,22 @@ ssint inspect_surface_slider_data(t25_data_t *ptr, u8 channel, u16 reference, u1
 }
 #endif
 
-ssint t25_inspect_sensor_data(t25_data_t *ptr, u8 channel, u16 reference, u16 cap)
+ssint t25_inspect_t9_sensor_data(t25_data_t *ptr, u8 channel, u16 reference, u16 cap)
 {
 	object_t25_result_t *tdat = &ptr->cache;
-	ssint result = -1;
-	
-#ifdef OBJECT_T15
-	if(!tdat->data.status)
-		result = inspect_button_data(ptr, channel, reference, cap, tdat);
-#endif
+	ssint done = 0;
 
 #ifdef OBJECT_T9
-	if(!tdat->data.status)
-		result |= inspect_surface_slider_data(ptr, channel, reference, cap, tdat);
+	done = inspect_surface_slider_data(ptr, channel, reference, cap, tdat);
 #endif
 	
-	return result;
+	return done;
 }
 
 ssint t25_inspect_avdd(t25_data_t *ptr)
 {
 	object_t25_result_t *tdat = &ptr->cache;
 	uint8_t result;
-
-	if (tdat->data.status)
-		return -2;
 	
 	result = avdd_test();
 	if (result) {
@@ -209,9 +212,6 @@ ssint t25_inspect_pinfault(t25_data_t *ptr, u8 pindwellus, u8 pinthr)
 {
 	object_t25_result_t *tdat = &ptr->cache;
 	uint8_t seq, pin, val;
-
-	if (tdat->data.status)
-		return -2;
 
 	pindwellus = pindwellus ? pindwellus : 200;
 	pinthr = pinthr ? pinthr : 225;
@@ -231,8 +231,7 @@ void t25_inspect_success(t25_data_t *ptr)
 {
 	object_t25_result_t *tdat = &ptr->cache;
 
-	if (!tdat->data.status)
-		tdat->data.status = MXT_T25_INFO_RESULT_PASS;
+	tdat->data.status = MXT_T25_INFO_RESULT_PASS;
 }
 
 void object_api_t25_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
@@ -240,53 +239,67 @@ void object_api_t25_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 c
 	t25_data_t *ptr = &t25_data_status;
 	object_t25_result_t *tdat = &ptr->cache;
 	object_t25_t *mem = (object_t25_t *) ptr->common.mem;
-	ssint result = -1;
+	u8 testop = ptr->cache.testop;
+	ssint done = 0;
 
 	if (!(mem->ctrl & MXT_T25_CTRL_ENABLE))
 		return;
 
 	//Test AVDD
-	if (TEST_BIT(ptr->cache.testop, TEST_AVDD)) {
-		result = t25_inspect_avdd(ptr);
-		if (result == 0) {
-			CLR_BIT(tdat->testop, TEST_AVDD);
+	if (TEST_BIT(testop, TEST_AVDD)) {
+		done = t25_inspect_avdd(ptr);
+		if (done == 0) {
+			CLR_BIT(testop, TEST_AVDD);
 		}
-	}
+	} 
 
 	//Test Pin Fault
-	if (TEST_BIT(ptr->cache.testop, TEST_PINFAULT)) {
-		result = t25_inspect_pinfault(ptr, mem->pindwellus, mem->pinthr);
-		if (result == 0) {
-			CLR_BIT(tdat->testop, TEST_PINFAULT);
+	if (done == 0 && TEST_BIT(testop, TEST_PINFAULT)) {
+		done = t25_inspect_pinfault(ptr, mem->pindwellus, mem->pinthr);
+		if (done == 0) {
+			CLR_BIT(testop, TEST_PINFAULT);
 		}
 	}
 
 	// Test signal, randomly start tested sensor
-	if (TEST_BIT(ptr->cache.testop, TEST_SIGNAL_LIMIT)) {
-		result = t25_inspect_sensor_data(ptr, channel, reference, cap);
-		if (result == 0) {
-			CLR_BIT(tdat->testop, TEST_SIGNAL_LIMIT);
+	if (done == 0 && TEST_BIT(testop, TEST_T15_SIGNAL_LIMIT)) {
+		done = t25_inspect_t15_sensor_data(ptr, channel, reference, cap);
+		if (done == 0) {
+			CLR_BIT(testop, TEST_T15_SIGNAL_LIMIT);
+		}
+	} 
+	
+	if (done == 0 && TEST_BIT(testop, TEST_T9_SIGNAL_LIMIT)) {
+		done = t25_inspect_t9_sensor_data(ptr, channel, reference, cap);
+		if (done == 0) {
+			CLR_BIT(testop, TEST_T9_SIGNAL_LIMIT);
 		}
 	}
 
-	if (result == 0) {
-		t25_inspect_success(ptr);
-	}
-
-	t25_report_status(ptr, mem->ctrl & MXT_T25_CTRL_RPTEN);
+	if (testop != tdat->testop) {
+		if (!(testop & TEST_MASK)) {
+			if (!tdat->data.status)
+				t25_inspect_success(ptr);
+	
+			t25_report_status(ptr, mem->ctrl & MXT_T25_CTRL_RPTEN);
+		}
+		tdat->testop = testop;
+	}	
 }
 
 ssint object_api_t25_pinfault_test(void)
 {	
 	t25_data_t *ptr = &t25_data_status;
 	object_t25_t *mem = (object_t25_t *) ptr->common.mem;
+	ssint result;
 
-	t25_inspect_pinfault(ptr, mem->pindwellus, mem->pinthr);
-	
-	avdd_test();
+	result = t25_inspect_pinfault(ptr, mem->pindwellus, mem->pinthr);
+	if (result == 0) {
+		result = t25_inspect_avdd(ptr);
+	}
 
 	//Pin Fault Test Failed
-	if (ptr->cache.data.status) {
+	if (result) {
 		t25_report_status(ptr, 1);
 		return -1;
 	}

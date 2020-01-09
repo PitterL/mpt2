@@ -213,30 +213,31 @@ uint8_t avdd_test(void)
 {
 	uint16_t val;
 
+	VREF.CTRLC = VREF_ADC1REFSEL_1V5_gc;
+
 	ADC_init(&ADC1, ADC_REFSEL_VDDREF_gc, ADC_SAMPNUM_ACC16_gc, ADC_RESSEL_8BIT_gc);
 	/* 
 		Vmeasured = adcval * Vref /256 (8bit)
 			=> (1) adcval = Vmeasured * 256 /Vref
 				(2) Vref = Vmeasured *256 /adcval
+			
+		adcval = du / Vref£º
+	
 		we use default internal VREF (voltage 0.55v) as measure target, VDD as Ref. 
+		default VREF = 0.55v, for 8 bit sampling, numerator is du = 0.55 *256 = 140.8
+		du <40, 46> => 3.52 ~ 3.06v
 
-		default VREF = 0.55v, for 8 bit sampling, numerator is 0.55 *256 = 140.8
-		for VDD33, unit is: 3300 / 256 = 12.9mv;
-		vor VDD5, unint is: 5000 / 256 = 19.5;
-		When
-			VDD = 2.7v, count = 140.8 / 2.7 = 52.15
-			VDD = 3v, count = 46.9
-			VDD = 3.3v, count = 42.67
-			VDD = 4.5v, count = 31.29
-			VDD = 5v, count = 28.16
+		we use 2.5v VREF as measure target, VDD as Ref.
+		default VREF = 2.5v, for 8 bit sampling, numerator is du = 2.5 *256 = 640
+		du <181, 209> => 3.52 ~ 3.06v
+		
 	*/
 
 	val = (uint8_t)gpio_get_adc_value(1, ADC_MUXPOS_INTREF_gc, 4);
 	ADC_disable(&ADC1);
 
-	//if VDD is 3.3v, adcval will be 42.67
-	if (val < 46 &&	// 3.06v 
-		val > 40)	// 3.52v
+	// standard 116
+	if (val > 100 && val < 130)	// 2.9v ~3.8v
 		return 0;
 
 	return val;

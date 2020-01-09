@@ -54,11 +54,11 @@ int8_t ADC_init(ADC_t *reg, ADC_REFSEL_t ref, ADC_SAMPNUM_t acc, ADC_RESSEL_t bi
 
 	reg->CTRLC = ADC_PRESC_DIV4_gc /* CLK_PER divided by 4 */
 			 | ref /* VDD reference */
-			 | 0 << ADC_SAMPCAP_bp; /* Sample Capacitance Selection: disabled */
+			 | 1 << ADC_SAMPCAP_bp; /* Sample Capacitance Selection: enable */
 
 	reg->CTRLD = 1 << ADC_ASDV_bp /* Automatic Sampling Delay Variation: enable */
 			 | 0x0 << ADC_SAMPDLY_gp /* Sampling Delay Selection: 0x0 */
-			 | ADC_INITDLY_DLY0_gc; /* Delay 32 CLK_ADC cycles */
+			 | ADC_INITDLY_DLY16_gc; /* Delay 32 CLK_ADC cycles */
 
 	// reg->CTRLE = ADC_WINCM_NONE_gc; /* No Window Comparison */
 
@@ -71,7 +71,7 @@ int8_t ADC_init(ADC_t *reg, ADC_REFSEL_t ref, ADC_SAMPNUM_t acc, ADC_RESSEL_t bi
 
 	// reg->MUXPOS = ADC_MUXPOS_AIN0_gc; /* ADC input pin 0 */
 
-	// reg->SAMPCTRL = 0x0 << ADC_SAMPLEN_gp; /* Sample length: 0x0 */
+	reg->SAMPCTRL = 0x1 << ADC_SAMPLEN_gp; /* Sample length: 0x0 */
 
 	// reg->WINHT = 0x0; /* Window Comparator High Threshold: 0x0 */
 
