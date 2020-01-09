@@ -671,6 +671,11 @@ Notes    :  none
 ============================================================================*/
 ISR(ADC0_RESRDY_vect)
 {
+#ifdef OBJECT_T25
+	//suspend mode
+	if (qtlib_suspend)
+		return;
+#endif
 	qtm_t321x_ptc_handler_eoc();
 }
 

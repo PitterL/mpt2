@@ -74,6 +74,11 @@ DECLARE_GPIO_SET_FUNCTION(pin_set, isc, PORT_ISC_t)
 DECLARE_GPIO_SET_FUNCTION(set_pin, dir, enum port_dir)
 DECLARE_GPIO_SET_FUNCTION(set_pin, level, bool)
 
+void ptc_disable(void)
+{
+	*(uint8_t *)(&ADC0 + 1) = 0;
+}
+
 bool ptc_channel_used(uint8_t channel)
 {
 	uint8_t i;
@@ -83,7 +88,7 @@ bool ptc_channel_used(uint8_t channel)
 			return true;
 		}
 	}
-	
+
 	return false;
 }
 
@@ -107,7 +112,7 @@ void touch_ptc_pin_config(void)
 #define delay_us(_v)	_delay_us(_v)
 #define delay_ms(_v)	_delay_ms(_v)
 
-uint8_t gpio_get_adc_value(uint8_t adc, ADC_MUXPOS_t channel)
+uint16_t gpio_get_adc_value(uint8_t adc, ADC_MUXPOS_t channel, uint8_t vrshift)
 {
 	uint8_t delay = 50;
 	ADC_t *reg;
@@ -126,13 +131,15 @@ uint8_t gpio_get_adc_value(uint8_t adc, ADC_MUXPOS_t channel)
 
 	} while (--delay);
 
-	return (uint8_t)(ADC_get_conversion_result(reg) >> 4);	//8-Bit
+	return (uint16_t)(ADC_get_conversion_result(reg) >> vrshift);
 }
 
 extern void tsl_suspend(uint8_t suspend);
 void pinfault_test_init(void)
 {
 	tsl_suspend(1);
+
+	ptc_disable();
 
 	ADC_init(&ADC0, ADC_REFSEL_VDDREF_gc, ADC_SAMPNUM_ACC16_gc, ADC_RESSEL_8BIT_gc);
 	ADC_init(&ADC1, ADC_REFSEL_VDDREF_gc, ADC_SAMPNUM_ACC16_gc, ADC_RESSEL_8BIT_gc);
@@ -141,7 +148,8 @@ void pinfault_test_init(void)
 bool pinfault_test_cycle(uint8_t delay,uint8_t thld, bool walk, bool level, uint8_t *test_pin, uint8_t *pin_val)
 {
 	const ptc_pin_map_t *ptc_map = attiny_xx17_ptc_pin_map;
-	uint8_t i, val;
+	uint8_t i;
+	uint16_t val;
 	bool result = true;
 
 	// Set all pins status
@@ -167,7 +175,7 @@ bool pinfault_test_cycle(uint8_t delay,uint8_t thld, bool walk, bool level, uint
 			}
 
 			delay_us(delay);
-			val = gpio_get_adc_value(ptc_map[i].adc, ptc_map[i].adc_channel);
+			val = (uint8_t)gpio_get_adc_value(ptc_map[i].adc, ptc_map[i].adc_channel, 4);
 			
 			if (walk) {
 				gpio_set_pin_dir(ptc_map[i].port, ptc_map[i].pin, PORT_DIR_OUT);
@@ -203,10 +211,15 @@ void pinfault_test_end(void)
 
 uint8_t avdd_test(void)
 {
-	uint8_t result;
+	uint16_t val;
 
-	ADC_init(&ADC0, ADC_REFSEL_VDDREF_gc, ADC_SAMPNUM_ACC16_gc, ADC_RESSEL_8BIT_gc);
+	ADC_init(&ADC1, ADC_REFSEL_VDDREF_gc, ADC_SAMPNUM_ACC16_gc, ADC_RESSEL_8BIT_gc);
 	/* 
+		Vmeasured = adcval * Vref /256 (8bit)
+			=> (1) adcval = Vmeasured * 256 /Vref
+				(2) Vref = Vmeasured *256 /adcval
+		we use default internal VREF (voltage 0.55v) as measure target, VDD as Ref. 
+
 		default VREF = 0.55v, for 8 bit sampling, numerator is 0.55 *256 = 140.8
 		for VDD33, unit is: 3300 / 256 = 12.9mv;
 		vor VDD5, unint is: 5000 / 256 = 19.5;
@@ -218,15 +231,15 @@ uint8_t avdd_test(void)
 			VDD = 5v, count = 28.16
 	*/
 
-	result = (gpio_get_adc_value(0, ADC_MUXPOS_INTREF_gc) >> 4);
-	ADC_disable(&ADC0);
+	val = (uint8_t)gpio_get_adc_value(1, ADC_MUXPOS_INTREF_gc, 4);
+	ADC_disable(&ADC1);
 
-	//assumed VDD33
-	if (result < 46 &&	// 3.06v 
-		result > 41)	// 3.43v
+	//if VDD is 3.3v, adcval will be 42.67
+	if (val < 46 &&	// 3.06v 
+		val > 40)	// 3.52v
 		return 0;
 
-	return result;
+	return val;
 }
 
 uint8_t pinfault_test(uint8_t delay,uint8_t thld, uint8_t *test_pin, uint8_t *test_val)

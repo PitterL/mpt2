@@ -52,13 +52,13 @@ int8_t ADC_init(ADC_t *reg, ADC_REFSEL_t ref, ADC_SAMPNUM_t acc, ADC_RESSEL_t bi
 
 	reg->CTRLB = acc; /* 1 ADC sample */
 
-	reg->CTRLC = ADC_PRESC_DIV2_gc /* CLK_PER divided by 2 */
+	reg->CTRLC = ADC_PRESC_DIV4_gc /* CLK_PER divided by 4 */
 			 | ref /* VDD reference */
 			 | 0 << ADC_SAMPCAP_bp; /* Sample Capacitance Selection: disabled */
 
-	// reg->CTRLD = 0 << ADC_ASDV_bp /* Automatic Sampling Delay Variation: disabled */
-	//		 | 0x0 << ADC_SAMPDLY_gp /* Sampling Delay Selection: 0x0 */
-	//		 | ADC_INITDLY_DLY0_gc; /* Delay 0 CLK_ADC cycles */
+	reg->CTRLD = 1 << ADC_ASDV_bp /* Automatic Sampling Delay Variation: enable */
+			 | 0x0 << ADC_SAMPDLY_gp /* Sampling Delay Selection: 0x0 */
+			 | ADC_INITDLY_DLY0_gc; /* Delay 32 CLK_ADC cycles */
 
 	// reg->CTRLE = ADC_WINCM_NONE_gc; /* No Window Comparison */
 

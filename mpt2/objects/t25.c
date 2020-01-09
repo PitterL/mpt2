@@ -283,6 +283,8 @@ ssint object_api_t25_pinfault_test(void)
 
 	t25_inspect_pinfault(ptr, mem->pindwellus, mem->pinthr);
 	
+	avdd_test();
+
 	//Pin Fault Test Failed
 	if (ptr->cache.data.status) {
 		t25_report_status(ptr, 1);
