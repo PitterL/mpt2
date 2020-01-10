@@ -33,7 +33,7 @@ typedef struct object_t25 {
 #define MXT_T25_CTRL_ENABLE		BIT(0)
 #define MXT_T25_CTRL_RPTEN		BIT(1)
 //#define MXT_T25_CTRL_
-#define MXT_T25_CMD_COMPLETED	0x0
+#define MXT_T25_CMD_NONE	0x0
 #define MXT_T25_CMD_TEST_AVDD	0x01
 #define MXT_T25_CMD_TEST_PIN_FAULT	0x12
 #define MXT_T25_CMD_TEST_SIGNAL_LIMIT	0x17

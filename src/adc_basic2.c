@@ -71,7 +71,7 @@ int8_t ADC_init(ADC_t *reg, ADC_REFSEL_t ref, ADC_SAMPNUM_t acc, ADC_RESSEL_t bi
 
 	// reg->MUXPOS = ADC_MUXPOS_AIN0_gc; /* ADC input pin 0 */
 
-	reg->SAMPCTRL = 0x1 << ADC_SAMPLEN_gp; /* Sample length: 0x0 */
+	reg->SAMPCTRL = 0x4 << ADC_SAMPLEN_gp; /* Sample length: 0x0 */
 
 	// reg->WINHT = 0x0; /* Window Comparator High Threshold: 0x0 */
 
