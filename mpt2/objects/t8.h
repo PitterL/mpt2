@@ -21,9 +21,20 @@ typedef struct object_t8 {
 	u8 atchcalsthr;
 	u8 atchfrccalthr;
 	u8 atchfrccalratio;
+
+	/* Current measure mode */
 	u8 measallow;
+
+	/* Inspection measure mode */
 	u8 measidledef;
+
+	/* Normal measure mode */
 	u8 measactvdef;
+
+	/* measure mode control 
+		bit[0]: using ref and signal in t37 debug register switch - delta command get the reference, reference command will get cccap
+		bit[1]: TBD
+	*/
 	u8 refmode;
 	u8 cfg;
 } __attribute__ ((packed)) object_t8_t;
@@ -38,6 +49,9 @@ typedef struct object_t8 {
 
 #define MXT_T8_MEASALLOW_ALLOWED (MXT_T8_MEASALLOW_MUTUALTCH|MXT_T8_MEASALLOW_MUTUALTCH_4P| MXT_T8_MEASALLOW_MUTUALTCH_8P | MXT_T8_MEASALLOW_SELFTCH | MXT_T8_MEASALLOW_SELFPROX)
 
+#define MXT_T8_REFMODE_RS_SWITCH BIT(0)
+#define MXT_T8_REFMODE_IDLE_MEASURE BIT(1)
+
 typedef struct txx_data t8_data_t;
 
 ssint object_t8_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
@@ -45,6 +59,7 @@ void object_t8_start(u8 loaded);
 void object_t8_data_sync(u8 rw);
 
 u8 object_api_t8_ref_mode(void);
+void object_t8_switch_measure_mode(u8 idle);
 
 u8 object_t8_get_measure_mode(u8 *meas);
 u8 object_api_t8_measuring_self(void);

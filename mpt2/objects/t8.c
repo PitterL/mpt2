@@ -22,10 +22,12 @@ void t8_set_unsupport_area(object_t8_t *mem)
 	mem->atchcalst = 0;
 	mem->atchfrccalthr = 0;
 	mem->atchfrccalratio = 0;
+/*
 	mem->measallow = MXT_T8_MEASALLOW_ALLOWED;
 	mem->measidledef = 0;
-	//mem->measactvdef = MXT_T8_MEASALLOW_SELFTCH;
-	//mem->refmode = 0;
+	mem->measactvdef = MXT_T8_MEASALLOW_SELFTCH;
+	mem->refmode = 0;
+*/
 	mem->cfg = 0;
 }
 
@@ -35,36 +37,6 @@ u8 object_api_t8_ref_mode(void)
 	object_t8_t *mem = (object_t8_t *)ptr->mem;
 		
 	return mem->refmode;
-}
-
-/* Don't call this function before T8 started */
-/*
-	Mutual cap: return 0
-	Selfcap: return 1
-*/
-u8 object_t8_get_measure_mode(u8 *meas) 
-{
-	t8_data_t *ptr = &t8_data_status;
-	object_t8_t *mem = (object_t8_t *)ptr->mem;
-	
-	if (meas) {
-		*meas = mem->measactvdef;
-	}
-	
-	if(mem->measactvdef & MXT_T8_MEASALLOW_MUTUALTCH)
-		return 0;
-	else
-		return 1;
-}
-
-u8 object_api_t8_measuring_self(void) 
-{
-	return object_t8_get_measure_mode(NULL);
-}
-
-u8 object_api_t8_measuring_mutual(void) 
-{
-	return !object_t8_get_measure_mode(NULL);
 }
 
 void t8_data_sync(const txx_data_t *ptr, u8 rw)
@@ -86,9 +58,10 @@ void t8_data_sync(const txx_data_t *ptr, u8 rw)
 		{ API_DEF_ANTI_TCH_RECAL_THRSHLD, &mem->atchcalsthr, sizeof(mem->atchcalsthr) },
 	};
 	
-	if (rw == OP_WRITE)
-		sensortype = tsapi_t8_sensing_mode_translate(mem->measactvdef, rw);
-	
+	if (rw == OP_WRITE) {
+		sensortype = tsapi_t8_sensing_mode_translate(mem->measallow, rw);
+	}
+
 	//T8 always write all channels
 	for (i = 0; i < QTOUCH_CONFIG_VAL(ptr->def, maxtrix_channel_count); i++) {
 		object_txx_op(ptr, ct_params, ARRAY_SIZE(ct_params), i, rw);
@@ -98,8 +71,9 @@ void t8_data_sync(const txx_data_t *ptr, u8 rw)
 	
 	object_txx_op(ptr, params, ARRAY_SIZE(params), 0, rw);
 	
-    if (rw == OP_READ)
-        mem->measactvdef = tsapi_t8_sensing_mode_translate(sensortype, rw);
+    if (rw == OP_READ) {
+        mem->measallow = tsapi_t8_sensing_mode_translate(sensortype, rw);
+	}
 
 	t8_set_unsupport_area(mem);
 }
@@ -107,7 +81,7 @@ void t8_data_sync(const txx_data_t *ptr, u8 rw)
 void object_t8_start(u8 loaded)
 {
 	t8_data_t *ptr = &t8_data_status;
-		
+
 	t8_data_sync(ptr, loaded ? OP_WRITE : OP_READ);
 }
 
@@ -116,6 +90,18 @@ void object_t8_data_sync(u8 rw)
 	t8_data_t *ptr = &t8_data_status;
 	
 	t8_data_sync(ptr, rw);
+}
+
+void object_t8_switch_measure_mode(u8 idle)
+{
+	t8_data_t *ptr = &t8_data_status;
+	object_t8_t *mem = (object_t8_t *)ptr->mem;
+	u8 measallow = idle ? mem->measidledef : mem->measactvdef;
+
+	if (measallow && measallow != mem->measallow) {
+		mem->measallow = measallow;
+		t8_data_sync(ptr, OP_WRITE);
+	}
 }
 
 #endif

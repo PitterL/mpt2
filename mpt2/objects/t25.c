@@ -51,6 +51,7 @@ void object_t25_report_status(u8 force)
 	}
 }
 
+void t25_inspect_init(t25_data_t *ptr, u8 testop);
 void object_t25_data_sync(u8 rw)
 {
 	t25_data_t *ptr = &t25_data_status;
@@ -87,8 +88,9 @@ void object_t25_data_sync(u8 rw)
 			t25_report_status(ptr);
 	}
 	
-	if (testop)
-		ptr->cache.testop = testop;		
+	if (testop) {
+		t25_inspect_init(ptr, testop);	
+	}
 }
 
 #ifdef OBJECT_T15
@@ -190,10 +192,11 @@ ssint inspect_surface_slider_data(t25_data_t *ptr, u8 channel, u16 reference, u1
 
 ssint t25_inspect_t9_sensor_data(t25_data_t *ptr, u8 channel, u16 reference, u16 cap)
 {
-	object_t25_result_t *tdat = &ptr->cache;
 	ssint result = 0;
 
 #ifdef OBJECT_T9
+	object_t25_result_t *tdat = &ptr->cache;
+
 	result = inspect_surface_slider_data(ptr, channel, reference, cap, tdat);
 #endif
 	
@@ -216,6 +219,11 @@ ssint t25_inspect_avdd(t25_data_t *ptr)
 	return 0;
 }
 
+/**
+ * \brief T25 Pin fault test, 
+	report error code to message buffer if fault detected
+ * @Return: Zero means normal, other value means something error detected
+ */
 ssint t25_inspect_pinfault(t25_data_t *ptr, u8 pindwellus, u8 pinthr)
 {
 	object_t25_result_t *tdat = &ptr->cache;
@@ -237,11 +245,23 @@ ssint t25_inspect_pinfault(t25_data_t *ptr, u8 pindwellus, u8 pinthr)
 	return 0;
 }
 
-void t25_inspect_completed(t25_data_t *ptr)
+void t25_inspect_init(t25_data_t *ptr, u8 testop)
+{	
+	ptr->cache.testop = testop & TEST_MASK;	
+
+	if (testop & SIGNAL_LIMIT_MASK)
+		object_t8_switch_measure_mode(1);
+}
+
+void t25_inspect_completed(t25_data_t *ptr, u8 testop, u8 testclr)
 {
 	object_t25_t *mem = (object_t25_t *)ptr->common.mem;
 
-	mem->cmd = 0;
+	if (!testop)
+		mem->cmd = 0;
+
+	if ((!(testop & SIGNAL_LIMIT_MASK)) && (testclr & SIGNAL_LIMIT_MASK))
+		object_t8_switch_measure_mode(0);
 }
 
 void object_api_t25_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
@@ -265,7 +285,9 @@ void object_api_t25_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 c
 
 	//Test Pin Fault
 	if (result == 0 && TEST_BIT(testop, TEST_PINFAULT)) {
+#ifdef OBJECT_T25_PIN_FAULT_ENABLE
 		result = t25_inspect_pinfault(ptr, mem->pindwellus, mem->pinthr);
+#endif
 		if (result <= 0) {
 			CLR_BIT(testop, TEST_PINFAULT);
 		}
@@ -290,20 +312,26 @@ void object_api_t25_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 c
 		testop = 0;
 
 	if (testop != tdat->testop) {
-		if (!(testop & TEST_MASK)) {
+		if (!testop) {
 			if (result == 0)
 				t25_set_report_status(ptr, MXT_T25_INFO_RESULT_PASS);
 	
 			if (mem->ctrl & MXT_T25_CTRL_RPTEN)
 				t25_report_status(ptr);
-			t25_inspect_completed(ptr);
 		}
+		t25_inspect_completed(ptr, testop, tdat->testop ^ testop);
 		tdat->testop = testop;
-	}	
+	}
 }
 
+/**
+ * \execute sensor pin fault inspection, 
+	see t25 protocol for details
+ * @Return: Zero means normal, other value means something error detected
+ */
 ssint object_api_t25_pinfault_test(void)
 {	
+#ifdef OBJECT_T25_PIN_FAULT_ENABLE
 	t25_data_t *ptr = &t25_data_status;
 	object_t25_t *mem = (object_t25_t *) ptr->common.mem;
 	ssint result;
@@ -316,9 +344,9 @@ ssint object_api_t25_pinfault_test(void)
 	//Pin Fault Test Failed
 	if (result < 0) {
 		t25_report_status(ptr);
-		return -1;
+		return result;
 	}
-
+#endif
 	return 0;
 }
 

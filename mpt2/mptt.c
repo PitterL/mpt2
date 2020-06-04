@@ -3,6 +3,11 @@
  *
  * Created: 6/7/2019 9:48:06 PM
  *  Author: A41450
+
+ v2.1
+	<1> Add Infoblock crc are in config for version match
+    <2> Add Scanning mode switch in T8
+
  */ 
 
 #include <string.h>
@@ -15,10 +20,9 @@
 #include "tsl.h"
 #include "mptt.h"
 
-
 #define MPTT_FW_FAMILY_ID 0xa6	//0x81
 #define MPTT_FW_VARIANT_ID 0x08	//0x01
-#define MPTT_FW_VERSION 0x20
+#define MPTT_FW_VERSION 0x21
 #define MPTT_FW_BUILD 0x01
 
 typedef struct mxt_info {
@@ -101,6 +105,7 @@ typedef struct objects_config {
 	object_t111_t t111;
 #endif
 	data_crc24_t crc;
+	data_crc24_t ib;	// This is redundant design for checking FW match config 
 } __attribute__ ((packed)) objects_config_t;
 
 #define MXT_OBJECTS_CONFIG_SIZE (sizeof(struct objects_config))
@@ -373,7 +378,12 @@ ssint mpt_api_chip_init(const void *tsl_ptr)
 	return 0;
 }
 
-void mpt_api_chip_start(void)
+/**
+ * \brief MPTT framework enable, 
+	includes load config, enable each object and pin fault test
+ * @Return: Zero means normal, other value means something error detected
+ */
+ssint mpt_api_chip_start(void)
 {
 	const object_callback_t *ocbs = &object_initialize_list[0];
 	u8 i;
@@ -381,9 +391,6 @@ void mpt_api_chip_start(void)
 #ifdef OBJECT_T6
 	result = mpt_chip_load_config();
 #endif
-
-	// Send a calibration
-	//object_api_t6_handle_command(MXT_COMMAND_CALIBRATE, 1);
 	
 	// Run each object
 	for (i = 0; i < MXT_OBJECTS_INITIALIZE_LIST_NUM; i++) {
@@ -391,7 +398,11 @@ void mpt_api_chip_start(void)
 			ocbs[i].start(result ? 0 : 1);
 	}
 
-	object_api_t25_pinfault_test();
+#ifdef OBJECT_T25
+	return object_api_t25_pinfault_test();
+#else 
+	return 0;
+#endif
 }
 
 void mem_readback(u8 regid)
@@ -495,6 +506,7 @@ static ssint mpt_chip_backup(/*data_crc24_t*/ void *crc_ptr)
 {
 	const config_manager_t *cfm = &chip_config_manager;
 	mxt_objects_reg_t * ibreg = &ib_objects_reg;
+	const data_crc24_t *ibcrc = &ib_info_crc;
 	u32 crc;
 	ssint result;
 
@@ -503,6 +515,8 @@ static ssint mpt_chip_backup(/*data_crc24_t*/ void *crc_ptr)
 	ibreg->cfg.crc.data[0] = crc & 0xff;
 	ibreg->cfg.crc.data[1] = (crc >> 8) & 0xff;
 	ibreg->cfg.crc.data[2] = (crc >> 16) & 0xff;
+
+	ibreg->cfg.ib.value = ibcrc->value;
 
 	if (!cfm->tsl->hal->save_cfg)
 		return -2;
@@ -521,11 +535,17 @@ static ssint mpt_chip_backup(/*data_crc24_t*/ void *crc_ptr)
 	return result;
 }
 
+/**
+ * \brief Load object config from memory 
+	do crc check after loaded, zero the config if failed
+ * @Return: Zero means normal, other value means something error detected
+ */
 static ssint mpt_chip_load_config(void)
 {
 #ifdef FLASH_SAVE_CONFIG
 	const config_manager_t *cfm = &chip_config_manager;
 	mxt_objects_reg_t * ibreg = &ib_objects_reg;
+	const data_crc24_t *ibcrc = &ib_info_crc;
 	u32 crc;
 	ssint result = -2;
 
@@ -536,11 +556,13 @@ static ssint mpt_chip_load_config(void)
 	if (result) {
 		/* something error */
 		result = -3;
+	} else if (ibreg->cfg.ib.value != ibcrc->value) {	// Check FW match the config
+		result = -4;
 	} else {
 		crc = calc_crc24((u8 *)&ibreg->cfg,  offsetof(/* typeof(ibreg->cfg) */objects_config_t, crc));
 		if (crc != ibreg->cfg.crc.value) {
 			/* crc mismatch */
-			result = -4;
+			result = -5;
 		}
 	}
 
@@ -1003,6 +1025,9 @@ ssint mpt_api_mem_write(u16 baseaddr, u16 offset, u8 val)
 	return result;
 }
 
+/**
+ * \notice objects pre-work before touch process, 
+ */
 void mpt_api_pre_process(void)
 {
 #ifdef OBJECT_T109

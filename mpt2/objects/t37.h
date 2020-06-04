@@ -31,7 +31,7 @@ typedef struct t37_data {
 	t37_page_status_t status;
 } t37_data_t;
 
-enum REF_MODE { DBG_REF, DBG_SIGNAL };
+enum REF_MODE { DBG_NORMAL, DBG_CAP };
 
 #define DEBUG_VIEW_DATA_AVE_SHIFT 1
 

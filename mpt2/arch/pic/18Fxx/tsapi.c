@@ -255,7 +255,7 @@ static inline ssint tch_config_rw(const tch_config_callback_t *param, void *buf,
 		src = buf;
 	}
 	
-	result = common_read_write(dst, src, param->size);
+	result = common_read_write(dst, src, size);
 	if (result == 0) {
 		if (rw == OP_WRITE) {
 			force_parameters(param->type, index);

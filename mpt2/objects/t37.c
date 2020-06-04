@@ -75,20 +75,28 @@ void object_api_t37_set_data_page(u8 cmd, u8 page)
 
 u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
 {
-	u8 refmode = DBG_REF;
+	u8 refmode = DBG_NORMAL;
 #ifdef OBJECT_T8
 	refmode = object_api_t8_ref_mode();
 #endif
 	switch(cmd) {
+		case MXT_DIAGNOSTIC_PTC_DELTA:
 		case MXT_DIAGNOSTIC_KEY_DELTA:
 		case MXT_DIAGNOSTIC_MC_DELTA: 
 		case MXT_DIAGNOSTIC_SC_DELTA:
-			return (u16)((s16)signal- (s16)reference);
+			if (refmode == DBG_CAP)
+				return signal;
+			else
+				return (u16)((s16)signal- (s16)reference);
+		case MXT_DIAGNOSTIC_PTC_REF:
 		case MXT_DIAGNOSTIC_KEY_REF:
 		case MXT_DIAGNOSTIC_MC_REF:
 		case MXT_DIAGNOSTIC_SC_REF:
-			if (refmode == DBG_REF)
+			if (refmode == DBG_CAP)
+				return cap;
+			else
 				return reference;
+		case MXT_DIAGNOSTIC_PTC_SIGNAL:
 		case MXT_DIAGNOSTIC_MC_SIGNAL: 
 		case MXT_DIAGNOSTIC_KEY_SIGNAL:
 		case MXT_DIAGNOSTIC_SC_SIGNAL:
@@ -109,6 +117,9 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 		case MXT_DIAGNOSTIC_KEY_DELTA:
 		case MXT_DIAGNOSTIC_KEY_REF:
 		case MXT_DIAGNOSTIC_KEY_SIGNAL:
+		case MXT_DIAGNOSTIC_PTC_DELTA:
+		case MXT_DIAGNOSTIC_PTC_REF:
+		case MXT_DIAGNOSTIC_PTC_SIGNAL:
 #endif
 		case MXT_DIAGNOSTIC_MC_DELTA:
 		case MXT_DIAGNOSTIC_MC_REF:

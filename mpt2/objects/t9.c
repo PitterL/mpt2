@@ -50,7 +50,6 @@ void t9_set_unsupport_area(t9_data_t *ptr)
 		
 	mem->ctrl |= MXT_T9_CTRL_RPTEN;
 #endif
-    mem->ctrl |= MXT_T9_CTRL_RPTEN|MXT_T9_CTRL_ENABLE;
 
 	if (!mem->xrange || mem->xrange > surdef->resolution_max)
 		mem->xrange = surdef->resolution_max;

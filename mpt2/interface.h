@@ -9,11 +9,13 @@
 #ifndef _MPT_INTERFACE_H
 #define _MPT_INTERFACE_H
 
+#include "include/types.h"
+
 /* Call init before Touch init */
 void mptt_interface_init(void);
 
 /* Call start after Touch inited */
-void mptt_start(void);
+ssint mptt_start(void);
 
 /* Call pre_process before each sampling*/
 void mptt_pre_process(void);

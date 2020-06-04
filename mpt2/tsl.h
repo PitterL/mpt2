@@ -36,7 +36,7 @@ typedef struct tsl_interface_info {
 }tsl_interface_info_t;
 
 void tsl_init(const hal_interface_info_t *hal);
-void tsl_start(void);
+ssint tsl_start(void);
 void tsl_pre_process(void);
 void tsl_process(uint8_t done);
 void tsl_post_process(void);

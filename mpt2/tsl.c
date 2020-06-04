@@ -35,10 +35,6 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 	{ .node = {	.origin = 0, .size = 11 } },	// Surface slider
 	{ .node = {	.origin = 11, .size = 2 } },	// Button
 #endif
-#ifdef PROJECT_EX11
-	//{ .node = {	.origin = 0, .size = 6 } },	// Surface x
-	//{ .node = {	.origin = 6, .size = 5 } },	// Surface y
-#endif
 };
 #endif
 
@@ -46,9 +42,6 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 // For simpling the algorithm, we set v for x, h for y, but must care, v should start first, h follow up
 qsurface_config_t surfaces_sliders_config[MXT_TOUCH_MULTI_T9_INST] = {
 	{
-	#ifdef PROJECT_EX11
-		.nodes = { { .origin = 0, .size = 6 }, { .origin = 6, .size = 5 } }, 
-	#endif
 		/*.resolution_bit = 8,	*/
 		/*.resolution_max = (1 << 8) -1,	*/
 	}
@@ -64,9 +57,6 @@ qtouch_config_t tsl_qtouch_def = {
 #endif
 #ifdef EVK_WATER_SURFACE
 	.matrix_nodes = {{.origin = 0, .size = 5}, {.origin =  5, .size = 8}},
-#endif
-#ifdef PROJECT_EX11
-	.matrix_nodes = {{.origin = 0, .size = 6}, {.origin =  6, .size = 5}},
 #endif
 #ifdef TOUCH_API_BUTTON
 	//If define num_button, should filled the buttons_config
@@ -192,7 +182,7 @@ void init_surface_node(qtouch_config_t *qdef)
 	
 	// Resolution
 	val = tsapi_read_config_byte(API_SURFACE_CS_RESOL_DB);
-	sursld->resolution_bit = ((SURFACE_RESOLUTION(val))/* - RESOL_2_BIT*/);
+	sursld->resolution_bit = ((SCR_RESOLUTION(val))/* - RESOL_2_BIT*/);
 	sursld->resolution_max = (1 << sursld->resolution_bit) - 1;
 	// Deadband percentage
 	// sursld->deadband = qtm_surface_cs_config1.resol_deadband & 0xf;
@@ -219,6 +209,11 @@ void inlitialize_button_slider_surface_nodes(qtouch_config_t *qdef)
 #endif
 }
 
+/*
+ * \brief Touch software layer initialization
+ * @hal: point to HW operation structure from interface.c
+*/
+
 void tsl_init(const hal_interface_info_t *hal)
 {
 	tsl_interface_info_t *tsl = &interface_tsl;
@@ -232,13 +227,27 @@ void tsl_init(const hal_interface_info_t *hal)
 	mpt_api_chip_init(tsl);
 }
 
-void tsl_start(void)
+/**
+ * \notice touch software layer active, 
+	include register start, function start
+ * @Return: Zero mean successful, other value mean something fault
+ */
+ssint tsl_start(void)
 {
-	mpt_api_chip_start();
-    
+	ssint result;
+
+	result = mpt_api_chip_start();
+	if (result)
+		return result;    
+
     touch_start();
+
+	return 0;
 }
 
+/**
+ * \brief touch software layer pre-work before touch process, 
+ */
 void tsl_pre_process(void)
 {
 	mpt_api_pre_process();
@@ -277,6 +286,10 @@ void tch_update_chip_state(uint8_t done)
 #endif
 }
 
+/**
+ * \brief touch software layer work when each touch process, 
+   there will handle the chip status and assert IRQ on data interface
+ */
 void tsl_process(uint8_t done)
 {
 	tch_update_chip_state(done);
@@ -333,6 +346,10 @@ void tch_surface_location_report(void)
 }
 #endif
 
+/**
+ * \brief touch software layer post-work when touch process measure done, 
+   there will handle the button/slider/surface pointer status
+ */
 void tsl_post_process(void)
 {	
 #ifdef TOUCH_API_SCROLLER

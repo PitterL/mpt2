@@ -118,7 +118,8 @@ tch_config_callback_t touch_config_list[] ={
 	
 	//qtm_init_sensor_key() + calibrate_node()
 	{API_DEF_SENSOR_TYPE, &ptc_qtlib_acq_gen1.acq_sensor_type, sizeof(ptc_qtlib_acq_gen1.acq_sensor_type), 0 },
-	
+	{API_NUM_CHANNELS, &ptc_qtlib_acq_gen1.num_sensor_nodes, sizeof(ptc_qtlib_acq_gen1.num_sensor_nodes), 0 },
+
 	//qtm_init_sensor_key() + calibrate_node()
 	{API_NODE_PARAMS_CSD, &ptc_seq_node_cfg1[0].node_csd, sizeof(ptc_seq_node_cfg1[0].node_csd), sizeof(ptc_seq_node_cfg1[0]) },
 	{API_NODE_PARAMS_RESISTOR_PRESCALER, &ptc_seq_node_cfg1[0].node_rsel_prsc, sizeof(ptc_seq_node_cfg1[0].node_rsel_prsc), sizeof(ptc_seq_node_cfg1[0]) },
@@ -131,14 +132,15 @@ tch_config_callback_t touch_config_list[] ={
 	{API_KEY_PARAMS_AKS_GROUP, &qtlib_key_configs_set1[0].channel_aks_group, sizeof(qtlib_key_configs_set1[0].channel_aks_group), sizeof(qtlib_key_configs_set1[0]) },
 	
 	//qtm_init_sensor_key()
+	{API_NUM_SENSORS, &qtlib_key_grp_config_set1.num_key_sensors, sizeof(qtlib_key_grp_config_set1.num_key_sensors), 0 },
 	{API_DEF_TOUCH_DET_INT, &qtlib_key_grp_config_set1.sensor_touch_di, sizeof(qtlib_key_grp_config_set1.sensor_touch_di), 0 },
 	{API_DEF_MAX_ON_DURATION, &qtlib_key_grp_config_set1.sensor_max_on_time, sizeof(qtlib_key_grp_config_set1.sensor_max_on_time), 0 },
 	{API_DEF_ANTI_TCH_DET_INT, &qtlib_key_grp_config_set1.sensor_anti_touch_di, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_di), 0 },
 	{API_DEF_ANTI_TCH_RECAL_THRSHLD, &qtlib_key_grp_config_set1.sensor_anti_touch_recal_thr, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_recal_thr), 0 },
 	{API_DEF_TCH_DRIFT_RATE, &qtlib_key_grp_config_set1.sensor_touch_drift_rate, sizeof(qtlib_key_grp_config_set1.sensor_touch_drift_rate), 0 },
 	{API_DEF_ANTI_TCH_DRIFT_RATE, &qtlib_key_grp_config_set1.sensor_anti_touch_drift_rate, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_drift_rate), 0 },
-	{API_DEF_DRIFT_HOLD_TIME, &qtlib_key_grp_config_set1.sensor_drift_hold_time, sizeof(qtlib_key_grp_config_set1.sensor_drift_hold_time), 0 },	
-	
+	{API_DEF_DRIFT_HOLD_TIME, &qtlib_key_grp_config_set1.sensor_drift_hold_time, sizeof(qtlib_key_grp_config_set1.sensor_drift_hold_time), 0 },		
+
 	//
 	{API_NODE_COMPCAP_VALUE, &ptc_qtlib_node_stat1[0].node_comp_caps, sizeof(ptc_qtlib_node_stat1[0].node_comp_caps), sizeof(ptc_qtlib_node_stat1[0]) },	
 
@@ -147,6 +149,7 @@ tch_config_callback_t touch_config_list[] ={
 	{API_SLIDER_NUM_KEYS, &qtm_scroller_config1[0].number_of_keys, sizeof(qtm_scroller_config1[0].number_of_keys), sizeof(qtm_scroller_config1[0]) },
 	{API_SLIDER_POS_HYST, &qtm_scroller_config1[0].position_hysteresis, sizeof(qtm_scroller_config1[0].position_hysteresis), sizeof(qtm_scroller_config1[0]) },
 	{API_SLIDER_MIN_CONTACT, &qtm_scroller_config1[0].contact_min_threshold, sizeof(qtm_scroller_config1[0].contact_min_threshold), sizeof(qtm_scroller_config1[0]) },
+	{API_SLIDER_RESOL_DB, &qtm_scroller_config1[0].resol_deadband, sizeof(qtm_scroller_config1[0].resol_deadband), sizeof(qtm_scroller_config1[0]) },
 #endif
 
 #ifdef TOUCH_API_SURFACE
@@ -157,7 +160,8 @@ tch_config_callback_t touch_config_list[] ={
 	{API_SURFACE_CS_NUM_KEYS_H, &qtm_surface_cs_config1.number_of_keys_h, sizeof(qtm_surface_cs_config1.number_of_keys_h), 0 },
 	{API_SURFACE_CS_POS_HYST, &qtm_surface_cs_config1.position_hysteresis, sizeof(qtm_surface_cs_config1.position_hysteresis), 0 },
 	{API_SURFACE_CS_FILT_CFG, &qtm_surface_cs_config1.position_filter, sizeof(qtm_surface_cs_config1.position_filter), 0 },
-	{API_SURFACE_CS_MIN_CONTACT, &qtm_surface_cs_config1.contact_min_threshold, sizeof(qtm_surface_cs_config1.contact_min_threshold), 0 }
+	{API_SURFACE_CS_MIN_CONTACT, &qtm_surface_cs_config1.contact_min_threshold, sizeof(qtm_surface_cs_config1.contact_min_threshold), 0 },
+	{API_SURFACE_CS_RESOL_DB, &qtm_surface_cs_config1.resol_deadband, sizeof(qtm_surface_cs_config1.resol_deadband), 0 }
 #endif
 };
 
@@ -265,8 +269,9 @@ static inline ssint tch_config_rw(const tch_config_callback_t *param, void *buf,
 	size_t trunk_size = 0;
 	ssint result;
 	
-	if (size != param->size)
-		return -2;
+	// Not overlap, but could change part of the varible
+	if (size > param->size)
+		size = param->size;
 	
 	trunk_size = param->trunk_size ? param->trunk_size * index : 0;
 		
@@ -278,7 +283,7 @@ static inline ssint tch_config_rw(const tch_config_callback_t *param, void *buf,
 		src = buf;
 	}
 	
-	result = common_read_write(dst, src, param->size);
+	result = common_read_write(dst, src, size);
 	if (result == 0) {
 		if (rw == OP_WRITE) {
 			force_parameters(param->type, index);
@@ -317,7 +322,7 @@ u8 tsapi_read_group_config_byte(u8 type, u8 index)
 	if (result == 0)
 		return buf[0];
 	
-	return (u8)-2;
+	return (u8)-1;	//Default return 0xff
 }
 
 u8 tsapi_read_config_byte(u8 type)
@@ -443,6 +448,7 @@ ssint tsapi_read_slider_state(u8 index, /*t9_point_status_t */void *sts)
 #ifdef TOUCH_API_SURFACE
 ssint tsapi_read_surface_state(u8 id, /*t9_point_status_t */void *sts)
 {	
+	const qtm_surface_contact_data_t *qtsf = &qtm_surface_cs_data1;
     t9_point_status_t *t9_sts = (t9_point_status_t *)sts;
 
 	if (qtsf->qt_surface_status & TOUCH_ACTIVE) {
@@ -456,7 +462,7 @@ ssint tsapi_read_surface_state(u8 id, /*t9_point_status_t */void *sts)
 		t9_sts->status = 0;
 	}
 
-	t9_sts->pos.x = qtsf->x_position;
+	t9_sts->pos.x = qtsf->v_position;
 	t9_sts->pos.y = qtsf->h_position;;
 
 	return 0;

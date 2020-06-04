@@ -12,6 +12,7 @@
 #include <utils.h>
 #include <clock_config.h>
 #include <util/delay.h>
+#include <utils/utils_assert.h>
 #include "arch/cpu.h"
 #include "arch/pinconf.h"
 
@@ -74,9 +75,29 @@ DECLARE_GPIO_SET_FUNCTION(pin_set, isc, PORT_ISC_t)
 DECLARE_GPIO_SET_FUNCTION(set_pin, dir, enum port_dir)
 DECLARE_GPIO_SET_FUNCTION(set_pin, level, bool)
 
+#define PTC_REG_START (uint8_t *)(&ADC0 + 1)
+#define PTC_REG_LENGTH 24	//FIXME: This might different in different chip
+#define PTC_REG_LENGTH_MAX (uint8_t)((uint8_t *)&ADC1 - PTC_REG_START)
+static uint8_t register_buffer[PTC_REG_LENGTH];
+
+/**
+ * \save and clear PTC register before test 
+ */
 void ptc_disable(void)
+{	
+	// FIXME: this is not a good method to operation HW level directly, but not API could be used in PTC lib
+
+	ASSERT(PTC_REG_LENGTH <= PTC_REG_LENGTH_MAX);
+	memcpy(register_buffer, PTC_REG_START, PTC_REG_LENGTH);
+	memset(PTC_REG_START, 0, PTC_REG_LENGTH);
+}
+
+/**
+ * \recover PTC register after test 
+ */
+void ptc_enable(void) 
 {
-	*(uint8_t *)(&ADC0 + 1) = 0;
+	memcpy(PTC_REG_START, register_buffer, PTC_REG_LENGTH);
 }
 
 bool ptc_channel_used(uint8_t channel)
@@ -93,6 +114,9 @@ bool ptc_channel_used(uint8_t channel)
 }
 
 #ifdef USE_MPTT_WRAPPER
+/*! \brief configure the ptc port pins to Input by automatic way
+	The function will decide which pin should be configured when used
+ */
 void touch_ptc_pin_config(void)
 {
 	const ptc_pin_map_t *ptc_map = attiny_xx17_ptc_pin_map;
@@ -135,6 +159,10 @@ uint16_t gpio_get_adc_value(uint8_t adc, ADC_MUXPOS_t channel, uint8_t vrshift)
 }
 
 extern void tsl_suspend(uint8_t suspend);
+/**
+ * \brief Pin fault init
+	initialize ADC and disable PTC, set tsl suspend
+ */
 void pinfault_test_init(void)
 {
 	tsl_suspend(1);
@@ -145,6 +173,11 @@ void pinfault_test_init(void)
 	ADC_init(&ADC1, ADC_REFSEL_VDDREF_gc, ADC_SAMPNUM_ACC16_gc, ADC_RESSEL_8BIT_gc);
 }
 
+/**
+ * \brief Pin fault content
+	use ADC to check value after config the pin mode
+ * @return: true mean pass, false failed
+ */
 bool pinfault_test_cycle(uint8_t delay,uint8_t thld, bool walk, bool level, uint8_t *test_pin, uint8_t *pin_val)
 {
 	const ptc_pin_map_t *ptc_map = attiny_xx17_ptc_pin_map;
@@ -199,12 +232,20 @@ bool pinfault_test_cycle(uint8_t delay,uint8_t thld, bool walk, bool level, uint
 	return result;
 }
 
+/**
+ * \brief Pin fault end
+	disable ADC and recovery PTC, tsl
+ */
 void pinfault_test_end(void)
 {
 	ADC_disable(&ADC0);
 	ADC_disable(&ADC1);
-	
+
+#ifdef USE_MPTT_WRAPPER
 	touch_ptc_pin_config();
+#endif
+
+	ptc_enable();
 
 	tsl_suspend(0);
 }
@@ -221,7 +262,7 @@ uint8_t avdd_test(void)
 			=> (1) adcval = Vmeasured * 256 /Vref
 				(2) Vref = Vmeasured *256 /adcval
 			
-		adcval = du / Vref£º
+		adcval = du / Vref:
 	
 		we use default internal VREF (voltage 0.55v) as measure target, VDD as Ref. 
 		default VREF = 0.55v, for 8 bit sampling, numerator is du = 0.55 *256 = 140.8
@@ -243,6 +284,11 @@ uint8_t avdd_test(void)
 	return val;
 }
 
+/**
+ * \brief Pin fault test
+	for 4 modes: Driven ground, Driven high, Walk 1, Walk 0
+ * @Return: Zero means normal, failed seq number returned
+ */
 uint8_t pinfault_test(uint8_t delay,uint8_t thld, uint8_t *test_pin, uint8_t *test_val)
 {
 	uint8_t result;

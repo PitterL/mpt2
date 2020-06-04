@@ -43,28 +43,56 @@ const hal_interface_info_t interface_hal = {
 #endif
 };
 
+/**
+ * \brief MPTT framework initialization, 
+	include software layer and communication bus
+ */
 void mptt_interface_init(void)
 {
+	/* Initialize Touch Software Layer */
 	tsl_init(&interface_hal);
+
+	/* Initialize Data Bus for communication, like I2C/SPI.. */
 	bus_init();
 }
 
-void mptt_start(void)
+/**
+ * \brief MPTT framework active, 
+	include software layer and communication bus
+ * @return: 0: if successful, other value mean something error(mostly like the pin fault detect failed)
+ */
+ssint mptt_start(void)
 {	
-	tsl_start();
+	ssint result;
+
+	result = tsl_start();
+	if (result)
+		return result;
+
 	bus_start();
+
+	return 0;
 }
 
+/**
+ * \brief MPTT framework pre-work before touch process in progress,
+ */
 void mptt_pre_process(void)
 {
 	tsl_pre_process();
 }
 
+/**
+ * \brief MPTT framework work when each touch process,
+ */
 void mptt_process(uint8_t done)
 {
 	tsl_process(done);	
 }
 
+/**
+ * \brief MPTT framework post-work when touch process measure done,
+ */
 void mptt_post_process(void)
 {
 	tsl_post_process();

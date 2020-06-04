@@ -37,6 +37,37 @@ Copyright (c) 2019 Microchip. All rights reserved.
 #define NODE_MUTUAL_4P 0x41u
 #define NODE_MUTUAL_8P 0x42u
 
+typedef enum tag_filter_level_t {
+	FILTER_LEVEL_1,
+	FILTER_LEVEL_2,
+	FILTER_LEVEL_4,
+	FILTER_LEVEL_8,
+	FILTER_LEVEL_16,
+	FILTER_LEVEL_32,
+	FILTER_LEVEL_64
+} filter_level_t;
+
+/* Touch library GAIN setting */
+typedef enum tag_gain_t { GAIN_1, GAIN_2, GAIN_4, GAIN_8, GAIN_16, GAIN_32 } gain_t;
+/* PTC clock prescale setting.
+ * Example: if Generic clock input to PTC = 4MHz, then:
+ * PRSC_DIV_SEL_1 sets PTC Clock to 4MHz
+ * PRSC_DIV_SEL_2 sets PTC Clock to 2MHz
+ * PRSC_DIV_SEL_4 sets PTC Clock to 1MHz
+ * PRSC_DIV_SEL_8 sets PTC Clock to 500KHz
+ *
+ */
+typedef enum tag_prsc_div_sel_t {
+	PRSC_DIV_SEL_1,
+	PRSC_DIV_SEL_2,
+	PRSC_DIV_SEL_4,
+	PRSC_DIV_SEL_8,
+	PRSC_DIV_SEL_16,
+	PRSC_DIV_SEL_32,
+	PRSC_DIV_SEL_64,
+	PRSC_DIV_SEL_128
+} prsc_div_sel_t;
+
 typedef enum tag_recal_threshold_t {
 	RECAL_100,
 	RECAL_50,
@@ -46,8 +77,28 @@ typedef enum tag_recal_threshold_t {
 	MAX_RECAL
 } recal_threshold_t;
 
-#define SURFACE_RESOLUTION(m) SCR_RESOLUTION(m)
-#define SURFACE_DEADBAND(m) SCR_DEADBAND(m)
+/**
+ * PTC series resistor setting. For Mutual cap mode, this series
+ * resistor is switched internally on the Y-pin. For Self cap mode,
+ * thes series resistor is switched internally on the Sensor pin.
+ *
+ * Example:
+ * RSEL_VAL_0 sets internal series resistor to 0ohms.
+ * RSEL_VAL_20 sets internal series resistor to 20Kohms.
+ * RSEL_VAL_50 sets internal series resistor to 50Kohms.
+ * RSEL_VAL_100 sets internal series resistor to 100Kohms.
+ */
+typedef enum tag_rsel_val_t {
+	RSEL_VAL_0,
+	RSEL_VAL_20,
+	RSEL_VAL_50,
+	RSEL_VAL_70,
+	RSEL_VAL_100,
+	RSEL_VAL_200
+} rsel_val_t;
+
+#define SCR_RESOLUTION(m) SURFACE_RESOLUTION(m)
+#define SCR_DEADBAND(m) SURFACE_DEADBAND(m)
 
 /*----------------------------------------------------------------------------
  *     Structure Declarations

@@ -49,10 +49,16 @@ Copyright (c) 2019 Microchip. All rights reserved.
 //#define CALCULATE_CAP(_v) (MUL_7((_v) & 0x0F) + MUL_68(((_v) >> 4) & 0x0F) + MUL_675(((_v) >> 8) & 0x0F) + MUL_6750(((_v) >> 12) & 0x03)) + MUL_6750(((_v) >> 14) & 0x03))
 
 // Use 1/1000 pf as unit, the max value 675 * 8 = 54000, less than 16bit, but will show negative value in studio if more thant 32767
-#define CALCULATE_CAP(_v) (((_v) & 0x0F) * 7 + (((_v) >> 4) & 0x0F) * 68 + (((_v) >> 8) & 0x0F) *675 + ((((_v) >> 12) & 0x03) + (((_v) >> 14) & 0x03)) * 6750)
+#define CALCULATE_CAP_1000PF(_v) (((_v) & 0x0F) * 7 + (((_v) >> 4) & 0x0F) * 68 + (((_v) >> 8) & 0x0F) *675 + ((((_v) >> 12) & 0x03) + (((_v) >> 14) & 0x03)) * 6750)
 
 // Use 1/100 pf as unit
-//#define CALCULATE_CAP(_v) ((((_v) >> 2) & 0x02) * 3 + (((_v) >> 4) & 0x0F) * 7 + (((_v) >> 8) & 0x0F) *68 + (((_v) >> 12) & 0x03) * 675) + (((_v) >> 4) & 0x03) * 675)
+#define CALCULATE_CAP_100PF(_v) ((((_v) >> 2) & 0x02) * 3 + (((_v) >> 4) & 0x0F) * 7 + (((_v) >> 8) & 0x0F) *68 + ((((_v) >> 12) & 0x03) + (((_v) >> 14) & 0x03)) * 675)
+
+#ifdef MPTT_CCAMP_100PF
+#	define CALCULATE_CAP CALCULATE_CAP_100PF
+#else
+#	define CALCULATE_CAP CALCULATE_CAP_1000PF
+#endif
 
 #define SENSOR_BASE_REF_VALUE 512u
 

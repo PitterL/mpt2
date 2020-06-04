@@ -83,6 +83,10 @@ void bus_error_handler(void)
 	handle_bus_event(BUS_ERROR, NULL);
 }
 
+/**
+ * \brief Initialize I2C Data Bus for communication
+ */
+
 void bus_init(void)
 {
     //bus_state_change(BUS_STOP);

@@ -277,6 +277,7 @@ static void build_qtm_config(qtm_control_t *qtm)
 }
 
 #ifndef USE_MPTT_WRAPPER
+#error "be careful to re-configure here since there isn't enabled PTC pin auto config"
 void touch_ptc_pin_config(void)
 {
 
@@ -372,11 +373,6 @@ static void init_complete_callback(void)
 {
 	/* Configure touch sensors with Application specific settings */
 	touch_sensors_config();
-
-#ifdef TOUCH_API_SCROLLER_H
-	/* scroller init */
-	qtm_init_scroller_module(&qtm_scroller_control1);
-#endif
 }
 
 /*============================================================================
@@ -412,12 +408,7 @@ static void qtm_post_process_complete(void)
 	} else {
 		measurement_done_touch = 1;
 	}
-
-#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
-	datastreamer_output();
-#endif
 }
-
 /*============================================================================
 static void qtm_error_callback(uint8_t error)
 ------------------------------------------------------------------------------
@@ -558,6 +549,10 @@ void touch_process(void)
 			p_qtm_control->binding_layer_flags |= (1u << time_to_measure_touch);
 			p_qtm_control->binding_layer_flags &= ~(1u << reburst_request);
 		}
+
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
+		datastreamer_output();
+#endif
 	}
 }
 
@@ -581,13 +576,13 @@ Notes  :
 ============================================================================*/
 void touch_timer_handler(void)
 {
-#ifdef OBJECT_T25
 	//suspend mode
-    if (qtlib_suspend)
-        return;
+#ifdef OBJECT_T25
+	if (qtlib_suspend)
+		return;
 #endif
 
-    //inactive mode
+	// MPTT required change
 	if (!qtlib_time_elapsed_since_update)
 		return;
 
@@ -672,7 +667,6 @@ Notes    :  none
 ISR(ADC0_RESRDY_vect)
 {
 #ifdef OBJECT_T25
-	//suspend mode
 	if (qtlib_suspend)
 		return;
 #endif
