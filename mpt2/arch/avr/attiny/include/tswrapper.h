@@ -27,6 +27,38 @@ Copyright (c) 2019 Microchip. All rights reserved.
 #endif
 #endif
 
+#ifndef POSITION_CHANGE
+#ifdef SCROLLER_POSITION_CHANGE
+#define POSITION_CHANGE SCROLLER_POSITION_CHANGE
+#else
+#define POSITION_CHANGE SURFACE_POSITION_CHANGE
+#endif
+#endif
+
+#ifndef TOUCH_ACTIVE
+#ifdef SCROLLER_POSITION_CHANGE
+#define TOUCH_ACTIVE SCROLLER_POSITION_CHANGE
+#else
+#define TOUCH_ACTIVE SURFACE_POSITION_CHANGE
+#endif
+#endif
+
+#ifndef SCR_RESOLUTION
+#ifdef SCROLLER_RESOLUTION
+#define SCR_RESOLUTION(m) SCROLLER_RESOLUTION(m)
+#else
+#define SCR_RESOLUTION(m) SURFACE_RESOLUTION(m)
+#endif
+#endif
+
+#ifndef SCR_DEADBAND
+#ifdef SCROLLER_DEADBAND
+#define SCR_DEADBAND(m) SCROLLER_DEADBAND(m)
+#else
+#define SCR_DEADBAND(m) SURFACE_DEADBAND(m)
+#endif
+#endif
+
 /* 
 	cc value formula:
 		(val & 0x0F)*0.00675 + ((val >> 4) & 0x0F)*0.0675 + ((val >> 8) & 0x0F)*0.675 + ((val >> 12) & 0x7) * 6.75

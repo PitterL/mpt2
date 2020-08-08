@@ -145,6 +145,7 @@ tch_config_callback_t touch_config_list[] ={
 	{API_NODE_COMPCAP_VALUE, &ptc_qtlib_node_stat1[0].node_comp_caps, sizeof(ptc_qtlib_node_stat1[0].node_comp_caps), sizeof(ptc_qtlib_node_stat1[0]) },	
 
 #ifdef TOUCH_API_SCROLLER
+	{API_NUM_SLIDERS, &qtm_scroller_group_config1.num_scrollers, sizeof(qtm_scroller_group_config1.num_scrollers), 0},
 	{API_SLIDER_START_KEY, &qtm_scroller_config1[0].start_key, sizeof(qtm_scroller_config1[0].start_key), sizeof(qtm_scroller_config1[0]) },
 	{API_SLIDER_NUM_KEYS, &qtm_scroller_config1[0].number_of_keys, sizeof(qtm_scroller_config1[0].number_of_keys), sizeof(qtm_scroller_config1[0]) },
 	{API_SLIDER_POS_HYST, &qtm_scroller_config1[0].position_hysteresis, sizeof(qtm_scroller_config1[0].position_hysteresis), sizeof(qtm_scroller_config1[0]) },

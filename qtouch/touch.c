@@ -277,7 +277,7 @@ static void build_qtm_config(qtm_control_t *qtm)
 }
 
 #ifndef USE_MPTT_WRAPPER
-#error "be careful to re-configure here since there isn't enabled PTC pin auto config"
+/* MPTT will implement this function and re-configure the pinmux automatically, so we comment here */
 void touch_ptc_pin_config(void)
 {
 

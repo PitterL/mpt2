@@ -249,8 +249,10 @@ void t25_inspect_init(t25_data_t *ptr, u8 testop)
 {	
 	ptr->cache.testop = testop & TEST_MASK;	
 
+#ifdef OBJECT_T8
 	if (testop & SIGNAL_LIMIT_MASK)
 		object_t8_switch_measure_mode(1);
+#endif
 }
 
 void t25_inspect_completed(t25_data_t *ptr, u8 testop, u8 testclr)
@@ -260,8 +262,10 @@ void t25_inspect_completed(t25_data_t *ptr, u8 testop, u8 testclr)
 	if (!testop)
 		mem->cmd = 0;
 
+#ifdef OBJECT_T8
 	if ((!(testop & SIGNAL_LIMIT_MASK)) && (testclr & SIGNAL_LIMIT_MASK))
 		object_t8_switch_measure_mode(0);
+#endif
 }
 
 void object_api_t25_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
