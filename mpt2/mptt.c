@@ -20,10 +20,14 @@
 #include "tsl.h"
 #include "mptt.h"
 
+/* use for sync the version with pack-build firmware */
+#include <pack.h>
+
 #define MPTT_FW_FAMILY_ID 0xa6	//0x81
 #define MPTT_FW_VARIANT_ID 0x08	//0x01
 #define MPTT_FW_VERSION 0x21
-#define MPTT_FW_BUILD 0x01
+/* use the latest byte for the build version */
+#define MPTT_FW_BUILD (PROJECT_CODE & 0xFF)
 
 typedef struct mxt_info {
 	u8 family_id;

@@ -662,6 +662,9 @@
     <Compile Include="qtouch\license.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="qtouch\pack.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="qtouch\touch.c">
       <SubType>compile</SubType>
     </Compile>

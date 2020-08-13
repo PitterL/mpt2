@@ -46,18 +46,16 @@ void copy_node_data_to_buffer(u8 cmd, u8 page, u8 relative, u16 data)
 	}
 }
 
-void check_and_empty_object_t37(u8 dbgcmd, u8 page, u8 clr)
+void check_and_empty_object_t37_mem(u8 dbgcmd, u8 page)
 {
 	t37_data_t *ptr = &t37_data_status;
 	object_t37_t *mem = (object_t37_t *)ptr->common.mem;
 	
+	/* check the command and page, if not match, clear the data */
 	if ((dbgcmd != mem->mode || page != mem->page )) {
-		memset(mem->data, 0, sizeof(mem->data));
-	}
-	
-	if (!clr) {
 		mem->mode = dbgcmd;
-		mem->page = page;
+		mem->page = page;	
+		memset(mem->data, 0, sizeof(mem->data));
 	}
 }
 
@@ -70,7 +68,7 @@ void object_api_t37_set_data_page(u8 cmd, u8 page)
 	
 	// FIXME:
 	// If clear data, the debug view may flick in insight, but if not clear, be careful about large channel matrix
-	check_and_empty_object_t37(cmd, page, true);
+	check_and_empty_object_t37_mem(cmd, page);
 }
 
 u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
@@ -174,6 +172,10 @@ void object_api_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 c
 {
 	t37_data_t *ptr = &t37_data_status;
 	u16 data;
+
+	/* check whether we have command */
+	if (!ptr->status.cmd)
+		return;
 
 	data = t37_get_data(ptr->status.cmd, channel, reference, signal, cap);
 	t37_put_data(ptr, ptr->status.cmd, ptr->status.page, channel, data);

@@ -135,7 +135,7 @@ void I2C_initialization(void)
 	I2C_init();
 }
 
-
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
 /* configure the pins and initialize the registers */
 void USART_initialization(void)
 {
@@ -160,11 +160,9 @@ void USART_initialization(void)
 	    // <true"> High
 	    false);
 
-#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
 	USART_init();
-#endif
 }
-
+#endif
 
 /**
  * \brief System initialization
