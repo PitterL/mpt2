@@ -429,9 +429,9 @@ ssint tsapi_read_slider_state(u8 index, /*t9_point_status_t */void *sts)
 	if (index >= qsgc->num_scrollers)
 		return -2;
 
-	if (qtsd[0].scroller_status & TOUCH_ACTIVE) {
+	if (qtsd[index].scroller_status & TOUCH_ACTIVE) {
 		t9_sts->status = MXT_T9_DETECT;
-		if(qtsd[0].scroller_status & POSITION_CHANGE)
+		if(qtsd[index].scroller_status & POSITION_CHANGE)
 			t9_sts->status |= MXT_T9_MOVE;
 		else
 			t9_sts->status |= MXT_T9_PRESS;
@@ -440,7 +440,7 @@ ssint tsapi_read_slider_state(u8 index, /*t9_point_status_t */void *sts)
 	}
 
 	t9_sts->pos.x = 0;
-	t9_sts->pos.y = qtsd[0].position;
+	t9_sts->pos.y = qtsd[index].position;
 
 	return 0;
 }
