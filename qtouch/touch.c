@@ -276,7 +276,7 @@ static void build_qtm_config(qtm_control_t *qtm)
 	qtm->qtm_post_process_callback     = qtm_post_process_complete;
 }
 
-#ifndef USE_MPTT_WRAPPER
+#ifndef MPTT_AUTO_PINMUX
 /* MPTT will implement this function and re-configure the pinmux automatically, so we comment here */
 void touch_ptc_pin_config(void)
 {
@@ -558,6 +558,14 @@ void touch_process(void)
 
 uint8_t interrupt_cnt;
 
+#ifdef OBJECT_T18
+extern bool object_t18_check_dismntr(void);
+#endif
+
+#ifdef MPTT_BUS_MONITOR
+extern void mptt_bus_monitor_ticks(uint8_t tick);
+#endif
+
 #ifdef OBJECT_T25
 /* set to non zero suspend the sampling */
 uint8_t qtlib_suspend = 0;
@@ -576,10 +584,18 @@ Notes  :
 ============================================================================*/
 void touch_timer_handler(void)
 {
-	//suspend mode
+	// Suspend mode
 #ifdef OBJECT_T25
 	if (qtlib_suspend)
 		return;
+#endif
+
+	// Update bit heart to bus monitor
+#ifdef MPTT_BUS_MONITOR
+#ifdef OBJECT_T18
+	if (!object_t18_check_dismntr())
+#endif
+		mptt_bus_monitor_ticks(1);
 #endif
 
 	// MPTT required change

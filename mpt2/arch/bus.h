@@ -30,6 +30,9 @@ typedef struct bus_monitor {
 	} regaddr;
 
 	u8 state;
+
+	/* current bit heart ticks: 1ms unit */
+	u8 current;
 } bus_monitor_t;
 
 void bus_state_change(u8 state);

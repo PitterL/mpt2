@@ -32,6 +32,12 @@
 #include "arch/bus.h"
 #include "tsl.h"
 
+#ifdef MPTT_BUS_MONITOR
+#include "arch/sysctrl.h"
+inline void bus_monitor_reset();
+inline void bus_monitor_stop();
+#endif
+
 #define CHG_DUTY_CYCLES	4
 #define CHG_SET_DUTY_ON_CYCLE 0
 
@@ -56,13 +62,22 @@ void bus_state_change(u8 state)
         case BUS_READ:
             bus->counter[BUS_READ] = 0;
             bus->state = state;
+#ifdef MPTT_BUS_MONITOR		
+			bus_monitor_reset();
+#endif
             break;
         case BUS_WRITE:
             bus->counter[BUS_WRITE] = 0;
             bus->state = state;
+#ifdef MPTT_BUS_MONITOR
+			bus_monitor_reset();
+#endif
             break;
         default:
             memset(bus, 0, sizeof(*bus));
+#ifdef MPTT_BUS_MONITOR
+			bus_monitor_stop();
+#endif
     }
 }
 
@@ -100,7 +115,7 @@ ssint handle_bus_event(u8 state, u8 *val)
 	bus_monitor_t *bus = &data_bus;
 	u16 count;
 	ssint result = 0;
-	
+
 	switch(state) {
 		case BUS_WRITE:
 			count = bus->counter[BUS_WRITE]++;
@@ -134,3 +149,46 @@ u8 mptt_get_bus_state(void)
 {
 	return data_bus.state;
 }
+
+
+#ifdef MPTT_BUS_MONITOR
+
+extern bool get_bus_line_level(void);
+
+#define MONITOR_TICKS_STOP 0
+#define MONITOR_TICKS_START 1
+#define MONITOR_TICKS_RESET_TIME 200
+/*============================================================================
+void mptt_bus_monitor_ticks(u8 tick)
+------------------------------------------------------------------------------
+Purpose: update the bus monitor bit heart
+Input  : tick, suggest 1 each time, or because of overflow
+Output : none
+Notes  :
+============================================================================*/
+void mptt_bus_monitor_ticks(u8 tick)
+{	
+	if (data_bus.current <= MONITOR_TICKS_STOP)	// the monitor is not running
+		return;
+
+	if (data_bus.current >= MONITOR_TICKS_RESET_TIME) {	/* 200 ms monitor */
+		if (!get_bus_line_level()) {
+			sys_reset();
+		}
+
+		bus_monitor_reset();
+	} else {
+		data_bus.current += tick;
+	}
+}
+
+void bus_monitor_reset()
+{
+	data_bus.current = MONITOR_TICKS_START;
+}
+
+void bus_monitor_stop()
+{
+	data_bus.current = MONITOR_TICKS_STOP;
+}
+#endif

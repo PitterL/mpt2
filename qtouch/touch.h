@@ -154,7 +154,7 @@ extern "C" {
  * Range: 0 to 255.
  * Default value: 4.
  */
-#define DEF_TOUCH_DET_INT 4
+#define DEF_TOUCH_DET_INT 2
 
 /* De-bounce counter for additional measurements to confirm away from touch signal
  * to initiate Away from touch re-calibration.

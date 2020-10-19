@@ -14,6 +14,7 @@
 #define MXT_COMMS_CMD		1
 
 #define MXT_COMMS_CTRL_RETRIGEN      BIT(6)
+#define MXT_COMMS_CTRL_DISMNTR		 BIT(7)
 
 /* T18 Memory Space */
 typedef struct object_t18 {
@@ -27,5 +28,6 @@ ssint object_t18_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, co
 void object_t18_start(u8 loaded);
 void object_t18_data_sync(u8 rw);
 bool object_t18_check_retrigger(void);
+bool object_t18_check_dismntr(void);
 
 #endif /* T18_H_ */

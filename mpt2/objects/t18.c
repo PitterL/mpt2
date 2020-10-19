@@ -54,4 +54,14 @@ bool object_t18_check_retrigger(void)
 	return false;
 }
 
+bool object_t18_check_dismntr(void)
+{
+	t18_data_t *ptr = &t18_data_status;
+	object_t18_t *mem = (object_t18_t *)ptr->mem;
+	
+	if(mem->ctrl & MXT_COMMS_CTRL_DISMNTR)
+		return true;
+	
+	return false;
+}
 #endif

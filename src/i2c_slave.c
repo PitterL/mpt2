@@ -103,7 +103,8 @@ void I2C_init()
 	              | 1 << TWI_ENABLE_bp /* Enable TWI Slave: enabled */
 	              | 1 << TWI_PIEN_bp   /* Stop Interrupt Enable: enabled */
 	              | 0 << TWI_PMEN_bp   /* Promiscuous Mode Enable: disabled */
-	              | 0 << TWI_SMEN_bp;  /* Smart Mode Enable: disabled */
+	              | 0 << TWI_SMEN_bp  /* Smart Mode Enable: disabled */
+	              | 3 << TWI_TIMEOUT_gp; /* Inactive Bus Timeout: 200us */				   
 
 	I2C_set_write_callback(NULL);
 	I2C_set_read_callback(NULL);
@@ -143,11 +144,13 @@ bool send_firstbyte = true;
 void I2C_isr()
 {
 	if (TWI0.SSTATUS & TWI_COLL_bm) {
+		TWI0.SSTATUS |= TWI_COLL_bm;	// Fix for the isr loop forever
 		I2C_collision_callback();
 		return;
 	}
 
 	if (TWI0.SSTATUS & TWI_BUSERR_bm) {
+		TWI0.SSTATUS |= TWI_BUSERR_bm;	// Fix for the isr loop forever
 		I2C_bus_error_callback();
 		return;
 	}

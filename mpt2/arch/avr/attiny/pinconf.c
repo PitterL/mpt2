@@ -11,7 +11,9 @@
 #include <port.h>
 #include <utils.h>
 #include <clock_config.h>
+#ifdef __OPTIMIZE__
 #include <util/delay.h>
+#endif
 #include <utils/utils_assert.h>
 #include "arch/cpu.h"
 #include "arch/pinconf.h"
@@ -113,10 +115,10 @@ bool ptc_channel_used(uint8_t channel)
 	return false;
 }
 
-#ifdef USE_MPTT_WRAPPER
 /*! \brief configure the ptc port pins to Input by automatic way
 	The function will decide which pin should be configured when used
  */
+#ifdef MPTT_AUTO_PINMUX
 void touch_ptc_pin_config(void)
 {
 	const ptc_pin_map_t *ptc_map = attiny_xx17_ptc_pin_map;
@@ -131,10 +133,17 @@ void touch_ptc_pin_config(void)
 		}
 	}
 }
+#else
+extern void touch_ptc_pin_config(void);
 #endif
 
-#define delay_us(_v)	_delay_us(_v)
-#define delay_ms(_v)	_delay_ms(_v)
+#ifdef __OPTIMIZE__
+#	define delay_us(_v)	_delay_us(_v)
+#	define delay_ms(_v)	_delay_ms(_v)
+#else
+#	define delay_us(_v)
+#	define delay_ms(_v)
+#endif
 
 uint16_t gpio_get_adc_value(uint8_t adc, ADC_MUXPOS_t channel, uint8_t vrshift)
 {
@@ -194,7 +203,9 @@ bool pinfault_test_cycle(uint8_t delay,uint8_t thld, bool walk, bool level, uint
 		}
 	}
 
+#ifdef __OPTIMIZE__
 	delay_ms(10);
+#endif
 
 	for ( i = 0; i < PTC_CHANNLE_COUNT; i++) {
 		if (ptc_channel_used(ptc_map[i].ptc_channel)) {

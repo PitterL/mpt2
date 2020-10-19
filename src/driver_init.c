@@ -135,6 +135,13 @@ void I2C_initialization(void)
 	I2C_init();
 }
 
+#ifdef MPTT_BUS_MONITOR
+bool get_bus_line_level(void)
+{
+	return PA1_get_level() && PA2_get_level();
+}
+#endif
+
 #ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
 /* configure the pins and initialize the registers */
 void USART_initialization(void)
