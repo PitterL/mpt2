@@ -181,7 +181,7 @@ void force_init_all_sensor_key(void) {
 	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
 	u8 i;
 	
-	for ( i = 0; i < qttkg->num_key_sensors; i++) {
+	for ( i = 0; i < (u8)qttkg->num_key_sensors; i++) {
 		force_init_sensor_key(i, 1);
 	}
 }
@@ -354,7 +354,7 @@ u8 tsapi_get_chip_state(void)
 	u8 sensor_state, cal;
 	u8 i;
 
-	for (i = 0; i < qttkg->num_key_sensors; i++) {
+	for (i = 0; i < (u8)qttkg->num_key_sensors; i++) {
 		// FIXME, Why node_acq_status may different with sensor_state?
 		cal = qtns[i].node_acq_status & NODE_CAL_MASK;
 		if (cal) {
@@ -388,7 +388,7 @@ ssint tsapi_read_ref_signal_cap(u8 index, cap_sample_value_t *cval)
 	const qtm_touch_key_group_config_t * const qttkg = &qtlib_key_grp_config_set1;
 	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
 
-	if (index >= qttkg->num_key_sensors)
+	if (index >= (u8)qttkg->num_key_sensors)
 		return -2;
 
 	cval->reference = qtkds[index].channel_reference;
@@ -406,7 +406,7 @@ ssint tsapi_read_button_state(u8 index)
 	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
 	u8 status;
 
-	if (index >= qttkg->num_key_sensors)
+	if (index >= (u8)qttkg->num_key_sensors)
 		return -2;
 
 	if (qtkds[index].sensor_state & KEY_TOUCHED_MASK) {

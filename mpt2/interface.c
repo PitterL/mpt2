@@ -37,7 +37,7 @@
 const hal_interface_info_t interface_hal = {
 	.assert_irq = bus_assert_irq,
 	.reset = sys_reset,
-#ifdef FLASH_SAVE_CONFIG
+#ifdef MPTT_SAVE_CONFIG
 	.load_cfg = inf_load_cfg,
 	.save_cfg = inf_save_cfg,
 #endif

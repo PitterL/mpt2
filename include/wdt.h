@@ -1,9 +1,9 @@
 /**
  * \file
  *
- * \brief flash interface wrapper.
+ * \brief Watchdog Timer related functionality implementation.
  *
- (c) 2018 Microchip Technology Inc. and its subsidiaries.
+ (c) 2020 Microchip Technology Inc. and its subsidiaries.
 
     Subject to your compliance with these terms,you may use this software and
     any derivatives exclusively with Microchip products.It is your responsibility
@@ -25,28 +25,21 @@
  *
  */
 
-#include <nvmctrl_basic.h>
-#include "include/types.h"
-#include "arch/flash.h"
+#ifndef WATCHDOG_TIMER_H_INCLUDED
+#define WATCHDOG_TIMER_H_INCLUDED
 
-#ifdef MPTT_SAVE_CONFIG
-ssint inf_load_cfg(u8 *data, size_t len)
-{
-	if (len >  EEPROM_SIZE - OFFSET_CONFIG_IN_EEPROM)
-		return -2;
+#include <compiler.h>
+#include <wdt.h>
+#include <ccp.h>
 
-	/* Read EEPROM */
-	FLASH_0_read_eeprom_block(OFFSET_CONFIG_IN_EEPROM, data, len);
-	
-	return 0;
-}
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-ssint inf_save_cfg(const u8 *data, size_t len)
-{
-	if (len >  EEPROM_SIZE - OFFSET_CONFIG_IN_EEPROM)
-		return -2;
+#define CLR_WDT()         __asm__ __volatile__ ( "wdr" ::: "memory")
 
-	/* Write EEPROM */
-	return FLASH_0_write_eeprom_block(OFFSET_CONFIG_IN_EEPROM, data, len);
+#ifdef __cplusplus
 }
 #endif
+
+#endif /* WATCHDOG_TIMER_H_INCLUDED */

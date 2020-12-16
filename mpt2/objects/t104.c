@@ -64,9 +64,7 @@ void t104_data_sync(const t104_data_t *ptr, u8 rw)
 		if  (rw != OP_READ)
 			return;
 		
-#ifdef MPTT_MATRIX_NODES
-	// For matrix sensing, readonly mode
-#else
+#ifndef MPTT_MATRIX_NODES
 	// Sensor channel parameter for X channel
 	for (i = ns[NODE_X].origin; i < ns[NODE_X].origin + ns[NODE_X].size; i++) {
 		object_txx_op(&ptr->common, xparams, ARRAY_SIZE(xparams), i, rw);
@@ -80,6 +78,8 @@ void t104_data_sync(const t104_data_t *ptr, u8 rw)
 		if (rw == OP_READ)
 			break;
 	}
+#else
+	// For matrix sensing, readonly mode
 #endif
 	
 	t104_set_unsupport_area(mem);

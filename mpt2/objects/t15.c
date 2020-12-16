@@ -154,10 +154,10 @@ ssint object_api_t15_set_button_status(/* Slot id */u8 id, u8 pressed)
 				offset = id - btndef->node.origin;
 				status = ptr[i].button.keystate.value;
 				if (pressed)
-					status |= BIT(offset);
+					status |= BIT32(offset);
 				else
-					status &= ~BIT(offset);
-			
+					status &= ~BIT32(offset);
+
 				if (status != ptr[i].button.keystate.value) {
 					ptr[i].button.keystate.value = status;
 					ptr[i].button.status = status? MXT_T15_DETECT : 0;

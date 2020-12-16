@@ -69,13 +69,13 @@ void object_t25_data_sync(u8 rw)
 
 	switch(mem->cmd) {
 		case MXT_T25_CMD_TEST_AVDD:
-			testop = BIT_MASK(TEST_AVDD);
+			testop = BIT(TEST_AVDD);
 		break;
 		case MXT_T25_CMD_TEST_PIN_FAULT:
-			testop = BIT_MASK(TEST_PINFAULT);
+			testop = BIT(TEST_PINFAULT);
 		break;
 		case MXT_T25_CMD_TEST_SIGNAL_LIMIT:
-			testop = BIT_MASK(TEST_T9_SIGNAL_LIMIT) | BIT_MASK(TEST_T15_SIGNAL_LIMIT);
+			testop = BIT(TEST_T9_SIGNAL_LIMIT) | BIT(TEST_T15_SIGNAL_LIMIT);
 		break;
 		case MXT_T25_CMD_TEST_ALL:
 			testop = TEST_ALL;
@@ -260,7 +260,7 @@ void t25_inspect_completed(t25_data_t *ptr, u8 testop, u8 testclr)
 	object_t25_t *mem = (object_t25_t *)ptr->common.mem;
 
 	if (!testop)
-		mem->cmd = 0;
+		mem->cmd = MXT_T25_CMD_NONE;
 
 #ifdef OBJECT_T8
 	if ((!(testop & SIGNAL_LIMIT_MASK)) && (testclr & SIGNAL_LIMIT_MASK))

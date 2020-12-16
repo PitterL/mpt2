@@ -77,10 +77,11 @@ DECLARE_GPIO_SET_FUNCTION(pin_set, isc, PORT_ISC_t)
 DECLARE_GPIO_SET_FUNCTION(set_pin, dir, enum port_dir)
 DECLARE_GPIO_SET_FUNCTION(set_pin, level, bool)
 
+#define ADC_REG_START (uint8_t *)(&ADC0)
+#define ADC_REG_LENGTH
 #define PTC_REG_START (uint8_t *)(&ADC0 + 1)
-#define PTC_REG_LENGTH 24	//FIXME: This might different in different chip
-#define PTC_REG_LENGTH_MAX (uint8_t)((uint8_t *)&ADC1 - PTC_REG_START)
-static uint8_t register_buffer[PTC_REG_LENGTH];
+#define PTC_REG_LENGTH (uint16_t)((uint8_t *)&ADC1 - (uint8_t *)(&ADC0 + 1))	//FIXME: This might different in different chip
+uint8_t ptc_register_buffer[PTC_REG_LENGTH];
 
 /**
  * \save and clear PTC register before test 
@@ -89,8 +90,7 @@ void ptc_disable(void)
 {	
 	// FIXME: this is not a good method to operation HW level directly, but not API could be used in PTC lib
 
-	ASSERT(PTC_REG_LENGTH <= PTC_REG_LENGTH_MAX);
-	memcpy(register_buffer, PTC_REG_START, PTC_REG_LENGTH);
+	memcpy(ptc_register_buffer, PTC_REG_START, PTC_REG_LENGTH);
 	memset(PTC_REG_START, 0, PTC_REG_LENGTH);
 }
 
@@ -99,7 +99,8 @@ void ptc_disable(void)
  */
 void ptc_enable(void) 
 {
-	memcpy(PTC_REG_START, register_buffer, PTC_REG_LENGTH);
+	memcpy((void *)PTC_REG_START + 1, ptc_register_buffer + 1, PTC_REG_LENGTH - 1);
+    //memcpy((void *)PTC_REG_START, ptc_register_buffer, 1);
 }
 
 bool ptc_channel_used(uint8_t channel)
@@ -174,6 +175,9 @@ extern void tsl_suspend(uint8_t suspend);
  */
 void pinfault_test_init(void)
 {
+	ADC_disable(&ADC0);
+	ADC_disable(&ADC1);
+
 	tsl_suspend(1);
 
 	ptc_disable();

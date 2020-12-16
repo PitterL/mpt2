@@ -283,17 +283,19 @@ void transfer_pos(t9_data_t *ptr, t9_range_t *ppos)
 	xrange = mem->xrange ? mem->xrange : resol_max;
 	yrange =  mem->yrange ? mem->yrange : resol_max;
 	
+    point.x = ppos->x;
+    point.y = ppos->y;
+
+#ifdef OBJECT_T9_ORIENT_RESOLUTION
 	// Re-adjust axis
-	if (xrange < resol_max)
+    if (xrange < resol_max) {
 		point.x = (u16) (((u32)ppos->x * (xrange + 1)) >> surdef->resolution_bit);
-	else
-		point.x = ppos->x;
-	
+    }
+
 	if (yrange < resol_max) {
 		point.y = (u16) (((u32)ppos->y * (yrange + 1)) >> surdef->resolution_bit);
-	} else
-		point.y = ppos->y;
-	
+    }
+#endif
 	// Switch orientation
 	if (mem->orient) {
 		// As protocol , invert first, then switch

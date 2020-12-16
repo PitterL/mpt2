@@ -58,6 +58,8 @@
 
 #include <bod.h>
 
+#include <wdt.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

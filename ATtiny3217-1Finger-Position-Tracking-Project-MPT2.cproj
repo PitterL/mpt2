@@ -214,8 +214,13 @@
       <Value>DEBUG</Value>
       <Value>EVK_QT7</Value>
       <Value>USE_MPTT_WRAPPER</Value>
+      <Value>USE_WDT</Value>
+      <Value>MPTT_CCAMP_DIV100</Value>
+      <Value>MPTT_AUTO_PINMUX</Value>
+      <Value>MPTT_BUS_MONITOR</Value>
+      <Value>xMPTT_SAVE_CONFIG</Value>
+      <Value>xMPTT_MATRIX_NODES</Value>
       <Value>OBJECT_WRITEBACK</Value>
-      <Value>xFLASH_SAVE_CONFIG</Value>
       <Value>OBJECT_T37</Value>
       <Value>OBJECT_T44</Value>
       <Value>OBJECT_T5</Value>
@@ -223,9 +228,9 @@
       <Value>OBJECT_T7</Value>
       <Value>OBJECT_T8</Value>
       <Value>OBJECT_T9</Value>
-      <Value>OBJECT_T9_ORIENT</Value>
+      <Value>xOBJECT_T9_ORIENT</Value>
       <Value>OBJECT_T15</Value>
-      <Value>OBJECT_T18</Value>
+      <Value>xOBJECT_T18</Value>
       <Value>OBJECT_T25</Value>
       <Value>OBJECT_T25_PIN_FAULT_ENABLE</Value>
       <Value>OBJECT_T25_EXTENSION</Value>
@@ -236,9 +241,6 @@
       <Value>xDEBUG_FORMAT_HAWKEYE</Value>
       <Value>xDEF_TOUCH_DATA_STREAMER_ENABLE</Value>
       <Value>__DELAY_BACKWARD_COMPATIBLE__</Value>
-      <Value>MPTT_CCAMP_100PF</Value>
-      <Value>MPTT_AUTO_PINMUX</Value>
-      <Value>MPTT_BUS_MONITOR</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>
   <avrgcc.compiler.directories.IncludePaths>
@@ -452,6 +454,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="include\system.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="include\wdt.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="main.c">
@@ -704,6 +709,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\usart_basic.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\wdt.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="utils\assembler.h">

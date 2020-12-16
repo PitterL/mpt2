@@ -103,8 +103,7 @@ void I2C_init()
 	              | 1 << TWI_ENABLE_bp /* Enable TWI Slave: enabled */
 	              | 1 << TWI_PIEN_bp   /* Stop Interrupt Enable: enabled */
 	              | 0 << TWI_PMEN_bp   /* Promiscuous Mode Enable: disabled */
-	              | 0 << TWI_SMEN_bp  /* Smart Mode Enable: disabled */
-	              | 3 << TWI_TIMEOUT_gp; /* Inactive Bus Timeout: 200us */				   
+	              | 0 << TWI_SMEN_bp;  /* Smart Mode Enable: disabled */
 
 	I2C_set_write_callback(NULL);
 	I2C_set_read_callback(NULL);

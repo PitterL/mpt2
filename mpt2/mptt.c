@@ -273,7 +273,7 @@ mxt_message_fifo_t message_fifo;
 typedef struct dirty_mark {
 #define DIRTY_BIT_WIDTH_SHIFT 3	//8 bit, shift is 3
 #define DIRTY_BIT_WIDTH_MASK (0x7)
-	u8 mark[(MXT_OBJECTS_INITIALIZE_LIST_NUM >> 3) + 1];	//Mask the config change each bit
+	u8 mark[(MXT_OBJECTS_INITIALIZE_LIST_NUM + DIRTY_BIT_WIDTH_MASK) >> DIRTY_BIT_WIDTH_SHIFT];	//Mask the config change each bit
 } dirty_marker_t;
 #endif
 
@@ -546,7 +546,7 @@ static ssint mpt_chip_backup(/*data_crc24_t*/ void *crc_ptr)
  */
 static ssint mpt_chip_load_config(void)
 {
-#ifdef FLASH_SAVE_CONFIG
+#ifdef MPTT_SAVE_CONFIG
 	const config_manager_t *cfm = &chip_config_manager;
 	mxt_objects_reg_t * ibreg = &ib_objects_reg;
 	const data_crc24_t *ibcrc = &ib_info_crc;
@@ -879,6 +879,13 @@ static ssint mpt_write_message(const /*object_t5_t*/void *msg_ptr)
 }
 #endif
 
+/*
+    API for register read command
+    @baseaddr: the reg address when the command begin
+    @offset: the current offset to the begin address
+    @out_ptr: read value
+    return: < 0: error code; == 0 not executed; > 0 read bytes(always 1)
+*/
 ssint mpt_api_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr) 
 {
 	mxt_info_t *ibinf = &ib_id_information;
@@ -979,7 +986,8 @@ ssint mpt_api_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 #ifdef OBJECT_T5
 		if (discard)
 			ibreg->ram.t5.reportid = MXT_RPTID_NOMSG;
-#endif	
+#endif
+        result = 1;
 	} else {
 		/* Address out of range */
 		result = -2;
@@ -990,6 +998,13 @@ ssint mpt_api_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 	return result;
 }
 
+/*
+    API for register write command
+    @baseaddr: the reg address when the command begin
+    @offset: the current offset to the begin address
+    @val: write value
+    return: < 0: error code; == 0 not executed; > 0 writed bytes(always 1)
+*/
 ssint mpt_api_mem_write(u16 baseaddr, u16 offset, u8 val) 
 {
 	mxt_object_t *ibots = &ib_objects_tables[0];
@@ -1018,6 +1033,7 @@ ssint mpt_api_mem_write(u16 baseaddr, u16 offset, u8 val)
 				mem_mark_dirty(obj->type/*, (u8)!offset*/);
 #endif		
 			}
+            result = 1;
 		}
 	} else {
 		/* Address out of range */

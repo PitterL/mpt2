@@ -118,16 +118,24 @@ ssint handle_bus_event(u8 state, u8 *val)
 
 	switch(state) {
 		case BUS_WRITE:
-			count = bus->counter[BUS_WRITE]++;
+			count = bus->counter[BUS_WRITE];
 			if (count < sizeof(bus->regaddr)) {
 				bus->regaddr.val[count] = *val;
+                count++;
 			} else {
 				result = tsl_mem_write(bus->regaddr.value, count - sizeof(bus->regaddr), *val);
+                if (result > 0) {
+                    count += result;
+                }
 			}
+            bus->counter[BUS_WRITE] = count;
 		break;
 		case BUS_READ:
-			count = bus->counter[BUS_READ]++;
+			count = bus->counter[BUS_READ];
 			result = tsl_mem_read(bus->regaddr.value, count, val);
+            if (result > 0) {
+                bus->counter[BUS_READ] = count + result;
+            }
 		break;
 		case BUS_STOP:
 			if (bus->counter[BUS_WRITE] > sizeof(bus->regaddr) || bus->counter[BUS_READ]) {

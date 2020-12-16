@@ -56,7 +56,7 @@ void bus_read_handler(void)
 	ssint result;
 
 	result = handle_bus_event(BUS_READ, &val);
-	if (!result)
+	if (result > 0)    // must return the data
 		I2C_write(val);
 }
 
@@ -67,10 +67,10 @@ void bus_write_handler(void)
 	
 	val = I2C_read();
 	result = handle_bus_event(BUS_WRITE, &val);
-	if (result)
-		I2C_send_nack();
+	if (result >= 0)    // handle the data or discard(zero)
+        I2C_send_ack();
 	else
-		I2C_send_ack();
+		I2C_send_nack();
 }
 
 void bus_stop_handler(void)

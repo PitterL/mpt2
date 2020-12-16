@@ -33,7 +33,10 @@ int main(void)
 #ifdef USE_MPTT_WRAPPER
 			mptt_post_process();
 #endif
-
 		}
+
+#ifdef USE_WDT
+        CLR_WDT();
+#endif
 	}
 }

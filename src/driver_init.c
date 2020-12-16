@@ -206,7 +206,7 @@ void system_init()
 
 	Timer_init();
 
-#ifdef FLASH_SAVE_CONFIG
+#ifdef MPTT_SAVE_CONFIG
 	FLASH_0_initialization();
 #endif
 
@@ -221,4 +221,6 @@ void system_init()
 #endif
 
 	BOD_init();
+
+    //HW WDT default enabled
 }

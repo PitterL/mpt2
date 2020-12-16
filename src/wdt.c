@@ -1,9 +1,9 @@
 /**
  * \file
  *
- * \brief flash interface wrapper.
+ * \brief WDT related functionality implementation.
  *
- (c) 2018 Microchip Technology Inc. and its subsidiaries.
+ (c) 2020 Microchip Technology Inc. and its subsidiaries.
 
     Subject to your compliance with these terms,you may use this software and
     any derivatives exclusively with Microchip products.It is your responsibility
@@ -25,28 +25,28 @@
  *
  */
 
-#include <nvmctrl_basic.h>
-#include "include/types.h"
-#include "arch/flash.h"
+/**
+ * \addtogroup doc_driver_wdt
+ *
+ * \section doc_driver_wdt_rev Revision History
+ * - v0.0.0.1 Initial Commit
+ *
+ *@{
+ */
 
-#ifdef MPTT_SAVE_CONFIG
-ssint inf_load_cfg(u8 *data, size_t len)
+#include <wdt.h>
+
+/**
+ * \brief Initialize Watchdog Timer
+ *
+ * \return 0
+ */
+int8_t WDT_0_init()
 {
-	if (len >  EEPROM_SIZE - OFFSET_CONFIG_IN_EEPROM)
-		return -2;
 
-	/* Read EEPROM */
-	FLASH_0_read_eeprom_block(OFFSET_CONFIG_IN_EEPROM, data, len);
-	
+	ccp_write_io((void *)&(WDT.CTRLA),
+	             WDT_PERIOD_2KCLK_gc /* 2K cycles (2.0s) */
+	                 | WDT_WINDOW_OFF_gc /* Window mode off */);
+
 	return 0;
 }
-
-ssint inf_save_cfg(const u8 *data, size_t len)
-{
-	if (len >  EEPROM_SIZE - OFFSET_CONFIG_IN_EEPROM)
-		return -2;
-
-	/* Write EEPROM */
-	return FLASH_0_write_eeprom_block(OFFSET_CONFIG_IN_EEPROM, data, len);
-}
-#endif
