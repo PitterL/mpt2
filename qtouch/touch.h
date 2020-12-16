@@ -241,13 +241,13 @@ extern "C" {
  * Range: REBURST_NONE / REBURST_UNRESOLVED / REBURST_ALL
  * Default value: REBURST_UNRESOLVED
  */
-#define DEF_REBURST_MODE REBURST_UNRESOLVED
+#define DEF_REBURST_MODE REBURST_NONE
 
 /* Sensor maximum ON duration upon touch.
  * Range: 0-255
  * Default value: 0
  */
-#define DEF_MAX_ON_DURATION 0
+#define DEF_MAX_ON_DURATION 250 //200ms
 
 /**********************************************************/
 /***************** Surface Parameters ****************/
@@ -279,7 +279,7 @@ extern "C" {
  *  RESOL_2_BIT - RESOL_12_BIT
  *  DB_NONE - DB_15_PERCENT
  */
-#define SURFACE_CS_RESOL_DB SCR_RESOL_DEADBAND(RESOL_12_BIT, DB_10_PERCENT)
+#define SURFACE_CS_RESOL_DB SCR_RESOL_DEADBAND(RESOL_10_BIT, DB_15_PERCENT)
 /* Median filter enable and  IIR filter Config
  * Median Filter <0-1>
  * Enable or Disable Median Filter
@@ -416,13 +416,13 @@ extern "C" {
 #define NUM_FREQ_STEPS 3
 
 /* PTC Sampling Delay Selection - 0 to 15 PTC CLK cycles */
-#define DEF_MEDIAN_FILTER_FREQUENCIES FREQ_SEL_0, FREQ_SEL_1, FREQ_SEL_2
+#define DEF_MEDIAN_FILTER_FREQUENCIES FREQ_SEL_0, FREQ_SEL_7, FREQ_SEL_15
 
 /* Enable / Disable the frequency hop auto tune
  * Range: 0 / 1
  * Default value: 1
  */
-#define DEF_FREQ_AUTOTUNE_ENABLE 1
+#define DEF_FREQ_AUTOTUNE_ENABLE 0
 
 /* sets the maximum variance for Frequency Hop Auto tune.
  * Range: 1 to 255.

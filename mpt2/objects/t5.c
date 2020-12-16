@@ -6,6 +6,7 @@
  */
 #ifdef OBJECT_T5
 
+#include "include/types.h"
 #include "t5.h"
 
 t5_data_t t5_data_status;

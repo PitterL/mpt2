@@ -48,13 +48,17 @@
 #include <nvmctrl_basic.h>
 #include <ccp.h>
 #include <string.h>
-
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
+#include <usart_basic.h>
+#endif
 #include <cpuint.h>
 #include <slpctrl.h>
 
 #include <i2c_slave.h>
 
 #include <bod.h>
+
+#include <wdt.h>
 
 #ifdef __cplusplus
 extern "C" {

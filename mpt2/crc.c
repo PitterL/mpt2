@@ -4,9 +4,8 @@
  * Created: 6/7/2019 9:48:06 PM
  *  Author: A41450
  */ 
-#include "types.h"
+#include "include/types.h"
 #include "crc.h"
-
 /*
 calculate one byte input value with CRC 8 Bit
     @crc: last crc value
@@ -94,7 +93,7 @@ u32 calc_blocks_crc24(const crc_data_blocks_t *blk, size_t count)
 				firstbyte = odd;
 				secondbyte = *ptr++;
 				odd = *ptr++;
-			}else {
+			} else {
 				firstbyte = *ptr++;
 				secondbyte = *ptr++;
 			}
@@ -110,7 +109,7 @@ u32 calc_blocks_crc24(const crc_data_blocks_t *blk, size_t count)
 				/* if len is odd, fill the last byte with 0 */
 				crc = crc24(crc, odd, 0);
 			}
-		}else {
+		} else {
 			if (sum & 0x1) {	//sum is even, but both blocks are odd
 				crc = crc24(crc, odd, *ptr);		
 			}

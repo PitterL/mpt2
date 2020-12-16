@@ -9,8 +9,12 @@
 #ifndef CRC_H_
 #define CRC_H_
 
-typedef struct data_crc24 {
-	u8 data[3];
+typedef union data_crc24 {
+	struct {
+		u8 data[3];
+		u8 rsv;
+	};
+	u32 value;
 } __attribute__ ((packed)) data_crc24_t;
 
 typedef struct crc_data_blocks {

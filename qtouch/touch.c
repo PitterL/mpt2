@@ -31,13 +31,16 @@ Copyright (c) 2019 Microchip. All rights reserved.
 
 #include "port.h"
 
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
+#include "datastreamer/datastreamer.h"
+#endif
 /*----------------------------------------------------------------------------
  *   prototypes
  *----------------------------------------------------------------------------*/
 
 /*! \brief configure the ptc port pins to Input
  */
-static void touch_ptc_pin_config(void);
+/* static */void touch_ptc_pin_config(void);
 
 /*! \brief configure binding layer config parameter
  */
@@ -190,6 +193,7 @@ qtm_surface_contact_data_t qtm_surface_cs_data1;
 /* Container */
 qtm_surface_cs_control_t qtm_surface_cs_control1 = {&qtm_surface_cs_data1, &qtm_surface_cs_config1};
 
+#ifdef TOUCH_API_GESTURE_2D_H
 /**********************************************************/
 /***************** Gesture Module ********************/
 /**********************************************************/
@@ -222,7 +226,7 @@ qtm_gestures_2d_config_t qtm_gestures_2d_config = {&qtm_surface_cs_data1.h_posit
 qtm_gestures_2d_data_t qtm_gestures_2d_data;
 
 qtm_gestures_2d_control_t qtm_gestures_2d_control1 = {&qtm_gestures_2d_data, &qtm_gestures_2d_config};
-
+#endif
 #endif
 
 /**********************************************************/
@@ -330,7 +334,9 @@ static void build_qtm_config(qtm_control_t *qtm)
 	qtm->qtm_post_process_callback     = qtm_post_process_complete;
 }
 
-static void touch_ptc_pin_config(void)
+#ifndef USE_MPTT_WRAPPER
+#error "be careful to re-configure here since there isn't enabled PTC pin auto config"
+void touch_ptc_pin_config(void)
 {
 
 	PORTA_set_pin_pull_mode(4, PORT_PULL_OFF);
@@ -369,6 +375,7 @@ static void touch_ptc_pin_config(void)
 	PORTB_set_pin_pull_mode(4, PORT_PULL_OFF);
 	PORTB_pin_set_isc(4, PORT_ISC_INPUT_DISABLE_gc);
 }
+#endif
 
 /*============================================================================
 static touch_ret_t touch_sensors_config(void)
@@ -405,7 +412,9 @@ static touch_ret_t touch_sensors_config(void)
 #if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
 	touch_ret |= qtm_init_surface_cs(&qtm_surface_cs_control1);
 
+#ifdef TOUCH_API_GESTURE_2D_H
 	touch_ret |= qtm_init_gestures_2d();
+#endif
 #endif
 	return (touch_ret);
 }
@@ -500,7 +509,9 @@ static void qtm_error_callback(uint8_t error)
 		module_error_code = (error & 0x0F) + 2;
 	}
 
-#if DEF_TOUCH_DATA_STREAMER_ENABLE == 1
+	measurement_done_touch = 2;
+
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
 	datastreamer_output();
 #endif
 }
@@ -545,6 +556,10 @@ void touch_init(void)
 
 	/* get a pointer to the binding layer control */
 	p_qtm_control = qmt_get_binding_layer_ptr();
+	
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
+	datastreamer_init();
+#endif
 }
 
 /*============================================================================
@@ -594,11 +609,30 @@ void touch_process(void)
 			p_qtm_control->binding_layer_flags |= (1u << time_to_measure_touch);
 			p_qtm_control->binding_layer_flags &= ~(1u << reburst_request);
 		}
+
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
+		datastreamer_output();
+#endif
 	}
 }
 
 uint8_t interrupt_cnt;
-/* Put DEF_TOUCH_MEASUREMENT_PERIOD_MS into Global variable so that we could dynamic modify it */
+
+#ifdef OBJECT_T18
+extern bool object_t18_check_dismntr(void);
+#endif
+
+#ifdef MPTT_BUS_MONITOR
+extern void mptt_bus_monitor_ticks(uint8_t tick);
+#endif
+
+#ifdef OBJECT_T25
+/* set to non zero suspend the sampling */
+uint8_t qtlib_suspend = 0;
+#endif
+
+/*	MPTT required change 
+    Put DEF_TOUCH_MEASUREMENT_PERIOD_MS into Global variable so that we could dynamic modify it */
 uint8_t qtlib_time_elapsed_since_update = DEF_TOUCH_MEASUREMENT_PERIOD_MS;
 /*============================================================================
 void touch_timer_handler(void)
@@ -611,12 +645,32 @@ Notes  :
 ============================================================================*/
 void touch_timer_handler(void)
 {
+	//suspend mode
+#ifdef OBJECT_T25
+	if (qtlib_suspend)
+		return;
+#endif
+
+	// Update bit heart to bus monitor
+#ifdef MPTT_BUS_MONITOR
+#ifdef OBJECT_T18
+	if (!object_t18_check_dismntr())
+#endif
+		mptt_bus_monitor_ticks(1);
+#endif
+
+	// MPTT required change
+	if (!qtlib_time_elapsed_since_update)
+		return;
+
 	interrupt_cnt++;
-#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))	
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
+#ifdef TOUCH_API_GESTURE_2D_H
 	if (interrupt_cnt % DEF_GESTURE_TIME_BASE_MS == 0) {
 		qtm_update_gesture_2d_timer(1);
 	}
 #endif	
+#endif
 	if (interrupt_cnt >= qtlib_time_elapsed_since_update) {
 		interrupt_cnt = 0;
 		/* Count complete - Measure touch sensors */
@@ -683,7 +737,12 @@ Notes    :  none
 ============================================================================*/
 ISR(ADC0_RESRDY_vect)
 {
-	qtm_t161x_ptc_handler_eoc();
+#ifdef OBJECT_T25
+	if (qtlib_suspend)
+		return;
+#endif
+
+	qtm_t321x_ptc_handler_eoc();
 }
 
 #endif /* TOUCH_C */

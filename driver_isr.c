@@ -35,8 +35,9 @@
 
 #include <driver_init.h>
 #include <compiler.h>
+#ifdef USE_MPTT_WRAPPER
 #include <touch_api_ptc.h>
-
+#endif
 ISR(RTC_CNT_vect)
 {
 

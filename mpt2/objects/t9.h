@@ -26,7 +26,7 @@ typedef struct object_t9 {
 	u8 mrgtimeout;
 	u8 movhysti;
 	u8 movhystn;
-	u8 movfilter;
+	nibble_t movfilter;	//Bit 7: Disable; Bit[6:4] Filter Limit; Bit[3:0] Filter ADAPTHR
 	u8 numtouch;
 	u8 mrghyst;
 	u8 mrgthr;
@@ -97,7 +97,7 @@ ssint object_t9_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, con
 void object_t9_start(u8 loaded);
 void object_t9_data_sync(u8 rw);
 void object_t9_report_status(u8 force);
-u16 object_t9_get_surface_slider_base_ref(u8 inst);
+u16 object_t9_get_surface_slider_base_ref(u8 inst, u8 channel);
 ssint object_api_t9_set_pointer_location(u8 inst, u8 id, u8 status, u16 x, u16 y);
 
 #else	/* OBJECT_T9 */

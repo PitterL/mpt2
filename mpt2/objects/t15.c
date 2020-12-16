@@ -7,7 +7,7 @@
 #ifdef OBJECT_T15
 
 #include <string.h>
-#include "../tslapi.h"
+#include "arch/tslapi.h"
 #include "txx.h"
 
 t15_data_t t15s_data_status[MXT_TOUCH_KEYARRAY_T15_INST];
@@ -19,7 +19,8 @@ ssint object_t15_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, co
 
 	for (i = 0; i < MXT_TOUCH_KEYARRAY_T15_INST; i++) {
 		object_txx_init(&ptr[i].common, rid, def, (object_t15_t *)mem + i, cb);
-		ptr[i].btndef = &qdef->buttons[i];
+		if (i < qdef->num_button)
+			ptr[i].btndef = &qdef->buttons[i];
 		rid += MXT_TOUCH_KEYARRAY_T15_RIDS;
 	}
 	
@@ -30,6 +31,9 @@ void t15_set_unsupport_area(t15_data_t *ptr)
 {
 	const qbutton_config_t *btndef = (qbutton_config_t *)ptr->btndef;
 	object_t15_t *mem = (object_t15_t *) ptr->common.mem;
+	
+	if (!btndef)
+		return;
 	
 	// T15 use Y as sensor channel
 	mem->xorigin = /*btndef->node.origin*/ 0;
@@ -60,29 +64,27 @@ void t15_data_sync(t15_data_t *ptr, u8 rw)
 	u8 i;
 	
 	txx_cb_param_t params_sensor[] = {
-		{ KEY_PARAMS_AKS_GROUP, &mem->akscfg, sizeof(mem->akscfg) },
-		{ NODE_PARAMS_GAIN, &mem->blen, sizeof(mem->blen) },
-		{ KEY_PARAMS_THRESHOLD, &mem->tchthr, sizeof(mem->tchthr) },
-		{ DEF_TOUCH_DET_INT, &mem->tchdi, sizeof(mem->tchdi) },
-		{ DEF_ANTI_TCH_DET_INT, &mem->tchdi, sizeof(mem->tchdi) },
-		{ KEY_PARAMS_HYSTERESIS, &mem->tchhyst, sizeof(mem->tchhyst)}
+		{ API_KEY_PARAMS_AKS_GROUP, &mem->akscfg, sizeof(mem->akscfg) },
+		{ API_NODE_PARAMS_GAIN, &mem->blen, sizeof(mem->blen) },
+		{ API_KEY_PARAMS_THRESHOLD, &mem->tchthr, sizeof(mem->tchthr) },
+		{ API_DEF_TOUCH_DET_INT, &mem->tchdi, sizeof(mem->tchdi) },
+		{ API_DEF_ANTI_TCH_DET_INT, &mem->tchdi, sizeof(mem->tchdi) },
+		{ API_KEY_PARAMS_HYSTERESIS, &mem->tchhyst, sizeof(mem->tchhyst)}
 	};
 	
-	if (rw == OP_WRITE) {	//write		
-		t15_set_unsupport_area(ptr);
-	}
-	
-	// Sensor channel parameter
-	for (i = btndef->node.origin; i < btndef->node.origin + btndef->node.size; i++) {
-		object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
+	if ((mem->ctrl & MXT_T15_CTRL_ENABLE) || rw == OP_READ) {
+		if (btndef) {
+			// Sensor channel parameter
+			for (i = btndef->node.origin; i < btndef->node.origin + btndef->node.size; i++) {
+				object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
 		
-		if (rw == OP_READ)
-			break;
+				if (rw == OP_READ)
+					break;
+			}
+		}
 	}
 	
-	if (rw == OP_READ) {	// read
-		t15_set_unsupport_area(ptr);
-	}
+	t15_set_unsupport_area(ptr);
 }
 
 void object_t15_start(u8 loaded)
@@ -90,11 +92,8 @@ void object_t15_start(u8 loaded)
 	t15_data_t *ptr = &t15s_data_status[0];
 	u8 i;
 	
-	if (loaded)
-		return;
-	
 	for (i = 0; i < MXT_TOUCH_KEYARRAY_T15_INST; i++) {
-		t15_data_sync(ptr + i, OP_READ);
+		t15_data_sync(ptr + i, loaded ? OP_WRITE : OP_READ);
 	}
 }
 
@@ -133,7 +132,7 @@ u16 object_t15_get_button_base_ref(u8 inst)
 	if (!(mem->ctrl & MXT_T15_CTRL_ENABLE))
 		return 0;
 	
-	return (SENSOR_BASE_REF_VALUE << /*NODE_GAIN_DIG*/(((object_t15_t *)ptr[inst].common.mem)->blen & 0xF));
+	return (tsapi_t6_get_sensor_base_ref() << /*NODE_GAIN_DIG*/(((object_t15_t *)ptr[inst].common.mem)->blen & 0xF));
 }
 
 ssint object_api_t15_set_button_status(/* Slot id */u8 id, u8 pressed)
@@ -147,16 +146,18 @@ ssint object_api_t15_set_button_status(/* Slot id */u8 id, u8 pressed)
 	for (i = 0, offset = 0; i < MXT_TOUCH_KEYARRAY_T15_INST; i++) {
 		mem = (object_t15_t *) ptr[i].common.mem;
 		btndef = (qbutton_config_t *)ptr[i].btndef;
+		if (!btndef)
+			continue;
 		
 		if (mem->ctrl & MXT_T15_CTRL_ENABLE) {
 			if (id >= btndef->node.origin &&  id < btndef->node.origin + btndef->node.size) {
 				offset = id - btndef->node.origin;
 				status = ptr[i].button.keystate.value;
 				if (pressed)
-					status |= BIT(offset);
+					status |= BIT32(offset);
 				else
-					status &= ~BIT(offset);
-			
+					status &= ~BIT32(offset);
+
 				if (status != ptr[i].button.keystate.value) {
 					ptr[i].button.keystate.value = status;
 					ptr[i].button.status = status? MXT_T15_DETECT : 0;

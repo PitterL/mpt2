@@ -7,7 +7,7 @@
 #ifdef OBJECT_T6
 
 #include <string.h>
-#include "../tslapi.h"
+#include "arch/tslapi.h"
 #include "txx.h"
 
 t6_data_t t6_data_status;
@@ -26,14 +26,14 @@ void object_t6_start(u8 unused)
 {
 	t6_data_t *ptr = &t6_data_status;
 	
-	MPT_API_CALLBACK(ptr->common.cb, cb_get_config_crc)(&ptr->status.crc);
+	MPT_API_CALLBACK(ptr->common.cb, get_config_crc)(&ptr->status.crc);
 }
 
 void t6_pulse_status(t6_data_t *ptr, u8 mask, u8 set)
 {
 	if (set) {
 		ptr->status.value |= mask;
-	}else {
+	} else {
 		ptr->status.value &= ~mask;
 	}
 	object_txx_report_msg(&ptr->common, &ptr->status, sizeof(ptr->status));
@@ -63,10 +63,10 @@ void chip_reset(u8 arg)
 
 	if (arg == MXT_BOOT_VALUE) {
 		/* Reboot to bootloader mode */
-	}else if (arg != 0) {
+	} else if (arg != 0) {
 		/* Normal reset */
 
-		MPT_API_CALLBACK(ptr->common.cb, cb_assert_irq)(0, false);
+		MPT_API_CALLBACK(ptr->common.cb, assert_irq)(0, false);
 		
 		/* Do reset */
 		MPT_API_CALLBACK(ptr->common.cb, reset)();
@@ -80,13 +80,17 @@ void chip_backup(u8 arg)
 {
 	t6_data_t *ptr = &t6_data_status;
 	
-	if (arg == MXT_BACKUP_VALUE) {
-		
-		/* performance config backup */
-		MPT_API_CALLBACK(ptr->common.cb, backup)();
-		
-		//Calculate CRC	
+	switch(arg) {
+		case MXT_BACKUP_VALUE:
+			/* performance config backup */
+			MPT_API_CALLBACK(ptr->common.cb, backup)(&ptr->status.crc);
+		break;
+		default:
+			;
 	}
+	
+	//Report CRC
+	object_t6_report_status(1);
 }
 
 void chip_calibrate(u8 arg)
@@ -127,6 +131,9 @@ void chip_diagnostic(u8 arg)
 			break;
 			case MXT_DIAGNOSTIC_MC_DELTA:
 			case MXT_DIAGNOSTIC_MC_REF:
+			case MXT_DIAGNOSTIC_PTC_DELTA:
+			case MXT_DIAGNOSTIC_PTC_REF:
+			case MXT_DIAGNOSTIC_PTC_SIGNAL:
 			case MXT_DIAGNOSTIC_KEY_DELTA:
 			case MXT_DIAGNOSTIC_KEY_REF:
 			case MXT_DIAGNOSTIC_KEY_SIGNAL:

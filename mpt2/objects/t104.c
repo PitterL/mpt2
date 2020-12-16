@@ -6,7 +6,7 @@
  */ 
 #ifdef OBJECT_T104
 
-#include "../tslapi.h"
+#include "arch/tslapi.h"
 #include "txx.h"
 
 t104_data_t t104s_data_status[MXT_SPT_AUXTOUCHCONFIG_T104_INST];
@@ -22,7 +22,7 @@ ssint object_t104_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, c
 		if (i < qdef->num_surfaces_slider) {
 			tid = qdef->num_surfaces ? i + qdef->num_slider: i;
 			ptr[i].ns = qdef->surface_sliders[tid].nodes;
-		}else {
+		} else {
 			ptr[i].ns = qdef->matrix_nodes;
 		}
 	}
@@ -32,34 +32,39 @@ ssint object_t104_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, c
 
 void t104_set_unsupport_area(object_t104_t *mem)
 {
-	// always enabled
+#ifndef OBJECT_WRITEBACK
 	mem->ctrl |= MXT_T104_CTRL_ENABLE;
-#ifdef OBJECT_WRITEBACK
+#endif
+
 	mem->xintthr = 0;
 	mem->xinthyst = 0;
 	mem->yintthr = 0;
 	mem->yinthyst = 0;
-#endif
 }
 
 void t104_data_sync(const t104_data_t *ptr, u8 rw)
 {
-	const nodes_desc_t *ns = (nodes_desc_t *)ptr->ns;
 	object_t104_t *mem = (object_t104_t *)ptr->common.mem;
-
+#ifndef MPTT_MATRIX_NODES
+	const nodes_desc_t *ns = (nodes_desc_t *)ptr->ns;
 	txx_cb_param_t xparams[] = {
-		{ NODE_PARAMS_GAIN, &mem->xgain, sizeof(mem->xgain) },
-		{ KEY_PARAMS_THRESHOLD, &mem->xtchthr, sizeof(mem->xtchthr) },
-		{ KEY_PARAMS_HYSTERESIS, &mem->xtchhyst, sizeof(mem->xtchhyst)}
+		{ API_NODE_PARAMS_GAIN, &mem->xgain, sizeof(mem->xgain) },
+		{ API_KEY_PARAMS_THRESHOLD, &mem->xtchthr, sizeof(mem->xtchthr) },
+		{ API_KEY_PARAMS_HYSTERESIS, &mem->xtchhyst, sizeof(mem->xtchhyst)}
 	};
 	
 	txx_cb_param_t yparams[] = {
-		{ NODE_PARAMS_GAIN, &mem->ygain, sizeof(mem->ygain) },
-		{ KEY_PARAMS_THRESHOLD, &mem->ytchthr, sizeof(mem->ytchthr) },
-		{ KEY_PARAMS_HYSTERESIS, &mem->ytchhyst, sizeof(mem->ytchhyst) },
+		{ API_NODE_PARAMS_GAIN, &mem->ygain, sizeof(mem->ygain) },
+		{ API_KEY_PARAMS_THRESHOLD, &mem->ytchthr, sizeof(mem->ytchthr) },
+		{ API_KEY_PARAMS_HYSTERESIS, &mem->ytchhyst, sizeof(mem->ytchhyst) },
 	};
 	u8 i;
-	
+#endif
+	if (!(mem->ctrl & MXT_T104_CTRL_ENABLE))	// Not enabled is readonly mode
+		if  (rw != OP_READ)
+			return;
+		
+#ifndef MPTT_MATRIX_NODES
 	// Sensor channel parameter for X channel
 	for (i = ns[NODE_X].origin; i < ns[NODE_X].origin + ns[NODE_X].size; i++) {
 		object_txx_op(&ptr->common, xparams, ARRAY_SIZE(xparams), i, rw);
@@ -73,6 +78,9 @@ void t104_data_sync(const t104_data_t *ptr, u8 rw)
 		if (rw == OP_READ)
 			break;
 	}
+#else
+	// For matrix sensing, readonly mode
+#endif
 	
 	t104_set_unsupport_area(mem);
 }
@@ -82,11 +90,8 @@ void object_t104_start(u8 loaded)
 	t104_data_t *ptr = &t104s_data_status[0];
 	u8 i;
 	
-	if (loaded)
-		return;
-	
 	for (i = 0; i < MXT_SPT_AUXTOUCHCONFIG_T104_INST; i++) {
-		t104_data_sync(&ptr[i], OP_READ);
+		t104_data_sync(&ptr[i], loaded ? OP_WRITE : OP_READ);
 	}
 }
 

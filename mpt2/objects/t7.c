@@ -6,7 +6,7 @@
  */ 
 #ifdef OBJECT_T7
 
-#include "../tslapi.h"
+#include "arch/tslapi.h"
 #include "txx.h"
 
 t7_data_t t7_data_status;
@@ -26,7 +26,7 @@ void t7_data_sync(const txx_data_t *ptr, u8 rw)
 	object_t7_t *mem = (object_t7_t *)ptr->mem;
 	
 	txx_cb_param_t params[] = {
-		{ DEF_TOUCH_MEASUREMENT_PERIOD_MS, &mem->actvaqint, sizeof(mem->actvaqint) },
+		{ API_DEF_TOUCH_MEASUREMENT_PERIOD_MS, &mem->actvaqint, sizeof(mem->actvaqint) },
 	};
 	
 	object_txx_op(ptr, params, ARRAY_SIZE(params), 0, rw);
@@ -38,10 +38,7 @@ void object_t7_start(u8 loaded)
 {
 	t7_data_t *ptr = &t7_data_status;
 	
-	if (loaded)
-		return;
-	
-	t7_data_sync(ptr, OP_READ);
+	t7_data_sync(ptr, loaded ? OP_WRITE : OP_READ);
 }
 
 void object_t7_data_sync(u8 rw)

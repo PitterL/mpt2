@@ -3,16 +3,31 @@
  *
  * Created: 6/7/2019 9:48:06 PM
  *  Author: A41450
+
+ v2.1
+	<1> Add Infoblock crc are in config for version match
+    <2> Add Scanning mode switch in T8
+
  */ 
 
-#include <compiler.h>
 #include <string.h>
-#include "types.h"
-#include "mutex.h"
+#include "include/types.h"
+
+#include "include/list.h"
+#include "arch/cpu.h"
+#include "objects/txx.h"
 #include "crc.h"
-#include "list.h"
 #include "tsl.h"
 #include "mptt.h"
+
+/* use for sync the version with pack-build firmware */
+#include <pack.h>
+
+#define MPTT_FW_FAMILY_ID 0xa6	//0x81
+#define MPTT_FW_VARIANT_ID 0x08	//0x01
+#define MPTT_FW_VERSION 0x21
+/* use the latest byte for the build version */
+#define MPTT_FW_BUILD (PROJECT_CODE & 0xFF)
 
 typedef struct mxt_info {
 	u8 family_id;
@@ -94,6 +109,7 @@ typedef struct objects_config {
 	object_t111_t t111;
 #endif
 	data_crc24_t crc;
+	data_crc24_t ib;	// This is redundant design for checking FW match config 
 } __attribute__ ((packed)) objects_config_t;
 
 #define MXT_OBJECTS_CONFIG_SIZE (sizeof(struct objects_config))
@@ -165,7 +181,7 @@ mxt_object_t ib_objects_tables[] = {
 #if MXT_REPORT_ID_COUNT > 254
 #error "Report id count too large, varible may overflow"
 #endif
-#define MXT_MESSAGE_DEPTH_EACH_RID 2
+#define MXT_MESSAGE_DEPTH_EACH_RID 3
 #define MXT_MESSAGE_FIFO_SIZE (MXT_REPORT_ID_COUNT * MXT_MESSAGE_DEPTH_EACH_RID + 1)
 #if MXT_MESSAGE_FIFO_SIZE > 255
 #error "Message Fifo too large, may overflow"
@@ -185,7 +201,7 @@ mxt_object_t ib_objects_tables[] = {
 typedef struct object_callback {
 	u8 type;	/* Report ID */
 
-	ssint (*init)(u8 rid, const /* (qtouch_config_t *) */const void *, /* mem space */void *, /* (const qtouch_api_callback_t*) */const void *);
+	ssint (*init)(u8 rid, /* const (qtouch_config_t *) */const void *, /* mem space */void *, /* (const qtouch_api_callback_t*) */const void *);
 	void (*start)(/* load default config */u8 loaded);
 	void (*sync)(u8 rw);
 	void (*report)(u8 force);
@@ -220,7 +236,7 @@ object_callback_t object_initialize_list[] = {
 	{	MXT_TOUCH_KEYARRAY_T15, object_t15_init, object_t15_start, object_t15_data_sync, object_t15_report_status, (void *)ib_objects_reg.cfg.t15_objs	},
 #endif
 #ifdef OBJECT_T18
-	{	MXT_SPT_COMMSCONFIG_T18, object_t18_init, NULL, NULL, NULL, (void *)&ib_objects_reg.cfg.t18},
+	{	MXT_SPT_COMMSCONFIG_T18, object_t18_init, object_t18_start, /*object_t18_data_sync*/NULL, NULL, (void *)&ib_objects_reg.cfg.t18},
 #endif
 #ifdef OBJECT_T25	
 	{	MXT_SPT_SELFTEST_T25, object_t25_init, object_t25_start, object_t25_data_sync, object_t25_report_status, (void *)&ib_objects_reg.cfg.t25	},	
@@ -257,7 +273,7 @@ mxt_message_fifo_t message_fifo;
 typedef struct dirty_mark {
 #define DIRTY_BIT_WIDTH_SHIFT 3	//8 bit, shift is 3
 #define DIRTY_BIT_WIDTH_MASK (0x7)
-	u8 mark[(MXT_OBJECTS_INITIALIZE_LIST_NUM >> 3) + 1];	//Mask the config change each bit
+	u8 mark[(MXT_OBJECTS_INITIALIZE_LIST_NUM + DIRTY_BIT_WIDTH_MASK) >> DIRTY_BIT_WIDTH_SHIFT];	//Mask the config change each bit
 } dirty_marker_t;
 #endif
 
@@ -271,41 +287,38 @@ typedef struct config_manager {
 	/* config whether dirty */
 	dirty_marker_t dirty;
 #endif
-
 } config_manager_t;
 
 config_manager_t chip_config_manager;
 
-void mpt_chip_reset(void);
-ssint mpt_chip_backup(void);
-void mpt_chip_calibrate(void);
-void mpt_chip_reportall(void);
-void mpt_chip_get_config_crc(/*data_crc24_t*/ void *ptr);
-ssint mpt_chip_load_config(void);
-void mpt_chip_assert_irq(u8 assert, bool retrigger);
+static void mpt_chip_reset(void);
+static ssint mpt_chip_backup(/*data_crc24_t*/ void *crc_ptr);
+static void mpt_chip_calibrate(void);
+static void mpt_chip_reportall(void);
+static void mpt_chip_get_config_crc(/*data_crc24_t*/ void *ptr);
+static ssint mpt_chip_load_config(void);
+static void mpt_chip_assert_irq(u8 assert, bool retrigger);
 #ifdef OBJECT_T5
-ssint mpt_write_message(const /*object_t5_t*/void *msg);
-void init_buffer(message_buffer_t *buf);
+static void init_buffer(message_buffer_t *buf);
+static u8 message_count(const mxt_message_fifo_t *msg_fifo);
 #endif
-#ifdef OBJECT_WRITEBACK
-ssint mpt_object_write(u8 regid, u8 instance, u16 offset, const u8 *ptr, u8 size);
-#endif
-u8 get_report_id(const mxt_object_t *ibots, u8 regid);
+/* Will lock FIFO in write operation */
+static ssint mpt_write_message(const /*object_t5_t*/void *msg_ptr);
+/* Will lock FIFO in read operation */
+static ssint mpt_read_message(object_t5_t *msg);
+static u8 get_report_id(const mxt_object_t *ibots, u8 regid);
 
 mpt_api_callback_t mpt_api_info = {
-#ifdef OBJECT_T6	
+#ifdef OBJECT_T6
 	.reset = mpt_chip_reset,
 	.calibrate = mpt_chip_calibrate,
 	.backup = mpt_chip_backup,
 	.report_all = mpt_chip_reportall,
-	.cb_get_config_crc = mpt_chip_get_config_crc,
-	.cb_assert_irq = mpt_chip_assert_irq,
+	.get_config_crc = mpt_chip_get_config_crc,
+	.assert_irq = mpt_chip_assert_irq,
 #endif
 #ifdef OBJECT_T5
-	.cb_write_message = mpt_write_message,
-#endif
-#ifdef OBJECT_WRITEBACK
-	//.cb_object_write = mpt_object_write,
+	.write_message = mpt_write_message,
 #endif
 };
 
@@ -369,26 +382,31 @@ ssint mpt_api_chip_init(const void *tsl_ptr)
 	return 0;
 }
 
-void mpt_api_chip_start(void)
+/**
+ * \brief MPTT framework enable, 
+	includes load config, enable each object and pin fault test
+ * @Return: Zero means normal, other value means something error detected
+ */
+ssint mpt_api_chip_start(void)
 {
 	const object_callback_t *ocbs = &object_initialize_list[0];
 	u8 i;
 	ssint result = -2;
-
 #ifdef OBJECT_T6
 	result = mpt_chip_load_config();
 #endif
-
-	// Send a calibration
-	//object_api_t6_handle_command(MXT_COMMAND_CALIBRATE, 1);
 	
 	// Run each object
 	for (i = 0; i < MXT_OBJECTS_INITIALIZE_LIST_NUM; i++) {
 		if (ocbs[i].start)
 			ocbs[i].start(result ? 0 : 1);
 	}
-	
-	//mpt_chip_reportall();
+
+#ifdef OBJECT_T25
+	return object_api_t25_pinfault_test();
+#else 
+	return 0;
+#endif
 }
 
 void mem_readback(u8 regid)
@@ -427,7 +445,8 @@ void mem_writeback(void)
 	dirty_marker_t *dirty = &chip_config_manager.dirty;
 	const object_callback_t *ocbs = &object_initialize_list[0];
 	u8 i, j, k;
-	
+    bool flush = false;	
+
 	// Run each object
 	for (i = 0; i < MXT_OBJECTS_INITIALIZE_LIST_NUM; i++) {
 		j = i >> DIRTY_BIT_WIDTH_SHIFT;
@@ -436,9 +455,18 @@ void mem_writeback(void)
 			if (ocbs[i].sync) {
 				ocbs[i].sync(OP_WRITE);
 				dirty->mark[j] &= ~BIT(k);
+                flush = true;
 			}
 		}
 	}
+	
+	// Readback sync many objects share share tsl parameter
+    if (flush) {
+	    for (i = 0; i < MXT_OBJECTS_INITIALIZE_LIST_NUM; i++) {
+		    if (ocbs[i].sync)
+			    ocbs[i].sync(OP_READ);
+	    }
+    }
 }
 #endif
 
@@ -462,68 +490,83 @@ void mpt_api_writeback(void)
 #endif
 }
 
-
-void mpt_chip_reset(void)
+static void mpt_chip_reset(void)
 {
-	config_manager_t *cfm = &chip_config_manager;
+	const config_manager_t *cfm = &chip_config_manager;
 	
-	if (cfm->tsl->hal->fn_reset)
-		cfm->tsl->hal->fn_reset();
+	if (cfm->tsl->hal->reset)
+		cfm->tsl->hal->reset();
 }
 
-void mpt_chip_calibrate(void)
+static void mpt_chip_calibrate(void)
 {
-	config_manager_t *cfm = &chip_config_manager;
+	const config_manager_t *cfm = &chip_config_manager;
 	
 	if (cfm->tsl->api->calibrate)
 		cfm->tsl->api->calibrate();
 }
 
-ssint mpt_chip_backup(void)
+static ssint mpt_chip_backup(/*data_crc24_t*/ void *crc_ptr)
 {
-	config_manager_t *cfm = &chip_config_manager;
+	const config_manager_t *cfm = &chip_config_manager;
 	mxt_objects_reg_t * ibreg = &ib_objects_reg;
+	const data_crc24_t *ibcrc = &ib_info_crc;
 	u32 crc;
 	ssint result;
 
 	// Whatever we have save interface, we need calculate crc
-	crc = calc_crc24((u8 *)&ibreg->cfg, offsetof(typeof(ibreg->cfg), crc));
+	crc = calc_crc24((u8 *)&ibreg->cfg, offsetof(/* typeof(ibreg->cfg) */objects_config_t, crc));
 	ibreg->cfg.crc.data[0] = crc & 0xff;
 	ibreg->cfg.crc.data[1] = (crc >> 8) & 0xff;
 	ibreg->cfg.crc.data[2] = (crc >> 16) & 0xff;
 
-	if (!cfm->tsl->hal->fn_save_cfg)
+	ibreg->cfg.ib.value = ibcrc->value;
+
+	if (!cfm->tsl->hal->save_cfg)
 		return -2;
 	
-	result = cfm->tsl->hal->fn_save_cfg((u8 *)&ibreg->cfg, sizeof(ibreg->cfg));
+	result = cfm->tsl->hal->save_cfg((u8 *)&ibreg->cfg, sizeof(ibreg->cfg));
 	if (result) {
 		/* something error */
 		result = -3;
+	} else {
+		if (crc_ptr) {
+			//((data_crc24_t *)crc_ptr)->value = ibreg->cfg.crc.value;
+			memcpy(crc_ptr, &ibreg->cfg.crc, sizeof(ibreg->cfg.crc));
+		}
 	}
 	
 	return result;
 }
 
-ssint mpt_chip_load_config(void)
+/**
+ * \brief Load object config from memory 
+	do crc check after loaded, zero the config if failed
+ * @Return: Zero means normal, other value means something error detected
+ */
+static ssint mpt_chip_load_config(void)
 {
-#ifdef FLASH_SAVE_CONFIG
-	config_manager_t *cfm = &chip_config_manager;
+#ifdef MPTT_SAVE_CONFIG
+	const config_manager_t *cfm = &chip_config_manager;
 	mxt_objects_reg_t * ibreg = &ib_objects_reg;
+	const data_crc24_t *ibcrc = &ib_info_crc;
 	u32 crc;
 	ssint result = -2;
 
-	if (!cfm->tsl->hal->fn_load_cfg)
+	if (!cfm->tsl->hal->load_cfg)
 		return -2;
 		
-	result = cfm->tsl->hal->fn_load_cfg((u8 *)&ibreg->cfg, sizeof(ibreg->cfg));
+	result = cfm->tsl->hal->load_cfg((u8 *)&ibreg->cfg, sizeof(ibreg->cfg));
 	if (result) {
 		/* something error */
 		result = -3;
-	}else {
-		crc = calc_crc24((u8 *)&ibreg->cfg, sizeof(ibreg->cfg));
-		if (crc) {
+	} else if (ibreg->cfg.ib.value != ibcrc->value) {	// Check FW match the config
+		result = -4;
+	} else {
+		crc = calc_crc24((u8 *)&ibreg->cfg,  offsetof(/* typeof(ibreg->cfg) */objects_config_t, crc));
+		if (crc != ibreg->cfg.crc.value) {
 			/* crc mismatch */
-			result = -4;
+			result = -5;
 		}
 	}
 
@@ -536,7 +579,7 @@ ssint mpt_chip_load_config(void)
 #endif
 }
 
-void mpt_chip_reportall(void)
+static void mpt_chip_reportall(void)
 {
 	const object_callback_t *ocbs = &object_initialize_list[0];
 	u8 i;
@@ -560,22 +603,22 @@ void mpt_api_report_status(void)
 	}
 }
 
-void mpt_chip_get_config_crc(/*data_crc24_t*/ void *ptr)
+static void mpt_chip_get_config_crc(/*data_crc24_t*/ void *ptr)
 {
 	mxt_objects_reg_t * ibreg = &ib_objects_reg;
 	
 	memcpy(ptr, &ibreg->cfg.crc, sizeof(ibreg->cfg.crc));
 }
 
-void mpt_chip_assert_irq(u8 assert, bool retrigger)
+static void mpt_chip_assert_irq(u8 assert, bool retrigger)
 {
-	config_manager_t *cfm = &chip_config_manager;
+	const config_manager_t *cfm = &chip_config_manager;
 	
-	if (cfm->tsl->hal->fn_assert_irq)
-		cfm->tsl->hal->fn_assert_irq(assert, retrigger);	
+	if (cfm->tsl->hal->assert_irq)
+		cfm->tsl->hal->assert_irq(assert, retrigger);	
 }
 
-const mxt_object_t *ib_get_object(const mxt_object_t *ibots, u8 regid) 
+static const mxt_object_t *ib_get_object(const mxt_object_t *ibots, u8 regid) 
 {
 	const mxt_object_t *obj;
 	u8 i;
@@ -590,7 +633,7 @@ const mxt_object_t *ib_get_object(const mxt_object_t *ibots, u8 regid)
 	return NULL;
 }
 
-const mxt_object_t *ib_get_object_by_address(const mxt_object_t *ibots, u16 addr)
+static const mxt_object_t *ib_get_object_by_address(const mxt_object_t *ibots, u16 addr)
 {
 	const mxt_object_t *obj;
 	u8 i;
@@ -605,7 +648,7 @@ const mxt_object_t *ib_get_object_by_address(const mxt_object_t *ibots, u16 addr
 	return NULL;
 }
 
-u8 get_report_id(const mxt_object_t *ibots, u8 regid)
+static u8 get_report_id(const mxt_object_t *ibots, u8 regid)
 {
 	const mxt_object_t *obj;
 	u8 reportid = MXT_REPORT_ID_START;
@@ -626,7 +669,7 @@ u8 get_report_id(const mxt_object_t *ibots, u8 regid)
 }
 
 #ifdef OBJECT_T5
-message_buffer_t *pop_message_fifo(u8 rid)
+static message_buffer_t *pop_message_fifo(u8 rid)
 {
 	mxt_message_fifo_t *msg_fifo = &message_fifo;
 	message_buffer_t *buf = NULL;
@@ -637,7 +680,7 @@ message_buffer_t *pop_message_fifo(u8 rid)
 	
 	if (!CHECK_REPORT_ID(rid)) {
 		buf = list_first_entry(head, struct message_buffer, node);	
-	}else {
+	} else {
 		list_for_each(ptr, head) {
 			buf = container_of(ptr, struct message_buffer, node);
 			if (buf->message.reportid == rid)
@@ -658,7 +701,7 @@ message_buffer_t *pop_message_fifo(u8 rid)
 	return buf;
 }
 
-void push_message_fifo(message_buffer_t *buf)
+static void push_message_fifo(message_buffer_t *buf)
 {
 	mxt_message_fifo_t *msg_fifo = &message_fifo;
 	struct list_head *head = &msg_fifo->fifo;
@@ -672,7 +715,7 @@ void push_message_fifo(message_buffer_t *buf)
 	msg_fifo->reporter[buf->message.reportid - MXT_REPORT_ID_START]++;
 }
 
-bool buffer_empty(message_buffer_t *buf)
+static bool buffer_empty(message_buffer_t *buf)
 {
 	if (list_empty(&buf->node))
 		return true;
@@ -680,7 +723,7 @@ bool buffer_empty(message_buffer_t *buf)
 	return false;
 }
 
-void init_buffer(message_buffer_t *buf)
+static void init_buffer(message_buffer_t *buf)
 {
 	INIT_LIST_HEAD(&buf->node);
 }
@@ -691,7 +734,7 @@ void destory_buffer(message_buffer_t *buf)
 	memset(&buf->message, 0,  sizeof(buf->message));
 }
 
-message_buffer_t *alloc_message_buffer(void)
+static message_buffer_t *alloc_message_buffer(void)
 {
 	mxt_message_fifo_t *msg_fifo = &message_fifo;
 	message_buffer_t *buf, *msg_caches = &message_caches[0];
@@ -723,7 +766,7 @@ message_buffer_t *alloc_message_buffer(void)
 	return NULL;
 }
 
-u8 message_count(const mxt_message_fifo_t *msg_fifo)
+static u8 message_count(const mxt_message_fifo_t *msg_fifo)
 {
 	const struct list_head *head = &msg_fifo->fifo;
 	struct list_head *ptr;
@@ -764,7 +807,7 @@ void mpt_api_request_irq(void)
 }
 
 #ifdef OBJECT_T5
-ssint mpt_read_message(object_t5_t *msg)
+static ssint mpt_read_message(object_t5_t *msg)
 {
 #ifdef OBJECT_T44
 	mxt_objects_reg_t * ibreg = &ib_objects_reg;
@@ -788,14 +831,14 @@ ssint mpt_read_message(object_t5_t *msg)
 		if (object_t7_report_overflow()) {
 			if (ibreg->ram.t44.count < MXT_MESSAGE_FIFO_SIZE - 1) {	//at lease 2 empty spaces
 				object_api_t6_clr_status(MXT_T6_STATUS_OFL);
-				}else {
+				} else {
 				//If FIFO is full, we need send a overflow message
 				object_api_t6_set_status(MXT_T6_STATUS_OFL);
 			}		
 		}
 #endif
 #endif
-	}else {
+	} else {
 		msg->reportid = MXT_RPTID_NOMSG;
 		result = -2;
 	}
@@ -805,7 +848,7 @@ ssint mpt_read_message(object_t5_t *msg)
 	return result;
 }
 
-ssint mpt_write_message(const /*object_t5_t*/void *msg_ptr) 
+static ssint mpt_write_message(const /*object_t5_t*/void *msg_ptr) 
 {
 	const object_t5_t *msg = (const object_t5_t *)msg_ptr;
 #ifdef OBJECT_T44
@@ -826,7 +869,7 @@ ssint mpt_write_message(const /*object_t5_t*/void *msg_ptr)
 		//Update T44
 		ibreg->ram.t44.count = message_count(msg_fifo);
 #endif	
-	}else {
+	} else {
 		result = -2;
 	}
 	
@@ -836,13 +879,13 @@ ssint mpt_write_message(const /*object_t5_t*/void *msg_ptr)
 }
 #endif
 
-void mpt_api_handle_command(void)
-{
-#ifdef OBJECT_T6
-	object_api_t6_handle_command();
-#endif
-}
-
+/*
+    API for register read command
+    @baseaddr: the reg address when the command begin
+    @offset: the current offset to the begin address
+    @out_ptr: read value
+    return: < 0: error code; == 0 not executed; > 0 read bytes(always 1)
+*/
 ssint mpt_api_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr) 
 {
 	mxt_info_t *ibinf = &ib_id_information;
@@ -851,6 +894,9 @@ ssint mpt_api_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 	mxt_objects_reg_t * ibreg = &ib_objects_reg;
 	const mxt_object_t *obj;
 #ifdef OBJECT_T5	
+#ifdef OBJECT_T44
+	const mxt_object_t *obj_t44 = ib_get_object(ibots, MXT_SPT_MESSAGECOUNT_T44);
+#endif	
 	const mxt_object_t *obj_t5 = ib_get_object(ibots, MXT_GEN_MESSAGE_T5);
 	u8 size = 0, checksum = 0, discard = 0;
 #endif	
@@ -859,31 +905,46 @@ ssint mpt_api_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 	ssint result = 0;
 	
 	LOCK();
-	
+
 #ifdef OBJECT_T5
+#ifdef OBJECT_T44
+	if (baseaddr == obj_t44->start_address) {
+		if (offset > 0) {   //That mean T5
+			baseaddr++;
+			offset--;
+		}
+	}
+	
+#endif
 	//If start address is T5 address, that means looping read message fifo
 	if (baseaddr == obj_t5->start_address) {
 		//Check whether CRC read
+		/*
 		if (baseaddr & T5_MESSAGE_CRC_BIT) {
 			baseaddr &= T5_MESSAGE_ADDR_MASK;
 			size = obj_t5->size_minus_one + 1;
 			checksum = 1;
-		}else {
+		} else {
 			size = obj_t5->size_minus_one;
 		}
-		while(offset > size)	// offset %= obj_t5->size_minus_one + 1
+		*/
+		size = obj_t5->size_minus_one;
+		
+		/*while(offset > size)	// offset %= obj_t5->size_minus_one + 1
 			offset -= size;
+		*/
+		offset %= size;
 	}
 #endif
 	regaddr = baseaddr + offset;
 	
 	if (regaddr < MXT_OBJECT_TABLE_START) {
 		dst = (u8 *)ibinf + regaddr;
-	}else if (regaddr < MXT_INFO_CRC_START) {
+	} else if (regaddr < MXT_INFO_CRC_START) {
 		dst = (u8 *)ibots + regaddr - MXT_OBJECT_TABLE_START;
-	}else if (regaddr < MXT_OBJECTS_START) {
+	} else if (regaddr < MXT_OBJECTS_START) {
 		dst = (u8 *)ibcrc + regaddr - MXT_INFO_CRC_START;
-	}else if (regaddr < MXT_MEMORY_END) {
+	} else if (regaddr < MXT_MEMORY_END) {
 #ifdef OBJECT_T5		
 		/*
 			If T5 ram hasn't get message, pop message data from buffer,
@@ -896,13 +957,14 @@ ssint mpt_api_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 					// Read new message to T5 memory
 					mpt_read_message(&ibreg->ram.t5);
 				}
-			}else if (offset == size - 1) {	// Last byte in T5 memory
+				mpt_chip_assert_irq(0, false);	//Release CHG line as protocol, FIXME: release CHG before first byte transferred, which different with protocol
+			} else if (offset == size - 1) {	// Last byte in T5 memory
 				if (checksum) {
 					ibreg->ram.t5.crc = calc_crc8((u8 *)&ibreg->ram.t5, size -1);
 				}
 				discard = 1;
 			}
-		}else 
+		} else 
 #endif		
 		{
 			//Sync data with qtlib
@@ -915,7 +977,7 @@ ssint mpt_api_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 			}
 		}
 		dst = (u8 *)ibreg + regaddr - MXT_OBJECTS_START;	
-	}else {
+	} else {
 		/* Address out of range */
 	}
 	
@@ -924,7 +986,8 @@ ssint mpt_api_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 #ifdef OBJECT_T5
 		if (discard)
 			ibreg->ram.t5.reportid = MXT_RPTID_NOMSG;
-#endif	
+#endif
+        result = 1;
 	} else {
 		/* Address out of range */
 		result = -2;
@@ -935,6 +998,13 @@ ssint mpt_api_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 	return result;
 }
 
+/*
+    API for register write command
+    @baseaddr: the reg address when the command begin
+    @offset: the current offset to the begin address
+    @val: write value
+    return: < 0: error code; == 0 not executed; > 0 writed bytes(always 1)
+*/
 ssint mpt_api_mem_write(u16 baseaddr, u16 offset, u8 val) 
 {
 	mxt_object_t *ibots = &ib_objects_tables[0];
@@ -948,11 +1018,11 @@ ssint mpt_api_mem_write(u16 baseaddr, u16 offset, u8 val)
 	// Only write config memory area
 	if (regaddr < MXT_OBJECTS_START) {
 		/* No write access */
-		result = -2;
-	}else if (regaddr < MXT_OBJECTS_CTRL_START) {
+		result = /*-2*/0;   //Whatever, compatible with QTServer
+	} else if (regaddr < MXT_OBJECTS_CTRL_START) {
 		/* No write access for ram area */
-		result = -3;
-	}else if (regaddr < MXT_MEMORY_END) {
+		result = /*-3*/0;   //Whatever, just not handle it
+	} else if (regaddr < MXT_MEMORY_END) {
 		/* Config area */
 		obj = ib_get_object_by_address(ibots, regaddr);
 		if (obj) {
@@ -963,8 +1033,9 @@ ssint mpt_api_mem_write(u16 baseaddr, u16 offset, u8 val)
 				mem_mark_dirty(obj->type/*, (u8)!offset*/);
 #endif		
 			}
+            result = 1;
 		}
-	}else {
+	} else {
 		/* Address out of range */
 		result = -6;
 	}
@@ -974,56 +1045,9 @@ ssint mpt_api_mem_write(u16 baseaddr, u16 offset, u8 val)
 	return result;
 }
 
-u8 *get_object_mem_address(u8 regid, u8 instance, u16 offset, u8 size)
-{
-	const mxt_object_t *ibots = &ib_objects_tables[0];
-	const mxt_objects_reg_t * ibreg = &ib_objects_reg;
-	const mxt_object_t *obj;
-	u16 regaddr;
-	u8 *dst;
-	
-	obj = ib_get_object(ibots, regid);
-	if (!obj)
-		return NULL;
-	
-	if (instance > obj->instances_minus_one)
-		return NULL;
-	
-	if (offset + size > obj->size_minus_one + 1)
-		return NULL;
-	
-	regaddr = obj->start_address + (obj->size_minus_one + 1) * instance + offset;
-	dst = (u8 *)ibreg + regaddr - MXT_OBJECTS_START;
-	
-	return dst;
-}
-
-ssint mpt_object_read(u8 regid, u8 instance, u16 offset, u8 *out_ptr, u8 size)
-{
-	u8 *dst;
-	
-	dst = get_object_mem_address(regid, instance, offset, size);
-	if (!dst)
-		return -2;
-		
-	memcpy(out_ptr, dst, size);
-	
-	return 0;
-}
-
-ssint mpt_object_write(u8 regid, u8 instance, u16 offset, const u8 *ptr, u8 size)
-{
-	u8 *dst;
-	
-	dst = get_object_mem_address(regid, instance, offset, size);
-	if (!dst)
-		return -2;
-	
-	memcpy(dst, ptr, size);
-	
-	return 0;
-}
-
+/**
+ * \notice objects pre-work before touch process, 
+ */
 void mpt_api_pre_process(void)
 {
 #ifdef OBJECT_T109
@@ -1031,7 +1055,7 @@ void mpt_api_pre_process(void)
 #endif
 }
 
-void mpt_api_set_sensor_data(u8 channel, u8 state, u16 reference, u16 signal, u16 cap, u16 comcap)
+void mpt_api_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap, u16 comcap)
 {
 #ifdef OBJECT_T37
 	object_api_t37_set_sensor_data(channel, reference, signal, cap);

@@ -135,6 +135,42 @@ void I2C_initialization(void)
 	I2C_init();
 }
 
+#ifdef MPTT_BUS_MONITOR
+bool get_bus_line_level(void)
+{
+	return PA1_get_level() && PA2_get_level();
+}
+#endif
+
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
+/* configure the pins and initialize the registers */
+void USART_initialization(void)
+{
+
+	// Set pin direction to input
+	PB3_set_dir(PORT_DIR_IN);
+
+	PB3_set_pull_mode(
+	    // <y> Pull configuration
+	    // <id> pad_pull_config
+	    // <PORT_PULL_OFF"> Off
+	    // <PORT_PULL_UP"> Pull-up
+	    PORT_PULL_OFF);
+
+	// Set pin direction to output
+	PB2_set_dir(PORT_DIR_OUT);
+
+	PB2_set_level(
+	    // <y> Initial level
+	    // <id> pad_initial_level
+	    // <false"> Low
+	    // <true"> High
+	    false);
+
+	USART_init();
+}
+#endif
+
 /**
  * \brief System initialization
  */
@@ -170,7 +206,7 @@ void system_init()
 
 	Timer_init();
 
-#ifdef FLASH_SAVE_CONFIG
+#ifdef MPTT_SAVE_CONFIG
 	FLASH_0_initialization();
 #endif
 
@@ -180,5 +216,11 @@ void system_init()
 
 	I2C_initialization();
 
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
+	USART_initialization();
+#endif
+
 	BOD_init();
+
+    //HW WDT default enabled
 }

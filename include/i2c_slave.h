@@ -73,6 +73,6 @@ void I2C_set_bus_error_callback(I2C_callback handler);
 }
 #endif
 
-#define I2C_SLAVE_ADDRESS 0x4a
+#define I2C_SLAVE_ADDRESS 0x4A
 
 #endif /* I2C_SLAVE_H */

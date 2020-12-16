@@ -8,17 +8,20 @@
 #ifndef TSL_H_
 #define TSL_H_
 
-#include "tslapi.h"
+#include "include/types.h"
+#include "arch/tslapi.h"
+
+// HW interface
+typedef void (*cb_hal_assert_irq_t)(u8 assert, bool retrigger);
+typedef void (*cb_hal_reset_t)(void);
+typedef ssint (*cb_hal_load_cfg_t)(u8 *cfg, size_t size);
+typedef ssint (*cb_hal_save_cfg_t)(const u8 *cfg, size_t size);
 
 typedef struct hal_interface_info {
-	// HW interface
-	void (*fn_assert_irq)(u8 assert, bool retrigger);
-
-	void (*fn_reset)(void);
-	
-	ssint (*fn_load_cfg)(u8 *cfg, size_t size);
-	ssint (*fn_save_cfg)(const u8 *cfg, size_t size);
-
+    const cb_hal_assert_irq_t assert_irq;
+    const cb_hal_reset_t reset;
+	const cb_hal_load_cfg_t load_cfg;
+    const cb_hal_save_cfg_t save_cfg;
 } hal_interface_info_t;
 
 typedef struct tsl_interface_info {
@@ -33,9 +36,9 @@ typedef struct tsl_interface_info {
 }tsl_interface_info_t;
 
 void tsl_init(const hal_interface_info_t *hal);
-void tsl_start(void);
+ssint tsl_start(void);
 void tsl_pre_process(void);
-void tsl_process(void);
+void tsl_process(uint8_t done);
 void tsl_post_process(void);
 
 ssint tsl_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr);

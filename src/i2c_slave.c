@@ -143,11 +143,13 @@ bool send_firstbyte = true;
 void I2C_isr()
 {
 	if (TWI0.SSTATUS & TWI_COLL_bm) {
+		TWI0.SSTATUS |= TWI_COLL_bm;	// Fix for the isr loop forever
 		I2C_collision_callback();
 		return;
 	}
 
 	if (TWI0.SSTATUS & TWI_BUSERR_bm) {
+		TWI0.SSTATUS |= TWI_BUSERR_bm;	// Fix for the isr loop forever
 		I2C_bus_error_callback();
 		return;
 	}
@@ -164,7 +166,7 @@ void I2C_isr()
 			if(send_firstbyte){
 				I2C_read_callback();
 				send_firstbyte = false;
-			}else{		
+			} else {		
 				if (!(TWI0.SSTATUS & TWI_RXACK_bm)) {
 					// Received ACK from master
 					I2C_read_callback();

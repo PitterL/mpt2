@@ -6,7 +6,7 @@
  */ 
 #ifdef OBJECT_T18
 
-#include "../tslapi.h"
+#include "arch/tslapi.h"
 #include "txx.h"
 
 t18_data_t t18_data_status;
@@ -17,15 +17,30 @@ ssint object_t18_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, co
 
 void t18_set_unsupport_area(object_t18_t *mem)
 {
-	mem->cmd = 0;
+	//mem->cmd = 0;
 }
 
-void object_t18_process(u8 rw)
+void t18_data_sync(const txx_data_t *ptr, u8 rw)
 {
-	t18_data_t *ptr = &t18_data_status;
 	object_t18_t *mem = (object_t18_t *)ptr->mem;
 	
+	// Not paramenter to hw
+		
 	t18_set_unsupport_area(mem);
+}
+
+void object_t18_start(u8 loaded)
+{
+	t18_data_t *ptr = &t18_data_status;
+	
+	t18_data_sync(ptr, loaded ? OP_WRITE : OP_READ);
+}
+
+void object_t18_data_sync(u8 rw)
+{
+	t18_data_t *ptr = &t18_data_status;
+
+	t18_data_sync(ptr, rw);
 }
 
 bool object_t18_check_retrigger(void)
@@ -39,4 +54,14 @@ bool object_t18_check_retrigger(void)
 	return false;
 }
 
+bool object_t18_check_dismntr(void)
+{
+	t18_data_t *ptr = &t18_data_status;
+	object_t18_t *mem = (object_t18_t *)ptr->mem;
+	
+	if(mem->ctrl & MXT_COMMS_CTRL_DISMNTR)
+		return true;
+	
+	return false;
+}
 #endif
