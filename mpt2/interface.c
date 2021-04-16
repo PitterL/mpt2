@@ -25,9 +25,17 @@
  *
  */
 
+#if defined(__GNUC__)
+#include <avr/sleep.h>
+#elif defined(__ICCAVR__)
+#include <intrinsics.h>
+#define sleep_cpu() __sleep()
+#endif
+
 #include "include/types.h"
 #include "arch/pinconf.h"
 #include "arch/bus.h"
+#include "arch/cpu.h"
 #include "arch/sysctrl.h"
 #include "arch/flash.h"
 #include "arch/tslapi.h"
@@ -42,6 +50,8 @@ const hal_interface_info_t interface_hal = {
 	.save_cfg = inf_save_cfg,
 #endif
 };
+
+static ssint mptt_state = -1;
 
 /**
  * \brief MPTT framework initialization, 
@@ -66,11 +76,15 @@ ssint mptt_start(void)
 	ssint result;
 
 	result = tsl_start();
-	if (result)
+	if (result) {
+		mptt_state = result;
 		return result;
-
+	}
+	
 	bus_start();
 
+	mptt_state = 0;
+	
 	return 0;
 }
 
@@ -97,3 +111,26 @@ void mptt_post_process(void)
 {
 	tsl_post_process();
 }
+
+extern volatile uint8_t measurement_done_touch;
+void mptt_run(void)
+{
+	uint8_t busy = 0;
+	mptt_pre_process();
+
+	if (mptt_state == 0) {
+		busy = touch_process();
+	}
+	
+	mptt_process(measurement_done_touch);
+
+	if (measurement_done_touch /*== 1*/) {	//0: not done, 1 : success, any other value : error
+		measurement_done_touch = 0;
+
+		mptt_post_process();
+		
+		if (!busy && mptt_get_bus_state() == BUS_STOP)
+			sleep_cpu();
+	}
+}
+

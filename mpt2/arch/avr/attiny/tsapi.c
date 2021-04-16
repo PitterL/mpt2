@@ -78,6 +78,7 @@ extern qtm_surface_cs_control_t qtm_surface_cs_control1;
 extern uint8_t measurement_period_active_store;
 extern uint8_t measurement_period_idle_store;
 extern uint8_t measurement_active_to_idle;
+extern uint8_t measurement_drift_store;
 #endif
 
 #ifdef OBJECT_T15
@@ -134,13 +135,14 @@ tch_config_callback_t touch_config_list[] ={
 	//qtm_init_sensor_key()
 	{API_NUM_SENSORS, &qtlib_key_grp_config_set1.num_key_sensors, sizeof(qtlib_key_grp_config_set1.num_key_sensors), 0 },
 	{API_DEF_TOUCH_DET_INT, &qtlib_key_grp_config_set1.sensor_touch_di, sizeof(qtlib_key_grp_config_set1.sensor_touch_di), 0 },
+#ifdef OBJECT_T8
 	{API_DEF_MAX_ON_DURATION, &qtlib_key_grp_config_set1.sensor_max_on_time, sizeof(qtlib_key_grp_config_set1.sensor_max_on_time), 0 },
 	{API_DEF_ANTI_TCH_DET_INT, &qtlib_key_grp_config_set1.sensor_anti_touch_di, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_di), 0 },
 	{API_DEF_ANTI_TCH_RECAL_THRSHLD, &qtlib_key_grp_config_set1.sensor_anti_touch_recal_thr, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_recal_thr), 0 },
 	{API_DEF_TCH_DRIFT_RATE, &qtlib_key_grp_config_set1.sensor_touch_drift_rate, sizeof(qtlib_key_grp_config_set1.sensor_touch_drift_rate), 0 },
 	{API_DEF_ANTI_TCH_DRIFT_RATE, &qtlib_key_grp_config_set1.sensor_anti_touch_drift_rate, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_drift_rate), 0 },
 	{API_DEF_DRIFT_HOLD_TIME, &qtlib_key_grp_config_set1.sensor_drift_hold_time, sizeof(qtlib_key_grp_config_set1.sensor_drift_hold_time), 0 },		
-
+#endif
 	//
 	{API_NODE_COMPCAP_VALUE, &ptc_qtlib_node_stat1[0].node_comp_caps, sizeof(ptc_qtlib_node_stat1[0].node_comp_caps), sizeof(ptc_qtlib_node_stat1[0]) },	
 

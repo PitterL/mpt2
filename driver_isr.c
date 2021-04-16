@@ -45,5 +45,5 @@ ISR(RTC_CNT_vect)
 	touch_timer_handler();
 
 	/* Compare interrupt flag has to be cleared manually */
-	RTC.INTFLAGS = RTC_CMP_bm;
+	RTC.INTFLAGS = RTC_OVF_bm;
 }

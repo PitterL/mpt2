@@ -50,7 +50,7 @@ extern "C" {
 /* Defines the Type of sensor
  * Default value: NODE_MUTUAL.
  */
-#define DEF_SENSOR_TYPE NODE_SELFCAP_SHIELD
+#define DEF_SENSOR_TYPE NODE_MUTUAL
 
 /* Set sensor calibration mode for charge share delay ,Prescaler or series resistor.
  * Range: CAL_AUTO_TUNE_NONE / CAL_AUTO_TUNE_RSEL / CAL_AUTO_TUNE_PRSC / CAL_AUTO_TUNE_CSD
@@ -89,14 +89,18 @@ extern "C" {
 /*
 	Pin 1~10
 	GND
-	DS0:	PA7		Y3
-	Y0:		PB5		Y12
-	Y1:		PB4		Y13
-	Y2:		PC0		Y6
-	Y3:		PC1		Y7
-	Y4:		PC2		Y8
-	Y5:		PC3		Y9
-	DS1:	PC4		Y10
+	DS0:	PC0		XY(6)
+	Y0:		PA4		Y(0)
+	Y1:		PA6		Y(2)
+	Y2:		PA7		Y(3)
+	Y3:		PB5		Y(12)
+	Y4:		PB4		Y(13)
+	Y5:		PB0		Y(5)
+	X0:		PC1		X(7)
+	X1:		PC2		X(8)
+	X2:		PC3		X(9)
+	X3:		PC4		X(10)
+	X4:		PC5		X(11)
 	GND
 */
 #define DEF_NUM_CHANNELS (4)
@@ -235,7 +239,7 @@ extern "C" {
  * Range: 0 to (DEF_NUM_CHANNELS-1).
  * Default value: 0
  */
-#define QTM_AUTOSCAN_NODE 0
+#define QTM_AUTOSCAN_NODE 3
 
 /* Touch detection threshold for Low-power node.
  * Range: 10 to 255
@@ -248,7 +252,7 @@ extern "C" {
  * Range: NODE_SCAN_4MS to NODE_SCAN_4096MS
  * Default value: NODE_SCAN_64MS
  */
-#define QTM_AUTOSCAN_TRIGGER_PERIOD NODE_SCAN_64MS
+#define QTM_AUTOSCAN_TRIGGER_PERIOD NODE_SCAN_32MS
 
 /* Waiting time (in millisecond) for the application to switch to low-power measurement after the last touch.
  * Range: 0 to 255, unit 200ms
@@ -259,10 +263,10 @@ extern "C" {
 /* Defines drift measurement period
  * During low-power measurement, it is recommended to perform periodic active measurement to perform drifting.
  * This parameter defines the measurement interval to perform drifting.
- * Range: 1 to 255 ( should be more than QTM_AUTOSCAN_TRIGGER_PERIOD) unit ms
- * Default value: (0)2 ms
+ * Range: 0 to 255 ( should be more than QTM_AUTOSCAN_TRIGGER_PERIOD) unit 200ms
+	0: never drift
  */
-// #define DEF_TOUCH_DRIFT_PERIOD_MS 10
+// #define DEF_TOUCH_DRIFT_PERIOD_MS 20
 
 /**********************************************************/
 /***************** Communication - Data Streamer ******************/

@@ -17,6 +17,9 @@ void mptt_interface_init(void);
 /* Call start after Touch inited */
 ssint mptt_start(void);
 
+/* Call run at main while loop */
+void mptt_run(void);
+
 /* Call pre_process before each sampling*/
 void mptt_pre_process(void);
 
