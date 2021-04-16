@@ -39,7 +39,9 @@ Copyright (c) 2021 Microchip. All rights reserved.
 
 #include "touch.h"
 #include "license.h"
-
+#ifdef USE_WDT
+#include "wdt.h"
+#endif
 #include "port.h"
 
 #include "datastreamer.h"
@@ -78,7 +80,8 @@ static void qtm_error_callback(uint8_t error);
 
 #if (DEF_TOUCH_LOWPOWER_ENABLE == 1u)
 /* low power processing function */
-static void touch_process_lowpower();
+static void touch_process_lowpower(void);
+void touch_set_scan_rate(void);
 
 /* low power touch detection callback */
 static void touch_measure_wcomp_match(void);
@@ -103,6 +106,8 @@ enum _QLIB_STATE {
 	QTLIB_STATE_IDLE,
 	// lib in normal mode and in measurement
 	QTLIB_STATE_ACTIVE,
+	// lib finished measurement
+	QTLIB_STATE_COMPLETE,
 	QTLIB_STATE_LOW_POWER_SCANNING,
 };
 /* set to non zero suspend the sampling */
@@ -351,7 +356,10 @@ void Timer_set_period(const uint16_t val, const bool pit)
 	if (val != 0) {
 		while (RTC.STATUS & RTC_PERBUSY_bm)
 			;          /* wait for RTC synchronization */
-		RTC.PER = (val & 0x3FFF) << 2; /* Set period register, RTC cycle use 1/quarter ms */
+		if (val <= 0x3FFF)
+			RTC.PER = (val & 0x3FFF) << 2; /* Set period register, RTC cycle use 1/quarter ms */
+		else
+			RTC.PER = 0xFFFF;
 		RTC.INTCTRL |= (1 << RTC_OVF_bp);
 	} else { /* if the value is zero, disable interrupt */
 		RTC.INTCTRL &= ~(1 << RTC_OVF_bp);
@@ -420,8 +428,10 @@ Notes  :
 uint8_t touch_process(void)
 {
 	touch_ret_t touch_ret;
-
+	
 	/* USE_MPTT_WRAPPER */
+	touch_set_scan_rate();
+		
 	/* check the qlib_touch_flag flag for Touch Acquisition */
 	// if (time_to_measure_touch_flag == 1u) {
 	if (qlib_touch_flag == QTLIB_STATE_ACTIVE) {
@@ -440,6 +450,7 @@ uint8_t touch_process(void)
 	if (touch_postprocess_request == 1u) {
 		/* Reset the flags for node_level_post_processing */
 		touch_postprocess_request = 0u;
+		qlib_touch_flag = QTLIB_STATE_COMPLETE;
 
 		/* Run Acquisition module level post processing*/
 		touch_ret = qtm_acquisition_process();
@@ -473,9 +484,8 @@ uint8_t touch_process(void)
 				/* Something in detect, clear */
 				time_since_touch = 0u;
 			}
-			
-			touch_process_lowpower();
 #endif
+			touch_process_lowpower();
 		}
 
 #ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
@@ -487,8 +497,52 @@ uint8_t touch_process(void)
 	// if (time_to_measure_touch_flag != 1u) {
 	/* USE_MPTT_WRAPPER */
 #endif
-
+		
 	return qlib_touch_flag == QTLIB_STATE_ACTIVE;
+}
+
+void touch_set_scan_rate(void) 
+{
+	uint8_t set_rate = 0;
+	
+	if (qlib_touch_flag == QTLIB_STATE_SLEEP) {
+		if (measurement_active_to_idle != 0) {	// External command force exit sleep mode
+			qlib_touch_flag = QTLIB_STATE_ACTIVE;
+		}
+	}
+	
+	if (qlib_touch_flag != QTLIB_STATE_SLEEP) {
+		if (qlib_lowpower_flag == 1) {	// Exit low power mode
+			/* Cancel node auto scan */
+			qtm_autoscan_node_cancel();
+
+			/* disable event system measurement */
+			touch_disable_lowpower_measurement();
+				
+			qlib_lowpower_flag = 0;
+			
+			set_rate = 1;
+		}
+		
+		if (measurement_period_store != measurement_period_active_store) {
+			if (measurement_period_active_store == 0) {
+				// Disable scan only in complete
+				if (qlib_touch_flag == QTLIB_STATE_COMPLETE) {
+					set_rate = 1;
+				}
+			}else {
+				// change rate at wake up mode
+				if (qlib_touch_flag != QTLIB_STATE_SLEEP) {
+					set_rate = 1;
+				}
+			}
+		}
+		
+		if (set_rate) {
+			measurement_period_store = measurement_period_active_store;
+			Timer_set_period(measurement_period_store, false);
+		}
+	}
 }
 
 #if (DEF_TOUCH_LOWPOWER_ENABLE == 1u)
@@ -547,6 +601,8 @@ Notes  :
 static void touch_process_lowpower(void)
 {
 	touch_ret_t touch_ret;
+	int16_t wdt_period;
+	uint8_t drift_rate;
 
 	if (measurement_active_to_idle &&
 		(measurement_active_to_idle * 200) < time_since_touch) {	// Enter into low power mode
@@ -562,22 +618,22 @@ static void touch_process_lowpower(void)
 			touch_enable_lowpower_measurement();
 			
 			// For drift measurement
-			measurement_period_store = (uint16_t)qtlib_key_grp_config_set1.sensor_touch_drift_rate * 200;				
-			Timer_set_period(measurement_period_store, true);
-		}
-	} else {
-		if (qlib_lowpower_flag == 1) {	// Exit low power mode
-			/* Cancel node auto scan */
-			qtm_autoscan_node_cancel();
-
-			/* disable event system measurement */
-			touch_disable_lowpower_measurement();
-				
-			qlib_lowpower_flag = 0;
-		}
+			drift_rate = qtlib_key_grp_config_set1.sensor_touch_drift_rate;
+			if (!drift_rate)
+				drift_rate = DEF_TCH_DRIFT_RATE;
 			
-		if (measurement_period_store != measurement_period_active_store) {
-			measurement_period_store = measurement_period_active_store;
+			measurement_period_store = (uint16_t)qtlib_key_grp_config_set1.sensor_touch_drift_rate * 200;
+#ifdef USE_WDT
+			wdt_period = (int16_t)WDT_0_get_period_value();
+			if (wdt_period) {
+				wdt_period -= DEF_WDT_FEEDING_MARGIN;	// Get WDT margin
+				if (wdt_period < 0)
+					wdt_period = 1;	// Fastest
+				if (measurement_period_store > wdt_period)
+					measurement_period_store = wdt_period;
+				CLR_WDT();
+			}
+#endif
 			Timer_set_period(measurement_period_store, true);
 		}
 	}
@@ -649,7 +705,7 @@ void touch_timer_handler(void)
 #ifdef OBJECT_T18
 	if (!object_t18_check_dismntr())
 #endif
-		mptt_bus_monitor_ticks(1);
+		mptt_bus_monitor_ticks(measurement_period_store);
 #endif
 	
 	/* Count complete - Measure touch sensors */

@@ -49,3 +49,50 @@ int8_t WDT_0_init()
 
 	return 0;
 }
+
+/*
+	 brief set Watchdog Timer value
+	 val: the timeout value of watch dog value, watchdog timeout value should be equal or larger than this value or will be disabled
+	 return: the period current used, less than zero mean failed
+*/
+int8_t WDT_0_set_period_value_ge(uint16_t val)
+{
+	uint8_t i, curr = 0;
+	uint16_t period;
+	
+	if (WDT.STATUS & 0x80) // Locked
+		return -1;
+
+	for (i = 1; i <= 0xB; i++) {	// zero is disable, Min step is 1,  Max step is 0xB
+		period = (4 << i);
+		if (period >= val)
+			break;
+	}
+
+
+	curr = WDT.CTRLA & 0xF;
+	if (i > curr) {
+		if (i > 0xB)
+			i = 0;	// disabled watch dog
+			
+		ccp_write_io((void*)&(WDT.CTRLA), i /* Watch-Dog timer step */
+				 | WDT_WINDOW_OFF_gc /* Window mode off */);
+	}
+	
+	return curr;
+}
+
+/*
+	 brief get Watchdog Timer value
+	 return: the timeout value of watch dog value
+*/
+uint16_t WDT_0_get_period_value(void)
+{
+	uint8_t curr = WDT.CTRLA & 0xF;
+	
+	if (curr) {
+		return (4 << (uint16_t)curr);
+	} else {
+		return 0;
+	}
+}

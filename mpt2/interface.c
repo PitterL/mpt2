@@ -128,9 +128,9 @@ void mptt_run(void)
 		measurement_done_touch = 0;
 
 		mptt_post_process();
-		
-		if (!busy && mptt_get_bus_state() == BUS_STOP)
-			sleep_cpu();
 	}
+	
+	if (!busy && mptt_get_bus_state() == BUS_STOP)
+		sleep_cpu();
 }
 
