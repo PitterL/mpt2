@@ -35,15 +35,14 @@
 
 #include <driver_init.h>
 #include <compiler.h>
-#ifdef USE_MPTT_WRAPPER
-#include <touch_api_ptc.h>
-#endif
+
 ISR(RTC_CNT_vect)
 {
 
 	/* Insert your RTC Compare interrupt handling code */
 	touch_timer_handler();
 
-	/* Compare interrupt flag has to be cleared manually */
+	/* USE_MPTT_WRAPPER  required */
+	/* Overflow interrupt flag has to be cleared manually */
 	RTC.INTFLAGS = RTC_OVF_bm;
 }

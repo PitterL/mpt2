@@ -224,7 +224,7 @@ void force_parameters(u8 type, u8 index)
 		case API_DEF_MAX_ON_DURATION:
 		case API_DEF_ANTI_TCH_DET_INT:
 		case API_DEF_ANTI_TCH_RECAL_THRSHLD:
-		case API_DEF_TCH_DRIFT_RATE:
+		//case API_DEF_TCH_DRIFT_RATE:
 		case API_DEF_ANTI_TCH_DRIFT_RATE:
 		case API_DEF_DRIFT_HOLD_TIME:
 			force_init_sensor_key(index, 0);

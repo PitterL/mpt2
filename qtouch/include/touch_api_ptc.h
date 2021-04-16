@@ -54,6 +54,7 @@ uint16_t get_scroller_position(uint16_t sensor_node);
 
 void touch_timer_handler(void);
 void touch_init(void);
+/* USE_MPTT_WRAPPER  required */
 uint8_t touch_process(void);
 void touch_suspend(uint8_t);
 

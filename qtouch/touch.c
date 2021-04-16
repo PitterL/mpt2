@@ -46,6 +46,7 @@ Copyright (c) 2021 Microchip. All rights reserved.
 
 #include "datastreamer.h"
 
+/* USE_MPTT_WRAPPER, we process sleep mode outside */
 #if DEF_PTC_CAL_OPTION != CAL_AUTO_TUNE_NONE
 #error "Autotune feature is NOT supported by this acquisition library. Enable Autotune featuers in START."
 #endif
@@ -81,6 +82,8 @@ static void qtm_error_callback(uint8_t error);
 #if (DEF_TOUCH_LOWPOWER_ENABLE == 1u)
 /* low power processing function */
 static void touch_process_lowpower(void);
+
+/* USE_MPTT_WRAPPER */
 void touch_set_scan_rate(void);
 
 /* low power touch detection callback */
@@ -179,6 +182,7 @@ qtm_acq_t321x_node_config_t ptc_seq_node_cfg1[DEF_NUM_CHANNELS]
 /* Container */
 qtm_acquisition_control_t qtlib_acq_set1 = {&ptc_qtlib_acq_gen1, &ptc_seq_node_cfg1[0], &ptc_qtlib_node_stat1[0]};
 
+/* USE_MPTT_WRAPPER, the trigger period is never used, we use idle period instead */
 /* Low-power autoscan related parameters */
 qtm_auto_scan_config_t auto_scan_setup
     = {&qtlib_acq_set1, QTM_AUTOSCAN_NODE, QTM_AUTOSCAN_THRESHOLD, /*QTM_AUTOSCAN_TRIGGER_PERIOD*/0};
@@ -338,6 +342,8 @@ Input  : Time interval(ms), pit enable/disable
 Output : none
 Notes  :
 ============================================================================*/
+
+/* USE_MPTT_WRAPPER, we use Overflow instead of cmp */
 void Timer_set_period(const uint16_t val, const bool pit)
 {
 	/* Disable Clock and PIT */
@@ -395,7 +401,7 @@ Notes  :
 void touch_init(void)
 {
 
-	// USE_MPTT_WRAPPER changed
+	/* USE_MPTT_WRAPPER */
 	/* Set match value for timer,
 		Here we don't start the scanning automatically, if zero we suspend default */
 	qlib_touch_flag = QTLIB_STATE_IDLE;
@@ -404,6 +410,7 @@ void touch_init(void)
 	/* configure the PTC pins for Input*/
 	touch_ptc_pin_config();
 #if DEF_TOUCH_LOWPOWER_ENABLE == 1u
+	/* USE_MPTT_WRAPPER */
 	//touch_disable_lowpower_measurement();
 #endif
 
@@ -422,17 +429,18 @@ Purpose: Main processing function of touch library. This function initiates the
          acquisition, calls post processing after the acquistion complete and
          sets the flag for next measurement based on the sensor status.
 Input  : none
-Output : 1 busy, 0 idle
+Output : 1 touch is busy, 0 idle
 Notes  :
 ============================================================================*/
 uint8_t touch_process(void)
 {
 	touch_ret_t touch_ret;
 	
-	/* USE_MPTT_WRAPPER */
+	/* USE_MPTT_WRAPPER */	
 	touch_set_scan_rate();
 		
 	/* check the qlib_touch_flag flag for Touch Acquisition */
+	/* USE_MPTT_WRAPPER */
 	// if (time_to_measure_touch_flag == 1u) {
 	if (qlib_touch_flag == QTLIB_STATE_ACTIVE) {
 		/* Do the acquisition */
@@ -441,6 +449,7 @@ uint8_t touch_process(void)
 		/* if the Acquistion request was successful then clear the request flag */
 		if (TOUCH_SUCCESS == touch_ret) {
 			/* Clear the Measure request flag */
+			/* USE_MPTT_WRAPPER */
 			// time_to_measure_touch_flag = 0u;
 			qlib_touch_flag = QTLIB_STATE_IDLE;
 		}
@@ -450,6 +459,7 @@ uint8_t touch_process(void)
 	if (touch_postprocess_request == 1u) {
 		/* Reset the flags for node_level_post_processing */
 		touch_postprocess_request = 0u;
+		/* USE_MPTT_WRAPPER */
 		qlib_touch_flag = QTLIB_STATE_COMPLETE;
 
 		/* Run Acquisition module level post processing*/
@@ -494,17 +504,22 @@ uint8_t touch_process(void)
 	}
 	
 #if (DEF_TOUCH_LOWPOWER_ENABLE == 1u)
-	// if (time_to_measure_touch_flag != 1u) {
 	/* USE_MPTT_WRAPPER */
+	// if (time_to_measure_touch_flag != 1u) {
 #endif
-		
+
+	/* USE_MPTT_WRAPPER, return whether touch is busy */
 	return qlib_touch_flag == QTLIB_STATE_ACTIVE;
 }
 
+/* USE_MPTT_WRAPPER, set the scanning rate after resume */
 void touch_set_scan_rate(void) 
 {
 	uint8_t set_rate = 0;
-	
+		
+	if (qlib_touch_flag == QTLIB_STATE_SUSPEND)
+		return;
+		
 	if (qlib_touch_flag == QTLIB_STATE_SLEEP) {
 		if (measurement_active_to_idle != 0) {	// External command force exit sleep mode
 			qlib_touch_flag = QTLIB_STATE_ACTIVE;
@@ -555,7 +570,7 @@ Input  : none
 Output : none
 Notes  :
 ============================================================================*/
-/* USE_MPTT_WRAPPER */
+/* USE_MPTT_WRAPPER, we simplily set EVSYS here */
 static void touch_disable_lowpower_measurement(void)
 {
 	/* Disable RTC to PTC Event system */
@@ -571,7 +586,7 @@ Input  : none
 Output : none
 Notes  :
 ============================================================================*/
-/* USE_MPTT_WRAPPER */
+/* USE_MPTT_WRAPPER, we simplily set evsys here */
 static void touch_enable_lowpower_measurement(void)
 {
 	uint8_t i;
@@ -598,6 +613,7 @@ Input  : none
 Output : none
 Notes  :
 ============================================================================*/
+/* USE_MPTT_WRAPPER, here is something complex, we should handle the driver time correctly */
 static void touch_process_lowpower(void)
 {
 	touch_ret_t touch_ret;
@@ -649,6 +665,7 @@ Notes  :
 ============================================================================*/
 void touch_measure_wcomp_match(void)
 {
+	/* USE_MPTT_WRAPPER */
 	if (qlib_touch_flag == QTLIB_STATE_SLEEP) {
 		touch_cancel_autoscan();
 		/* USE_MPTT_WRAPPER */
@@ -674,6 +691,7 @@ static void touch_cancel_autoscan(void)
 #endif
 
 
+/* USE_MPTT_WRAPPER */
 #ifdef OBJECT_T18
 extern bool object_t18_check_dismntr(void);
 #endif
@@ -776,6 +794,7 @@ void calibrate_node(uint16_t sensor_node)
 	qtm_init_sensor_key(&qtlib_key_set1, sensor_node, &ptc_qtlib_node_stat1[sensor_node]);
 }
 
+/* USE_MPTT_WRAPPER */
 void touch_suspend(uint8_t suspend) 
 {
 	if (suspend)

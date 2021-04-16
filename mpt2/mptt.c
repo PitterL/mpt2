@@ -28,27 +28,36 @@
 	v21: added t25 pinfault detection
 	v22: <1> added t38 object
 		 <2> add 'aks' function at T15
+	v23: draft merge from low power scanning support
+		 <1> support idle(low power) and active scanning rate setting
+		 <2> support switch from active to idle by timeout setting
+		 <3> set i2c bus mornitor ticks from current measure time: mptt_bus_monitor_ticks(measurement_period_store);
+		 <4> disable API_DEF_TCH_DRIFT_RATE sync with qtlib for calibration directly, it will affect the lowpower dynamical setting(caused calibration)
 		 
-		 Object Table Index Object Type Address Size Instances Report IDs
-		 0          37      77   66         1          -
-		 1          44     143    1         1          -
-		 2           5     144   10         1          -
-		 3           6     154    6         1          1
-		 4          38     160   16         1          -
-		 5           7     176    4         1          -
-		 6           8     180   15         1          -
-		 7           9     195   35         1          2
-		 8          15     230   11         2      3 - 4
-		 9          25     252   22         1          5
-		 10         111     274   29         1          -
+		 the current in idle mode:
 		 
-		 Report ID Object Table Index Object Type Object Instance
-		 0 = 0x00                  0           0               0
-		 1 = 0x01                  3           6               0
-		 2 = 0x02                  7           9               0
-		 3 = 0x03                  8          15               0
-		 4 = 0x04                  8          15               1
-		 5 = 0x05                  9          25               0
+		 
+		 
+		Object Table Index Object Type Address Size Instances Report IDs
+		0          37      77   66         1          -
+		1          44     143    1         1          -
+		2           5     144   10         1          -
+		3           6     154    6         1          1
+		4          38     160   16         1          -
+		5           7     176    4         1          -
+		6           8     180   15         1          -
+		7           9     195   35         1          2
+		8          15     230   11         2      3 - 4
+		9          25     252   22         1          5
+		10         111     274   29         1          -
+		 
+		Report ID Object Table Index Object Type Object Instance
+		0 = 0x00                  0           0               0
+		1 = 0x01                  3           6               0
+		2 = 0x02                  7           9               0
+		3 = 0x03                  8          15               0
+		4 = 0x04                  8          15               1
+		5 = 0x05                  9          25               0
 */
 
 #define MPTT_FW_FAMILY_ID 0xa6

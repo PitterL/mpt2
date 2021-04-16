@@ -50,6 +50,7 @@ int8_t Timer_init()
 
 	// RTC.CNT = 0x0; /* Counter: 0x0 */
 
+	/* USE_MPTT_WRAPPER  required */
 	RTC.CTRLA = RTC_PRESCALER_DIV8_gc   /* a quarter of 1ms(0.25 ms) */
 	            | 1 << RTC_RTCEN_bp     /* Enable: enabled */
 	            | 1 << RTC_RUNSTDBY_bp; /* Run In Standby: enabled */
@@ -60,6 +61,7 @@ int8_t Timer_init()
 
 	// RTC.DBGCTRL = 0 << RTC_DBGRUN_bp; /* Run in debug: disabled */
 
+	/* USE_MPTT_WRAPPER  required, don't set here */
 	// RTC.INTCTRL = 1 << RTC_CMP_bp    /* Compare Match Interrupt enable: enabled */
 	//               | 0 << RTC_OVF_bp; /* Overflow Interrupt enable: disabled */
 

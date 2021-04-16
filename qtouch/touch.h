@@ -42,8 +42,9 @@ extern "C" {
 #define DEF_TOUCH_MEASUREMENT_PERIOD_MS 20
 
 /* Defines the Measurement Time in milli seconds.
- * Range: support[2,4,8,16,32,64,128,256]
- * Default value(0) 64
+ * Range: support[2, 4, 8, 16, 32, 64, 128, 256]
+ * Default value 64
+ * value 0 mean never measured in idle
  */
 #define DEF_TOUCH_MEASUREMENT_IDLE_PERIOD_MS 64
 
@@ -266,6 +267,8 @@ extern "C" {
  * Range: 0 to 255 ( should be more than QTM_AUTOSCAN_TRIGGER_PERIOD) unit 200ms
 	0: never drift
  */
+
+/* USE_MPTT_WRAPPER, we the shift setting as DEF_TCH_DRIFT_RATE */
 // #define DEF_TOUCH_DRIFT_PERIOD_MS 20
 
 /**********************************************************/
