@@ -3,6 +3,7 @@
 #include "mpt2/interface.h"
 #endif
 
+extern volatile uint8_t measurement_done_touch;
 int main(void)
 {
 	/* Initializes MCU, drivers and middleware */
@@ -16,7 +17,7 @@ int main(void)
 	/* Replace with your application code */
 	while (1) {
 #ifdef USE_MPTT_WRAPPER
-		mptt_run();
+		mptt_run(measurement_done_touch);
 #endif
 
 #ifdef USE_WDT

@@ -25,24 +25,28 @@ void object_t37_start(void)
 	
 }
 
-void copy_node_data_to_buffer(u8 cmd, u8 page, u8 relative, u16 data)
+void copy_node_data_to_buffer(u8 cmd, u8 page, u8 offset, const void* data, u8 len)
 {
 	t37_data_t *ptr = &t37_data_status;
 	object_t37_t *mem = (object_t37_t *)ptr->common.mem;
 	const u8 pagesize = T37_DATA_SIZE;
-#define DATA_DIRTY_MAGIC_MASK BIT(0)
+	u8 maxlen;
 
 	mem->mode = cmd;
 	mem->page = page;
 	
-	while(relative >= pagesize) {
-		relative -= pagesize;
+	while(offset >= pagesize) {
+		offset -= pagesize;
 		page--;
 	}
 	
 	if (page == 0) {
 		//data set to current page buffer
-		mem->data[relative] = data;
+		maxlen = pagesize - offset;
+		if (len > maxlen)
+			len = maxlen;
+		
+		memcpy((u8 *)mem->data + offset, data, len);
 	}
 }
 
@@ -106,9 +110,9 @@ u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
 	return 0;
 }
 
-void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
+void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 value)
 {
-	s8 pos; 	//If t37 buffer size more than 128, this value will over flow
+	u8 pos; 	//If t37 buffer size more than 128, this value will over flow
 		
 	switch(cmd) {
 #ifdef OBJECT_T15
@@ -123,7 +127,7 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 		case MXT_DIAGNOSTIC_MC_REF:
 		case MXT_DIAGNOSTIC_MC_SIGNAL:
 			pos = channel;
-			copy_node_data_to_buffer(cmd, page, pos, data);
+			copy_node_data_to_buffer(cmd, page, pos << 1, &value, sizeof(value));
 		break;
 #ifdef OBJECT_T111
 		case MXT_DIAGNOSTIC_SC_REF:
@@ -149,7 +153,7 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
     	    } else {
     		    pos = channel;
 		    }
-		    copy_node_data_to_buffer(cmd, page, pos, data);
+		    copy_node_data_to_buffer(cmd, page, pos << 1, &value, sizeof(value));
             break;
         case MXT_DIAGNOSTIC_SC_DELTA:
 			//Y channel First
@@ -160,7 +164,7 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 			} else {
 				pos = channel;
 			}
-			copy_node_data_to_buffer(cmd, page, pos, data);
+			copy_node_data_to_buffer(cmd, page, pos << 1, &value, sizeof(value));
 		break;
 #endif
 		default:
@@ -168,17 +172,76 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 data)
 	};
 }
 
+void t37_set_rsf_data(u8 cmd, u8 page, u8 channel, u16 reference, u16 signal, u16 cap)
+{	
+	t37_data_t *ptr = &t37_data_status;
+	u16 data;
+		
+	data = t37_get_data(cmd, channel, reference, signal, cap);
+	t37_put_data(ptr, cmd, page, channel, data);
+}
+
+#ifdef OBJECT_T126
+void t37_set_low_power_data(u8 cmd, u8 page, u8 channel, u16 reference, u16 signal, u16 cap)
+{
+	dbg_low_power_data_t data;
+	ssint node;
+	bool lowpower;
+	
+	if (page > 0)
+		return;
+	
+	node = object_api_t126_get_low_power_node();
+	if (node != channel)
+		return;
+	
+	lowpower = object_api_t126_get_low_power_status();
+	data.delta = (u16)((s16)signal- (s16)reference);
+	data.ref = reference;
+	data.signal = signal;
+	data.status = (u8)!lowpower;
+	data.signal_raw = cap;
+	
+	copy_node_data_to_buffer(cmd, page, 0, &data, sizeof(data));
+}
+#endif
+
 void object_api_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
 {
 	t37_data_t *ptr = &t37_data_status;
-	u16 data;
+
+	u8 cmd = ptr->status.cmd;
+	u8 page = ptr->status.page;
 
 	/* check whether we have command */
-	if (!ptr->status.cmd)
-		return;
 
-	data = t37_get_data(ptr->status.cmd, channel, reference, signal, cap);
-	t37_put_data(ptr, ptr->status.cmd, ptr->status.page, channel, data);
+	switch(cmd) {
+		case MXT_DIAGNOSTIC_PTC_DELTA:
+		case MXT_DIAGNOSTIC_KEY_DELTA:
+		case MXT_DIAGNOSTIC_MC_DELTA:
+		case MXT_DIAGNOSTIC_SC_DELTA:
+		case MXT_DIAGNOSTIC_PTC_REF:
+		case MXT_DIAGNOSTIC_KEY_REF:
+		case MXT_DIAGNOSTIC_MC_REF:
+		case MXT_DIAGNOSTIC_SC_REF:
+		case MXT_DIAGNOSTIC_PTC_SIGNAL:
+		case MXT_DIAGNOSTIC_MC_SIGNAL:
+		case MXT_DIAGNOSTIC_KEY_SIGNAL:
+		case MXT_DIAGNOSTIC_SC_SIGNAL:
+		{
+			t37_set_rsf_data(cmd, page, channel, reference, signal, cap);
+		}
+		break;
+#ifdef OBJECT_T126
+		case MXT_DIAGNOSTIC_LOW_POWER_MODE:
+		{
+			t37_set_low_power_data(cmd, page, channel, reference, signal, cap);
+		}
+		break;
+#endif
+		default:
+			;
+	};
 }
 
 #endif

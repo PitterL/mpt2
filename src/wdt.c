@@ -51,6 +51,7 @@ int8_t WDT_0_init()
 }
 
 /*
+	USE_MPTT_WRAPPER
 	 brief set Watchdog Timer value
 	 val: the timeout value of watch dog value, watchdog timeout value should be equal or larger than this value or will be disabled
 	 return: the period current used, less than zero mean failed
@@ -83,6 +84,7 @@ int8_t WDT_0_set_period_value_ge(uint16_t val)
 }
 
 /*
+	USE_MPTT_WRAPPER
 	 brief get Watchdog Timer value
 	 return: the timeout value of watch dog value
 */

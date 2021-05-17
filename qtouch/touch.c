@@ -21,9 +21,16 @@ Copyright (c) 2021 Microchip. All rights reserved.
 ============================================================================*/
 /*
 	Change note:
-	v23-20210413: low power mode support
+	[v23]
+	
+	20210413: Low power mode support
 		remove `qtlib_time_elapsed_since_update`, and involved `measurement_period_(active/idle)_store
 	
+	20210420: Low power optimized with dedicated wakeup key only
+		<1> Re-write state machine with bitmask for `qlib_touch_flag` instead of whole value
+		<2> check the wakeup key status in tsl and set message hook in t15
+	20210423: Code Review and function verification
+		<1> Add WDT checking in idle mode that will match WDT period if measurement cycle is too long
 */
 
 #ifndef TOUCH_C
@@ -36,7 +43,7 @@ Copyright (c) 2021 Microchip. All rights reserved.
 /*----------------------------------------------------------------------------
  *     include files
  *----------------------------------------------------------------------------*/
-
+#include "compiler_included.h"
 #include "touch.h"
 #include "license.h"
 #ifdef USE_WDT
@@ -83,9 +90,6 @@ static void qtm_error_callback(uint8_t error);
 /* low power processing function */
 static void touch_process_lowpower(void);
 
-/* USE_MPTT_WRAPPER */
-void touch_set_scan_rate(void);
-
 /* low power touch detection callback */
 static void touch_measure_wcomp_match(void);
 /* Cancel low-power measurement */
@@ -94,6 +98,9 @@ static void touch_enable_lowpower_measurement(void);
 static void touch_disable_lowpower_measurement(void);
 
 #endif
+
+/* USE_MPTT_WRAPPER */
+void touch_auto_set_scan_rate(void);
 
 /*----------------------------------------------------------------------------
  *     Global Variables
@@ -105,25 +112,29 @@ enum _QLIB_STATE {
 	QTLIB_STATE_SUSPEND = 0,
 	// lib at sleep mode
 	QTLIB_STATE_SLEEP,
-	// lib in normal mode but idle
-	QTLIB_STATE_IDLE,
-	// lib in normal mode and in measurement
+	// lib get wakeup instruction but still enter into sleep later
+	QTLIB_STATE_SLEEP_WALK,
+	// lib get active instruction and prepare to exit sleep mode
+	QTLIB_STATE_SLEEP_PRE_EXIT,
+	// lib in normal mode and prepare to measure
 	QTLIB_STATE_ACTIVE,
-	// lib finished measurement
-	QTLIB_STATE_COMPLETE,
-	QTLIB_STATE_LOW_POWER_SCANNING,
+	// lib in normal mode, and start to measure
+	QTLIB_STATE_TIME_TO_MEASURE,
+	// lib in normal mode, and measurement done
+	QTLIB_STATE_MEASUREMENT_DONE,
 };
-/* set to non zero suspend the sampling */
-uint8_t qlib_touch_flag = QTLIB_STATE_SUSPEND;
 
-/* lib at low power scanning mode */
-uint8_t qlib_lowpower_flag = 0;
+#define QTLIB_STATE_MASK	0xFF
+
+
+/* set to non zero suspend the sampling */
+uint8_t qlib_touch_flag;
 
 /* Flag to indicate time for touch measurement */
 // volatile uint8_t time_to_measure_touch_flag = 0;
 
 /* postporcess request flag */
-volatile uint8_t touch_postprocess_request = 0;
+// volatile uint8_t touch_postprocess_request = 0;
 
 /* Measurement Done Touch Flag  */
 volatile uint8_t measurement_done_touch = 0;
@@ -132,27 +143,27 @@ volatile uint8_t measurement_done_touch = 0;
 uint8_t module_error_code = 0;
 
 /* Low-power measurement variables, store how long last touch elapsed, unit: ms 
-	initialized as infinite value
+	initialized as 0
 */
-uint16_t time_since_touch = (uint16_t)-1;
-/*	MPTT required change:
-	set 2 varibles for the measurement period: active and idle by `measurement_period_store`
-	`measurement_period_active_store`: active measurement period
-	`measurement_period_idle_store`: idle measurement period(for low power mode)
+uint16_t time_since_touch = 0;
+/*	USE_MPTT_WRAPPER:
+	set 3 varibles for the measurement period: active and idle by `measurement_period_store`
+	`measurement_period_store`: current used measurement period
+	`measurement_period_active_store`: active measurement period setting
+	`measurement_period_idle_store`: idle measurement period setting(for low power mode)
 	*/
 uint16_t measurement_period_store = DEF_TOUCH_MEASUREMENT_PERIOD_MS;
 /*
-	MPTT required change:
+	USE_MPTT_WRAPPER:
 	Active Acquisition Interval
 	Range: [0~255], unit 1ms
 	0: suspend
-	1 ~ 254: actual value with 1ms unit
-	255: free run
+	1 ~ 255: actual value with 1ms unit
 	*/
 uint8_t measurement_period_active_store = DEF_TOUCH_MEASUREMENT_PERIOD_MS;
 
 /*	
-	MPTT required change:
+	USE_MPTT_WRAPPER:
 	Idle Acquisition Interval
 	0: disable sleep mode	
 	1 ~ 255: actual value with 1ms unit
@@ -160,10 +171,22 @@ uint8_t measurement_period_active_store = DEF_TOUCH_MEASUREMENT_PERIOD_MS;
 uint8_t measurement_period_idle_store = DEF_TOUCH_MEASUREMENT_IDLE_PERIOD_MS;
 
 /*
-	The Active to Idle Timeout is specified in 200 ms increments, where 0 means don't enter into idle automatically.
-	Range: 0 (1 cycle), 1 to 4095, unit 200ms
+	USE_MPTT_WRAPPER:
+	The Active to Idle Timeout from last touch.
+	Range: [0~255], unit 200ms
+	0: means never enter into idle automatically
+	1 ~ 255: actual value with 200ms unit
 */
 uint8_t measurement_active_to_idle = DEF_TOUCH_ACTIVE_IDLE_TIMEOUT;
+
+/*
+	USE_MPTT_WRAPPER:
+	Idle Drift Interval
+	0: disabled in sleep mode	
+	1 ~ 255: actual value with 200ms unit. 
+	Note: maximum value limited by watchdog window period
+*/
+uint8_t measurement_period_idle_drift = DEF_TOUCH_DRIFT_PERIOD_MS;
 
 /* Acquisition module internal data - Size to largest acquisition set */
 uint16_t touch_acq_signals_raw[DEF_NUM_CHANNELS];
@@ -176,8 +199,7 @@ qtm_acq_node_group_config_t ptc_qtlib_acq_gen1
 qtm_acq_node_data_t ptc_qtlib_node_stat1[DEF_NUM_CHANNELS];
 
 /* Node configurations */
-qtm_acq_t321x_node_config_t ptc_seq_node_cfg1[DEF_NUM_CHANNELS]
-    = {NODE_0_PARAMS, NODE_1_PARAMS, NODE_2_PARAMS, NODE_3_PARAMS};
+qtm_acq_t321x_node_config_t ptc_seq_node_cfg1[DEF_NUM_CHANNELS] = {NODE_0_PARAMS, NODE_1_PARAMS, NODE_2_PARAMS};
 
 /* Container */
 qtm_acquisition_control_t qtlib_acq_set1 = {&ptc_qtlib_acq_gen1, &ptc_seq_node_cfg1[0], &ptc_qtlib_node_stat1[0]};
@@ -230,18 +252,43 @@ qtm_touch_key_group_data_t qtlib_key_grp_data_set1;
 qtm_touch_key_data_t qtlib_key_data_set1[DEF_NUM_SENSORS];
 
 /* Key Configurations */
-qtm_touch_key_config_t qtlib_key_configs_set1[DEF_NUM_SENSORS]
-    = {KEY_0_PARAMS, KEY_1_PARAMS, KEY_2_PARAMS, KEY_3_PARAMS};
+qtm_touch_key_config_t qtlib_key_configs_set1[DEF_NUM_SENSORS] = {KEY_0_PARAMS, KEY_1_PARAMS, KEY_2_PARAMS};
 
 /* Container */
 qtm_touch_key_control_t qtlib_key_set1
     = {&qtlib_key_grp_data_set1, &qtlib_key_grp_config_set1, &qtlib_key_data_set1[0], &qtlib_key_configs_set1[0]};
 
-#ifndef USE_MPTT_WRAPPER
+#ifndef MPTT_AUTO_PINMUX
 #error "be careful to re-configure here since there isn't enabled PTC pin auto config"
 /*static*/ void touch_ptc_pin_config(void)
 {
+	PORTA_set_pin_pull_mode(4, PORT_PULL_OFF);
+	PORTA_pin_set_isc(4, PORT_ISC_INPUT_DISABLE_gc);
 
+	PORTA_set_pin_pull_mode(6, PORT_PULL_OFF);
+	PORTA_pin_set_isc(6, PORT_ISC_INPUT_DISABLE_gc);
+
+	PORTA_set_pin_pull_mode(7, PORT_PULL_OFF);
+	PORTA_pin_set_isc(7, PORT_ISC_INPUT_DISABLE_gc);
+
+	PORTB_set_pin_pull_mode(0, PORT_PULL_OFF);
+	PORTB_pin_set_isc(0, PORT_ISC_INPUT_DISABLE_gc);
+
+	PORTB_set_pin_pull_mode(1, PORT_PULL_OFF);
+	PORTB_pin_set_isc(1, PORT_ISC_INPUT_DISABLE_gc);
+
+	PORTB_set_pin_pull_mode(4, PORT_PULL_OFF);
+	PORTB_pin_set_isc(4, PORT_ISC_INPUT_DISABLE_gc);
+
+	PORTB_set_pin_pull_mode(5, PORT_PULL_OFF);
+	PORTB_pin_set_isc(5, PORT_ISC_INPUT_DISABLE_gc);
+
+	PORTC_set_pin_pull_mode(0, PORT_PULL_OFF);
+	PORTC_pin_set_isc(0, PORT_ISC_INPUT_DISABLE_gc);
+	
+	PORTC_set_pin_pull_mode(1, PORT_PULL_OFF);
+	PORTC_pin_set_isc(1, PORT_ISC_INPUT_DISABLE_gc);
+		
 	PORTC_set_pin_pull_mode(2, PORT_PULL_OFF);
 	PORTC_pin_set_isc(2, PORT_ISC_INPUT_DISABLE_gc);
 
@@ -251,8 +298,8 @@ qtm_touch_key_control_t qtlib_key_set1
 	PORTC_set_pin_pull_mode(4, PORT_PULL_OFF);
 	PORTC_pin_set_isc(4, PORT_ISC_INPUT_DISABLE_gc);
 
-	PORTA_set_pin_pull_mode(6, PORT_PULL_OFF);
-	PORTA_pin_set_isc(6, PORT_ISC_INPUT_DISABLE_gc);
+	PORTC_set_pin_pull_mode(5, PORT_PULL_OFF);
+	PORTC_pin_set_isc(5, PORT_ISC_INPUT_DISABLE_gc);
 }
 #endif
 
@@ -303,7 +350,11 @@ Notes  :
 ============================================================================*/
 static void qtm_measure_complete_callback(void)
 {
-	touch_postprocess_request = 1u;
+	// touch_postprocess_request = 1u;
+	//CLR_BIT(qlib_touch_flag, QTLIB_STATE_ACTIVE);
+		
+	/* USE_MPTT_WRAPPER */
+	SET_BIT(qlib_touch_flag, QTLIB_STATE_MEASUREMENT_DONE);
 }
 
 /*============================================================================
@@ -324,8 +375,6 @@ static void qtm_error_callback(uint8_t error)
 	module_error_code = error + 1u;
 #ifdef USE_MPTT_WRAPPER
 	// return done error that make the state machine continue running
-	qlib_touch_flag = QTLIB_STATE_IDLE;
-	
 	measurement_done_touch = 2;
 #endif
 #ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
@@ -343,7 +392,8 @@ Output : none
 Notes  :
 ============================================================================*/
 
-/* USE_MPTT_WRAPPER, we use Overflow instead of cmp */
+/* USE_MPTT_WRAPPER, 
+   We use Overflow interrupt instead of Compare interrupt */
 void Timer_set_period(const uint16_t val, const bool pit)
 {
 	/* Disable Clock and PIT */
@@ -400,18 +450,19 @@ Notes  :
 ============================================================================*/
 void touch_init(void)
 {
-
-	/* USE_MPTT_WRAPPER */
-	/* Set match value for timer,
-		Here we don't start the scanning automatically, if zero we suspend default */
-	qlib_touch_flag = QTLIB_STATE_IDLE;
-	Timer_set_period(measurement_period_store, false);
+	/* USE_MPTT_WRAPPER 
+		Set match value for timer,
+		We are ready for scanning default */
+	qlib_touch_flag = BIT(QTLIB_STATE_TIME_TO_MEASURE);
+	
+	Timer_set_period(measurement_period_store, true);
 	
 	/* configure the PTC pins for Input*/
 	touch_ptc_pin_config();
 #if DEF_TOUCH_LOWPOWER_ENABLE == 1u
-	/* USE_MPTT_WRAPPER */
-	//touch_disable_lowpower_measurement();
+	/* USE_MPTT_WRAPPER
+		Not check low power default */
+	// touch_disable_lowpower_measurement();
 #endif
 
 	/* Configure touch sensors with Application specific settings */
@@ -429,39 +480,53 @@ Purpose: Main processing function of touch library. This function initiates the
          acquisition, calls post processing after the acquistion complete and
          sets the flag for next measurement based on the sensor status.
 Input  : none
-Output : 1 touch is busy, 0 idle
+Output : None Zero touch is busy, Zero means idle
 Notes  :
 ============================================================================*/
-uint8_t touch_process(void)
+extern int8_t tsapi_read_button_state(uint8_t index);
+
+void touch_process(void)
 {
 	touch_ret_t touch_ret;
 	
-	/* USE_MPTT_WRAPPER */	
-	touch_set_scan_rate();
+	if (TEST_BIT(qlib_touch_flag, QTLIB_STATE_SUSPEND))
+		return;
+	
+	/* USE_MPTT_WRAPPER 
+		set the scanning rate before touch scanning */	
+	touch_auto_set_scan_rate();
 		
 	/* check the qlib_touch_flag flag for Touch Acquisition */
-	/* USE_MPTT_WRAPPER */
+	/* USE_MPTT_WRAPPER,
+		Note active flag is one shot after executed
+	 */
+				
 	// if (time_to_measure_touch_flag == 1u) {
-	if (qlib_touch_flag == QTLIB_STATE_ACTIVE) {
+	if (TEST_BIT(qlib_touch_flag, QTLIB_STATE_TIME_TO_MEASURE)) {
+		/* Clear the Measure request flag */
+		CLR_BIT(qlib_touch_flag, QTLIB_STATE_TIME_TO_MEASURE);
+			
 		/* Do the acquisition */
 		touch_ret = qtm_ptc_start_measurement_seq(&qtlib_acq_set1, qtm_measure_complete_callback);
-
 		/* if the Acquistion request was successful then clear the request flag */
 		if (TOUCH_SUCCESS == touch_ret) {
-			/* Clear the Measure request flag */
 			/* USE_MPTT_WRAPPER */
 			// time_to_measure_touch_flag = 0u;
-			qlib_touch_flag = QTLIB_STATE_IDLE;
-		}
+			SET_BIT(qlib_touch_flag, QTLIB_STATE_ACTIVE);
+		}/* else if (TOUCH_ACQ_INCOMPLETE == touch_ret) {
+			
+		}*/
 	}
 
 	/* check the flag for node level post processing */
-	if (touch_postprocess_request == 1u) {
+	/* USE_MPTT_WRAPPER  */
+	// if (touch_postprocess_request == 1u) {
+	if (TEST_BIT(qlib_touch_flag, QTLIB_STATE_MEASUREMENT_DONE)) {
 		/* Reset the flags for node_level_post_processing */
-		touch_postprocess_request = 0u;
-		/* USE_MPTT_WRAPPER */
-		qlib_touch_flag = QTLIB_STATE_COMPLETE;
-
+		// touch_postprocess_request = 0u;
+		CLR_BIT(qlib_touch_flag, QTLIB_STATE_MEASUREMENT_DONE);
+		CLR_BIT(qlib_touch_flag, QTLIB_STATE_ACTIVE);
+					
 		/* Run Acquisition module level post processing*/
 		touch_ret = qtm_acquisition_process();
 
@@ -486,16 +551,21 @@ uint8_t touch_process(void)
 			// Reburst
 			/* USE_MPTT_WRAPPER */
 			// time_to_measure_touch_flag = 1u;
-			qlib_touch_flag = QTLIB_STATE_ACTIVE;
+			SET_BIT(qlib_touch_flag, QTLIB_STATE_TIME_TO_MEASURE);
 		} else {
 			measurement_done_touch = 1u;
 #if (DEF_TOUCH_LOWPOWER_ENABLE == 1u)
 			if (0u != (qtlib_key_grp_data_set1.qtm_keys_status & QTM_KEY_DETECT)) {
-				/* Something in detect, clear */
-				time_since_touch = 0u;
+				/* Touch in detect, updte `time_since_touch` varible
+					If in sleep mode, we also should check whether it's the wakeup key pressed */
+				if (TEST_BIT(qlib_touch_flag, QTLIB_STATE_SLEEP) || TEST_BIT(qlib_touch_flag, QTLIB_STATE_SLEEP_WALK)) {
+					if (tsapi_read_button_state(auto_scan_setup.auto_scan_node_number) > 0)
+						time_since_touch = 0u;
+				} else {
+					time_since_touch = 0;
+				}
 			}
 #endif
-			touch_process_lowpower();
 		}
 
 #ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
@@ -506,56 +576,128 @@ uint8_t touch_process(void)
 #if (DEF_TOUCH_LOWPOWER_ENABLE == 1u)
 	/* USE_MPTT_WRAPPER */
 	// if (time_to_measure_touch_flag != 1u) {
+	
+	if (!TEST_BIT(qlib_touch_flag, QTLIB_STATE_ACTIVE) && 
+		!TEST_BIT(qlib_touch_flag, QTLIB_STATE_TIME_TO_MEASURE) && 
+		!TEST_BIT(qlib_touch_flag, QTLIB_STATE_SLEEP)) {		
+		touch_process_lowpower();
+	}
+			
 #endif
-
-	/* USE_MPTT_WRAPPER, return whether touch is busy */
-	return qlib_touch_flag == QTLIB_STATE_ACTIVE;
 }
 
-/* USE_MPTT_WRAPPER, set the scanning rate after resume */
-void touch_set_scan_rate(void) 
+/*============================================================================
+USE_MPTT_WRAPPER
+bool touch_inbusy(void)
+------------------------------------------------------------------------------
+Purpose: Indicate whether the touch is busy now, outside could decide whether enter into sleep mode
+Input  : none
+Output : Zero: idle, None: Busy
+Notes  :
+============================================================================*/
+
+uint8_t touch_inbusy(void)
 {
-	uint8_t set_rate = 0;
-		
-	if (qlib_touch_flag == QTLIB_STATE_SUSPEND)
-		return;
-		
-	if (qlib_touch_flag == QTLIB_STATE_SLEEP) {
-		if (measurement_active_to_idle != 0) {	// External command force exit sleep mode
-			qlib_touch_flag = QTLIB_STATE_ACTIVE;
+	return TEST_BIT(qlib_touch_flag, QTLIB_STATE_TIME_TO_MEASURE) /*|| TEST_BIT(qlib_touch_flag, QTLIB_STATE_ACTIVE) */|| TEST_BIT(qlib_touch_flag, QTLIB_STATE_MEASUREMENT_DONE);
+}
+
+/*============================================================================
+USE_MPTT_WRAPPER
+void get_next_measurement_period(void)
+------------------------------------------------------------------------------
+Purpose: Get next measurement compared to wdt period
+Input  : current period
+Output : next measurement
+Notes  :
+============================================================================*/
+
+uint16_t get_next_measurement_period(uint16_t current)
+{
+#if USE_WDT
+	int16_t wdt_period;
+	
+	wdt_period = (int16_t)WDT_0_get_period_value();
+	if (wdt_period) {
+		wdt_period -= DEF_WDT_FEEDING_MARGIN;	// Get WDT margin
+		if (wdt_period < 0) {
+			wdt_period = 1;	// Set to fastest
+		}
+		/* if drift disabled(0), or drift interval slow than wdt, set to wdt period with margin*/
+		if (!current || current > wdt_period) {
+			current = wdt_period;
 		}
 	}
-	
-	if (qlib_touch_flag != QTLIB_STATE_SLEEP) {
-		if (qlib_lowpower_flag == 1) {	// Exit low power mode
-			/* Cancel node auto scan */
-			qtm_autoscan_node_cancel();
+#endif
 
-			/* disable event system measurement */
-			touch_disable_lowpower_measurement();
-				
-			qlib_lowpower_flag = 0;
-			
-			set_rate = 1;
-		}
+	return current;
+}
+
+/*============================================================================
+USE_MPTT_WRAPPER
+void touch_auto_set_scan_rate(void)
+------------------------------------------------------------------------------
+Purpose: Set the scanning rate of measurement
+Input  : none
+Output : None Zero touch is busy, Zero means idle
+Notes  :
+============================================================================*/
+extern bool object_api_t126_lowpower_mode_enabled(void);
+extern void object_api_t126_force_waked(int16_t val);
+extern void object_api_t126_breach_waked(int16_t val);
+void touch_auto_set_scan_rate(void)
+{	
+	uint16_t period;
+	
+	/* Here we test whether current state in sleep mode, if it is:
+		<1> it's drift cycle, (both QTLIB_STATE_SLEEP and QTLIB_STATE_TIME_TO_MEASURE is set), we just do lowpower config switched to normal config, but keep flags
+		<2> it's pre-exit status or external command forced exit, we will clear all other flag and set to active
+	 */
+#if (DEF_TOUCH_LOWPOWER_ENABLE == 1u)
+	// In sleep
+	if (TEST_BIT(qlib_touch_flag, QTLIB_STATE_SLEEP)) {	
+		/* check whether exit lowpower mode */
 		
-		if (measurement_period_store != measurement_period_active_store) {
-			if (measurement_period_active_store == 0) {
-				// Disable scan only in complete
-				if (qlib_touch_flag == QTLIB_STATE_COMPLETE) {
-					set_rate = 1;
-				}
-			}else {
-				// change rate at wake up mode
-				if (qlib_touch_flag != QTLIB_STATE_SLEEP) {
-					set_rate = 1;
-				}
+		/* touch detection exit */
+		if (TEST_BIT(qlib_touch_flag, QTLIB_STATE_SLEEP_PRE_EXIT)) {
+			/* exit sleep mode */
+			qlib_touch_flag = BIT(QTLIB_STATE_TIME_TO_MEASURE);
+			/* notice t126 register the status changed */
+			object_api_t126_breach_waked(get_sensor_node_delta(auto_scan_setup.auto_scan_node_number));
+		} else {
+			/* external T7 command forced exit or
+				external T126 disable force exit
+			*/
+			if (!measurement_active_to_idle || !object_api_t126_lowpower_mode_enabled()) {
+				/* exit sleep mode */
+				qlib_touch_flag = BIT(QTLIB_STATE_TIME_TO_MEASURE);
+				/* notice t126 register the status changed */
+				object_api_t126_force_waked(get_sensor_node_delta(auto_scan_setup.auto_scan_node_number));			
 			}
 		}
 		
-		if (set_rate) {
-			measurement_period_store = measurement_period_active_store;
-			Timer_set_period(measurement_period_store, false);
+		if (TEST_BIT(qlib_touch_flag, QTLIB_STATE_TIME_TO_MEASURE)) {
+			CLR_BIT(qlib_touch_flag, QTLIB_STATE_SLEEP);
+			/* Cancel node auto scan */
+			touch_cancel_autoscan();
+		}
+	}
+#endif
+
+	/* if it's in sleep mode, we set to drift period */
+	if (TEST_BIT(qlib_touch_flag, QTLIB_STATE_SLEEP) || TEST_BIT(qlib_touch_flag, QTLIB_STATE_SLEEP_WALK)) {		
+		period = (uint16_t)measurement_period_idle_drift * 200;
+	} else {
+	/* if it's not in sleep mode, we will check and set the active measurement period */
+		period = measurement_period_active_store;
+	}
+	
+	/* if it's in sleep mode, we will check whether do scanning */
+	if (measurement_period_store != period) {	// FIXME: if the idle period is equal active period, we will skip here?
+		measurement_period_store = get_next_measurement_period(period);
+		Timer_set_period(measurement_period_store, true);
+		
+		if (!period) {
+			CLR_BIT(qlib_touch_flag, QTLIB_STATE_TIME_TO_MEASURE);
 		}
 	}
 }
@@ -613,43 +755,43 @@ Input  : none
 Output : none
 Notes  :
 ============================================================================*/
-/* USE_MPTT_WRAPPER, here is something complex, we should handle the driver time correctly */
+/* USE_MPTT_WRAPPER, 
+	We should consider low power mode wakeup time(for drift) and watchdog feeding
+ */
+extern void object_api_t126_breach_sleep(void);
 static void touch_process_lowpower(void)
 {
 	touch_ret_t touch_ret;
-	int16_t wdt_period;
-	uint8_t drift_rate;
+	bool sleep = false;
 
-	if (measurement_active_to_idle &&
-		(measurement_active_to_idle * 200) < time_since_touch) {	// Enter into low power mode
-		
-		qlib_touch_flag = QTLIB_STATE_SLEEP;
+	/* T126 object must be enabled */
+	if (!object_api_t126_lowpower_mode_enabled())
+		return;
 
+	if (TEST_BIT(qlib_touch_flag, QTLIB_STATE_SLEEP_WALK)) {
+		CLR_BIT(qlib_touch_flag, QTLIB_STATE_SLEEP_WALK);
+		sleep = true;
+	} else {
+		if (measurement_active_to_idle &&
+			(measurement_active_to_idle * 200) < time_since_touch)
+		sleep = true;
+	}
+
+	/* active to idle timeout none Zero */
+	if (sleep) {	// Enter into low power mode
 		/* Start Autoscan */
 		touch_ret = qtm_autoscan_sensor_node(&auto_scan_setup, touch_measure_wcomp_match);
 		if (touch_ret == TOUCH_SUCCESS) {
-			//qlib_touch_flag = QTLIB_STATE_LOW_POWER_SCANNING;
-			qlib_lowpower_flag = 1;	
+			/* Ready for Sleep */
+			SET_BIT(qlib_touch_flag, QTLIB_STATE_SLEEP);
+			/* notice t126 register the status changed */
+			object_api_t126_breach_sleep();
+			
 			/* Enable Event System */
 			touch_enable_lowpower_measurement();
-			
+						
 			// For drift measurement
-			drift_rate = qtlib_key_grp_config_set1.sensor_touch_drift_rate;
-			if (!drift_rate)
-				drift_rate = DEF_TCH_DRIFT_RATE;
-			
-			measurement_period_store = (uint16_t)qtlib_key_grp_config_set1.sensor_touch_drift_rate * 200;
-#ifdef USE_WDT
-			wdt_period = (int16_t)WDT_0_get_period_value();
-			if (wdt_period) {
-				wdt_period -= DEF_WDT_FEEDING_MARGIN;	// Get WDT margin
-				if (wdt_period < 0)
-					wdt_period = 1;	// Fastest
-				if (measurement_period_store > wdt_period)
-					measurement_period_store = wdt_period;
-				CLR_WDT();
-			}
-#endif
+			measurement_period_store = get_next_measurement_period((uint16_t)measurement_period_idle_drift * 200);
 			Timer_set_period(measurement_period_store, true);
 		}
 	}
@@ -665,12 +807,16 @@ Notes  :
 ============================================================================*/
 void touch_measure_wcomp_match(void)
 {
-	/* USE_MPTT_WRAPPER */
-	if (qlib_touch_flag == QTLIB_STATE_SLEEP) {
-		touch_cancel_autoscan();
-		/* USE_MPTT_WRAPPER */
+	/* USE_MPTT_WRAPPER
+		the Compare mode only used in sleep mode
+	 */
+	if (TEST_BIT(qlib_touch_flag, QTLIB_STATE_SLEEP)) {
+		touch_disable_lowpower_measurement();
+		/* USE_MPTT_WRAPPER 
+			Prepare to exit sleep if the compare interrupt occured
+		*/
 		// time_to_measure_touch_flag = 1u;
-		qlib_touch_flag = QTLIB_STATE_ACTIVE;
+		SET_BIT(qlib_touch_flag, QTLIB_STATE_SLEEP_PRE_EXIT);
 		time_since_touch           = 0u;
 	}
 }
@@ -683,11 +829,13 @@ Output : none
 Notes  :
 ============================================================================*/
 static void touch_cancel_autoscan(void)
-{
+{		
 	/* disable event system measurement */
 	touch_disable_lowpower_measurement();
+	
+	/* Cancel node auto scan */
+	qtm_autoscan_node_cancel();
 }
-
 #endif
 
 
@@ -714,7 +862,7 @@ Notes  :
 void touch_timer_handler(void)
 {
 #ifdef OBJECT_T25
-	if (qlib_touch_flag == QTLIB_STATE_SUSPEND)
+	if (TEST_BIT(qlib_touch_flag, QTLIB_STATE_SUSPEND))
 		return;
 #endif
 
@@ -729,8 +877,10 @@ void touch_timer_handler(void)
 	/* Count complete - Measure touch sensors */
 	/* USE_MPTT_WRAPPER */
 	// time_to_measure_touch_flag = 1u;
-	qlib_touch_flag = QTLIB_STATE_ACTIVE;
-	
+	SET_BIT(qlib_touch_flag, QTLIB_STATE_TIME_TO_MEASURE);
+	if (TEST_BIT(qlib_touch_flag, QTLIB_STATE_SLEEP))
+		SET_BIT(qlib_touch_flag, QTLIB_STATE_SLEEP_WALK);
+
 #if (DEF_TOUCH_LOWPOWER_ENABLE == 1u)
 
 	if (time_since_touch < (65535u - measurement_period_store)) {
@@ -766,6 +916,11 @@ void update_sensor_node_reference(uint16_t sensor_node, uint16_t new_reference)
 	qtlib_key_data_set1[sensor_node].channel_reference = new_reference;
 }
 
+uint16_t get_sensor_node_delta(uint16_t sensor_node)
+{
+	return (int16_t)get_sensor_node_signal(sensor_node) - (int16_t)get_sensor_node_reference(sensor_node);
+}
+
 uint16_t get_sensor_cc_val(uint16_t sensor_node)
 {
 	return (ptc_qtlib_node_stat1[sensor_node].node_comp_caps);
@@ -798,9 +953,10 @@ void calibrate_node(uint16_t sensor_node)
 void touch_suspend(uint8_t suspend) 
 {
 	if (suspend)
-		qlib_touch_flag = QTLIB_STATE_SUSPEND;
-	else
-		qlib_touch_flag = QTLIB_STATE_IDLE;
+		SET_BIT(qlib_touch_flag, QTLIB_STATE_SUSPEND);
+	else {
+		CLR_BIT(qlib_touch_flag, QTLIB_STATE_SUSPEND);
+	}
 }
 
 /*============================================================================
@@ -811,13 +967,13 @@ Input    :  none
 Output  :  none
 Notes    :  none
 ============================================================================*/
+/* USE_MPTT_WRAPPER */
 ISR(ADC0_RESRDY_vect)
 {
 #ifdef OBJECT_T25
-	if (qlib_touch_flag == QTLIB_STATE_SUSPEND)
+	if (TEST_BIT(qlib_touch_flag, QTLIB_STATE_SUSPEND))
 		return;
 #endif
-
 	qtm_t321x_ptc_handler_eoc();
 }
 
@@ -832,7 +988,7 @@ Notes    :  none
 ISR(ADC0_WCOMP_vect)
 {
 #ifdef OBJECT_T25
-	if (qlib_touch_flag == QTLIB_STATE_SUSPEND)
+	if (TEST_BIT(qlib_touch_flag, QTLIB_STATE_SUSPEND))
 		return;
 #endif
 

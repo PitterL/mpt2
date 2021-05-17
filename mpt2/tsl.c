@@ -35,13 +35,8 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 	{ .node = {	.origin = 0, .size = 11 } },	// Surface slider
 	{ .node = {	.origin = 11, .size = 2 } },	// Button
 #endif
-#ifdef PROJECT_EC01
+#ifdef EVK_3217_XPLAIN
     { .node = {	.origin = 0, .size = 2 } },
-	{ .node = {	.origin = 2, .size = 1 } },	
-#endif
-#ifdef PROJECT_EC01_MTA
-    { .node = {	.origin = 0, .size = 3 } },
-    { .node = {	.origin = 3, .size = 3 } },
 #endif
 };
 #endif
@@ -66,11 +61,8 @@ qtouch_config_t tsl_qtouch_def = {
 #ifdef EVK_WATER_SURFACE
 	.matrix_nodes = {{.origin = 0, .size = 5}, {.origin =  5, .size = 8}},
 #endif
-#ifdef PROJECT_EC01
+#ifdef EVK_3217_XPLAIN
 	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 2}},
-#endif
-#ifdef PROJECT_EC01_MTA
-	.matrix_nodes = {{.origin = 0, .size = 3}, {.origin =  3, .size = 2}},
 #endif
 #ifdef TOUCH_API_BUTTON
 	//If define num_button, should filled the buttons_config
@@ -110,9 +102,9 @@ tsl_interface_info_t interface_tsl =
 	.qtdef = &tsl_qtouch_def,
 };
 
-void tch_assert_irq(void)
+u8 tsl_assert_irq(void)
 {
-	mpt_api_request_irq();
+	return mpt_api_request_irq();
 }
 
 void init_maxtrix_node(qtouch_config_t *qdef)
@@ -283,7 +275,7 @@ void tch_ref_signal_update(void)
 #endif
 }
 
-void tch_update_chip_state(uint8_t done)
+void tch_update_chip_state(void)
 {
 #ifdef OBJECT_T6
 	u8 state = tsapi_get_chip_state();
@@ -292,11 +284,6 @@ void tch_update_chip_state(uint8_t done)
 	} else {
 		mpt_api_set_chip_status(MXT_T6_STATUS_RESET|MXT_T6_STATUS_CAL|MXT_T6_STATUS_SIGERR, 0);
 	}
-	
-	if (done) {
-		if (mptt_get_bus_state() != BUS_READ)	//the ref/signal is 16bits, data may crashed when bus is reading and update.
-			tch_ref_signal_update();
-	}
 #endif
 }
 
@@ -304,10 +291,9 @@ void tch_update_chip_state(uint8_t done)
  * \brief touch software layer work when each touch process, 
    there will handle the chip status and assert IRQ on data interface
  */
-void tsl_process(uint8_t done)
+void tsl_process(void)
 {
-	tch_update_chip_state(done);
-	tch_assert_irq();
+	tch_update_chip_state();
 }
 
 #ifdef TOUCH_API_BUTTON
@@ -380,6 +366,9 @@ void tsl_post_process(void)
 #ifdef TOUCH_API_BUTTON
 	tch_button_press_report();
 #endif
+
+	if (mptt_get_bus_state() != BUS_READ)	//the ref/signal is 16bits, data may crashed when bus is reading and update.
+		tch_ref_signal_update();
 }
 
 void tsl_suspend(uint8_t suspend)
@@ -403,5 +392,5 @@ void tsl_end(void)
 {
 	mpt_api_writeback();
 	
-	tch_assert_irq();
+	tsl_assert_irq();
 }

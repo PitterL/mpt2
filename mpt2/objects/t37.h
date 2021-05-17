@@ -26,6 +26,14 @@ typedef struct dbgcache {
 
 typedef t6_debug_command_t t37_page_status_t;
 
+typedef struct dbg_low_power_data {
+	u16 delta;
+	u16 ref;
+	u16 signal;
+	u8  status;
+	u16 signal_raw;
+} __attribute__ ((packed)) dbg_low_power_data_t;
+
 typedef struct t37_data {
 	txx_data_t common;
 	t37_page_status_t status;

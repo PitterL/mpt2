@@ -35,6 +35,7 @@
 
 #include <driver_init.h>
 #include <compiler.h>
+#include <touch_api_ptc.h>
 
 ISR(RTC_CNT_vect)
 {
@@ -42,7 +43,7 @@ ISR(RTC_CNT_vect)
 	/* Insert your RTC Compare interrupt handling code */
 	touch_timer_handler();
 
-	/* USE_MPTT_WRAPPER  required */
+	/* USE_MPTT_WRAPPER */
 	/* Overflow interrupt flag has to be cleared manually */
 	RTC.INTFLAGS = RTC_OVF_bm;
 }

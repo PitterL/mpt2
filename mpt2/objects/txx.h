@@ -45,6 +45,7 @@
 #define MXT_SPT_SELFCAPCONFIG_T111 111
 #define MXT_PROCI_ACTIVESTYLUS_T107	107
 #define MXT_SPT_SELFCAPGLOBALCONFIG_T109 109
+#define MXT_SPT_LOWPOWERIDLECONFIG_T126 126
 
 typedef struct txx_data {
 	u8 rid;
@@ -75,6 +76,7 @@ typedef struct txx_cb_param {
 #include "t104.h"
 #include "t109.h"
 #include "t111.h"
+#include "t126.h"
 
 ssint object_txx_init(txx_data_t *ptr, u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_txx_readback(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index);

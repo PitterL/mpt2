@@ -76,14 +76,15 @@ void chip_reset(u8 arg)
 	}
 }
 
-void chip_backup(u8 arg)
+ssint chip_backup(u8 arg)
 {
 	t6_data_t *ptr = &t6_data_status;
+	ssint result = -1;
 	
 	switch(arg) {
 		case MXT_BACKUP_VALUE:
 			/* performance config backup */
-			MPT_API_CALLBACK(ptr->common.cb, backup)(&ptr->status.crc);
+			result = MPT_API_CALLBACK(ptr->common.cb, backup)(&ptr->status.crc);
 		break;
 		default:
 			;
@@ -91,6 +92,8 @@ void chip_backup(u8 arg)
 	
 	//Report CRC
 	object_t6_report_status(1);
+	
+	return result;
 }
 
 void chip_calibrate(u8 arg)
@@ -144,6 +147,7 @@ void chip_diagnostic(u8 arg)
 			case MXT_DIAGNOSTIC_SC_DELTA:
 			case MXT_DIAGNOSTIC_SC_REF:
 			case MXT_DIAGNOSTIC_SC_SIGNAL:
+			case MXT_DIAGNOSTIC_LOW_POWER_MODE:
 				ptr->dbg.cmd = arg;
 				ptr->dbg.page = 0;
 			break;
@@ -157,14 +161,14 @@ void chip_diagnostic(u8 arg)
 
 ssint t6_handle_command(u16 cmd, u8 arg)
 {
-	ssint result;
+	ssint result = 0;
 	
 	switch (cmd) {
 		case MXT_COMMAND_RESET:
 			chip_reset(arg);
 		break;
 		case MXT_COMMAND_BACKUPNV:
-			chip_backup(arg);
+			result = chip_backup(arg);
 		break;
 		case MXT_COMMAND_CALIBRATE:
 			chip_calibrate(arg);
@@ -178,7 +182,7 @@ ssint t6_handle_command(u16 cmd, u8 arg)
 		break;
 #endif
 		default:
-			result = -2;
+			result = -127;
 	}
 	
 	return result;
@@ -189,11 +193,13 @@ void object_api_t6_handle_command(void)
 	t6_data_t *ptr = &t6_data_status;
 	u8 *mem_ptr = (u8 *)ptr->common.mem;
 	u8 i;
+	ssint ret;
 	
 	for (i = 0; i < sizeof(object_t6_t); i++) {
 		if (mem_ptr[i]) {
-			t6_handle_command(i, mem_ptr[i]);
-			mem_ptr[i] = 0;
+			ret = t6_handle_command(i, mem_ptr[i]);
+			if (!ret)
+				mem_ptr[i] = 0;
 		}
 	}
 }

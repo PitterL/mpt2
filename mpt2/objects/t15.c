@@ -88,12 +88,7 @@ void t15_data_sync(t15_data_t *ptr, u8 rw)
 
 void object_t15_start(u8 loaded)
 {
-	t15_data_t *ptr = &t15s_data_status[0];
-	u8 i;
-	
-	for (i = 0; i < MXT_TOUCH_KEYARRAY_T15_INST; i++) {
-		t15_data_sync(ptr + i, loaded ? OP_WRITE : OP_READ);
-	}
+	object_t15_data_sync(loaded ? OP_WRITE : OP_READ);
 }
 
 void object_t15_data_sync(u8 rw)
@@ -147,22 +142,27 @@ ssint object_api_t15_set_button_status(/* Slot id */u8 id, u8 pressed)
 		btndef = (qbutton_config_t *)ptr[i].btndef;
 		if (!btndef)
 			continue;
-		
+				
 		if (mem->ctrl & MXT_T15_CTRL_ENABLE) {
 			if (id >= btndef->node.origin &&  id < btndef->node.origin + btndef->node.size) {
 				offset = id - btndef->node.origin;
 				status = ptr[i].button.keystate.value;
-				if (pressed)
-					status |= BIT32(offset);
-				else
+				if (pressed) {
+#ifdef OBJECT_T126
+					if (!object_api_t126_node_skipped(id))
+#endif
+						status |= BIT32(offset);
+				} else {
 					status &= ~BIT32(offset);
-
+				}
+				
 				if (status != ptr[i].button.keystate.value) {
 					ptr[i].button.keystate.value = status;
 					ptr[i].button.status = status? MXT_T15_DETECT : 0;
 				
-					if (mem->ctrl & MXT_T15_CTRL_RPTEN)
+					if (mem->ctrl & MXT_T15_CTRL_RPTEN) {
 						object_txx_report_msg(&ptr[i].common, &ptr[i].button, sizeof(ptr[i].button));
+					}
 				}
 				break;
 			}

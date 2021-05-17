@@ -67,7 +67,8 @@ Copyright (C) 2019 Microchip. All rights reserved.
 #define NODE_SCAN_2048MS 10u
 #define NODE_SCAN_4096MS 11u
 
-/*	MPTT required change, use 32K RTC clock permanently */
+/*	USE_MPTT_WRAPPER, 
+	We use 32K RTC clock permanently, so the scanning rate will below */
 typedef enum tage_node_sleep_scan_rate_t {
 	NODE_SLEEP_SCAN_RATE_2MS,
 	NODE_SLEEP_SCAN_RATE_4MS,

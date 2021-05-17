@@ -39,7 +39,7 @@ extern "C" {
  * Range: 1 to 255.
  * Default value: 20.
  */
-#define DEF_TOUCH_MEASUREMENT_PERIOD_MS 20
+#define DEF_TOUCH_MEASUREMENT_PERIOD_MS 10
 
 /* Defines the Measurement Time in milli seconds.
  * Range: support[2, 4, 8, 16, 32, 64, 128, 256]
@@ -51,7 +51,7 @@ extern "C" {
 /* Defines the Type of sensor
  * Default value: NODE_MUTUAL.
  */
-#define DEF_SENSOR_TYPE NODE_MUTUAL
+#define DEF_SENSOR_TYPE NODE_SELFCAP_SHIELD
 
 /* Set sensor calibration mode for charge share delay ,Prescaler or series resistor.
  * Range: CAL_AUTO_TUNE_NONE / CAL_AUTO_TUNE_RSEL / CAL_AUTO_TUNE_PRSC / CAL_AUTO_TUNE_CSD
@@ -88,48 +88,37 @@ extern "C" {
  * Default value: 1
  */
 /*
-	Pin 1~10
-	GND
-	DS0:	PC0		XY(6)
-	Y0:		PA4		Y(0)
-	Y1:		PA6		Y(2)
-	Y2:		PA7		Y(3)
-	Y3:		PB5		Y(12)
-	Y4:		PB4		Y(13)
-	Y5:		PB0		Y(5)
-	X0:		PC1		X(7)
-	X1:		PC2		X(8)
-	X2:		PC3		X(9)
-	X3:		PC4		X(10)
-	X4:		PC5		X(11)
-	GND
+	Y0:	PA6		Y(2)		
+	Y1:	PA7		Y(3)	
 */
-#define DEF_NUM_CHANNELS (4)
 
-/* Defines mutual cap node parameter setting
+#define DEF_NUM_CHANNELS 3
+/* Defines node parameter setting of mutual cap
  * {X-line, Y-line, Charge Share Delay, NODE_RSEL_PRSC(series resistor, prescaler), NODE_G(Analog Gain , Digital Gain),
  * filter level}
  */
+
+/* Defines node parameter setting self cap
+ * {Shield line, Y-line, Charge Share Delay, NODE_RSEL_PRSC(series resistor, prescaler), NODE_G(Analog Gain , Digital
+ * Gain), filter level}
+ */
 #define NODE_0_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		X(8), Y(2), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_8), NODE_GAIN(GAIN_2, GAIN_1), FILTER_LEVEL_16          \
-	}
-#define NODE_1_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		X(9), Y(2), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_8), NODE_GAIN(GAIN_2, GAIN_1), FILTER_LEVEL_16          \
-	}
-#define NODE_2_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		X(10), Y(2), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_8), NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16         \
-	}
-#define NODE_3_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		X(8) | X(9) | X(10), Y(2), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_16), NODE_GAIN(GAIN_1, GAIN_1),          \
-		    FILTER_LEVEL_16                                                                                            \
+		X_NONE, Y(2), 0, PRSC_DIV_SEL_4,       \
+		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_8                                                                 \
 	}
 
-/* Total number of lump sensors */
-#define TOUCH_LUMP_CNT 1u
+#define NODE_1_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		X_NONE, Y(3), 0, PRSC_DIV_SEL_4,       \
+			NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_8                                                                 \
+	}
+
+#define NODE_2_PARAMS                                                                                                  \
+{                                                                                                                  \
+	X_NONE, Y(2) | Y(3), 0, PRSC_DIV_SEL_4,       \
+	NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_8                                                                 \
+}
 
 /**********************************************************/
 /***************** Key Params   ******************/
@@ -138,27 +127,25 @@ extern "C" {
  * Range: 1 to 65535.
  * Default value: 1
  */
-#define DEF_NUM_SENSORS (4)
+#define DEF_NUM_SENSORS DEF_NUM_CHANNELS
 
 /* Defines Key Sensor setting
  * {Sensor Threshold, Sensor Hysterisis, Sensor AKS}
  */
 #define KEY_0_PARAMS                                                                                                   \
-	{                                                                                                                  \
-		20, HYST_25, NO_AKS_GROUP                                                                                      \
-	}
+{                                                                                                                  \
+	100, HYST_25, NO_AKS_GROUP                                                                                      \
+}
+
 #define KEY_1_PARAMS                                                                                                   \
-	{                                                                                                                  \
-		20, HYST_25, NO_AKS_GROUP                                                                                      \
-	}
+{                                                                                                                  \
+	100, HYST_25, NO_AKS_GROUP                                                                                      \
+}
+
 #define KEY_2_PARAMS                                                                                                   \
-	{                                                                                                                  \
-		20, HYST_25, NO_AKS_GROUP                                                                                      \
-	}
-#define KEY_3_PARAMS                                                                                                   \
-	{                                                                                                                  \
-		20, HYST_25, NO_AKS_GROUP                                                                                      \
-	}
+{                                                                                                                  \
+	100, HYST_25, NO_AKS_GROUP                                                                                      \
+}
 
 /* De-bounce counter for additional measurements to confirm touch detection
  * Range: 0 to 255.
@@ -185,7 +172,7 @@ extern "C" {
  * Range: 0-255
  * Default value: 20u = 4 seconds.
  */
-#define DEF_TCH_DRIFT_RATE 20
+#define DEF_TCH_DRIFT_RATE 10
 
 /* Rate at which sensor reference value is adjusted towards sensor signal value
  * when signal value is less than reference.
@@ -234,13 +221,15 @@ extern "C" {
  * Range: 0 or 1
  * Default value: 1
  */
+#ifdef OBJECT_T126
 #define DEF_TOUCH_LOWPOWER_ENABLE 1u
+#endif
 
 /* Node selection for Low-power scan.
  * Range: 0 to (DEF_NUM_CHANNELS-1).
  * Default value: 0
  */
-#define QTM_AUTOSCAN_NODE 3
+#define QTM_AUTOSCAN_NODE 2
 
 /* Touch detection threshold for Low-power node.
  * Range: 10 to 255
@@ -266,10 +255,9 @@ extern "C" {
  * This parameter defines the measurement interval to perform drifting.
  * Range: 0 to 255 ( should be more than QTM_AUTOSCAN_TRIGGER_PERIOD) unit 200ms
 	0: never drift
+   Note: the maximum value will be limited by WDTDOG setting
  */
-
-/* USE_MPTT_WRAPPER, we the shift setting as DEF_TCH_DRIFT_RATE */
-// #define DEF_TOUCH_DRIFT_PERIOD_MS 20
+#define DEF_TOUCH_DRIFT_PERIOD_MS 20
 
 /**********************************************************/
 /***************** Communication - Data Streamer ******************/

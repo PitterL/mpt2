@@ -31,7 +31,6 @@
 #include "arch/i2c.h"
 
 extern ssint handle_bus_event(u8 state, u8 *val);
-
 void bus_address_handler(void)
 {
 	u8 addr8;

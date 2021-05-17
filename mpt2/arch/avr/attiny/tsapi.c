@@ -78,7 +78,6 @@ extern qtm_surface_cs_control_t qtm_surface_cs_control1;
 extern uint8_t measurement_period_active_store;
 extern uint8_t measurement_period_idle_store;
 extern uint8_t measurement_active_to_idle;
-extern uint8_t measurement_drift_store;
 #endif
 
 #ifdef OBJECT_T15
@@ -91,6 +90,11 @@ extern uint8_t measurement_drift_store;
 #if !(defined(TOUCH_API_SURFACE) || defined(TOUCH_API_SCROLLER))
 //#error "Defined OBJECT T9 But no surface"
 #endif
+#endif
+
+#ifdef OBJECT_T126
+extern qtm_auto_scan_config_t auto_scan_setup;
+extern uint8_t measurement_period_idle_drift;
 #endif
 
 enum {
@@ -142,6 +146,11 @@ tch_config_callback_t touch_config_list[] ={
 	{API_DEF_TCH_DRIFT_RATE, &qtlib_key_grp_config_set1.sensor_touch_drift_rate, sizeof(qtlib_key_grp_config_set1.sensor_touch_drift_rate), 0 },
 	{API_DEF_ANTI_TCH_DRIFT_RATE, &qtlib_key_grp_config_set1.sensor_anti_touch_drift_rate, sizeof(qtlib_key_grp_config_set1.sensor_anti_touch_drift_rate), 0 },
 	{API_DEF_DRIFT_HOLD_TIME, &qtlib_key_grp_config_set1.sensor_drift_hold_time, sizeof(qtlib_key_grp_config_set1.sensor_drift_hold_time), 0 },		
+#endif
+#ifdef OBJECT_T126
+	{API_DEF_TOUCH_DRIFT_PERIOD_MS, &measurement_period_idle_drift, sizeof(measurement_period_idle_drift), 0 },
+	{API_DEF_QTM_AUTOSCAN_THRESHOLD, &auto_scan_setup.auto_scan_node_threshold, sizeof(auto_scan_setup.auto_scan_node_threshold), 0 },
+	{API_DEF_QTM_AUTOSCAN_NODE, &auto_scan_setup.auto_scan_node_number, sizeof(auto_scan_setup.auto_scan_node_number), 0 },
 #endif
 	//
 	{API_NODE_COMPCAP_VALUE, &ptc_qtlib_node_stat1[0].node_comp_caps, sizeof(ptc_qtlib_node_stat1[0].node_comp_caps), sizeof(ptc_qtlib_node_stat1[0]) },	
@@ -224,7 +233,7 @@ void force_parameters(u8 type, u8 index)
 		case API_DEF_MAX_ON_DURATION:
 		case API_DEF_ANTI_TCH_DET_INT:
 		case API_DEF_ANTI_TCH_RECAL_THRSHLD:
-		//case API_DEF_TCH_DRIFT_RATE:
+		case API_DEF_TCH_DRIFT_RATE:
 		case API_DEF_ANTI_TCH_DRIFT_RATE:
 		case API_DEF_DRIFT_HOLD_TIME:
 			force_init_sensor_key(index, 0);

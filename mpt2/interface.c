@@ -51,7 +51,7 @@ const hal_interface_info_t interface_hal = {
 #endif
 };
 
-static ssint mptt_state = -1;
+static ssint g_mptt_state = -1;
 
 /**
  * \brief MPTT framework initialization, 
@@ -77,13 +77,13 @@ ssint mptt_start(void)
 
 	result = tsl_start();
 	if (result) {
-		mptt_state = result;
+		g_mptt_state = result;
 		return result;
 	}
 	
 	bus_start();
 
-	mptt_state = 0;
+	g_mptt_state = 0;
 	
 	return 0;
 }
@@ -99,9 +99,9 @@ void mptt_pre_process(void)
 /**
  * \brief MPTT framework work when each touch process,
  */
-void mptt_process(uint8_t done)
+void mptt_process(void)
 {
-	tsl_process(done);	
+	tsl_process();	
 }
 
 /**
@@ -112,25 +112,34 @@ void mptt_post_process(void)
 	tsl_post_process();
 }
 
-extern volatile uint8_t measurement_done_touch;
-void mptt_run(void)
+void mptt_sleep() 
 {
-	uint8_t busy = 0;
+	tsl_assert_irq();
+	 
+	if (mptt_get_bus_state() != BUS_STOP)
+		return;
+		
+	if (touch_inbusy() != 0)
+		return;
+		
+	sleep_cpu();
+}
+
+
+void mptt_run(uint8_t done)
+{
 	mptt_pre_process();
 
-	if (mptt_state == 0) {
-		busy = touch_process();
+	if (g_mptt_state == 0) {
+		touch_process();
 	}
 	
-	mptt_process(measurement_done_touch);
-
-	if (measurement_done_touch /*== 1*/) {	//0: not done, 1 : success, any other value : error
-		measurement_done_touch = 0;
-
+	mptt_process();
+	
+	if (done) {
 		mptt_post_process();
 	}
 	
-	if (!busy && mptt_get_bus_state() == BUS_STOP)
-		sleep_cpu();
+	mptt_sleep();
 }
 

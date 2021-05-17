@@ -28,28 +28,26 @@
 	v21: added t25 pinfault detection
 	v22: <1> added t38 object
 		 <2> add 'aks' function at T15
-	v23: draft merge from low power scanning support
+	v23(1.0): draft merge from low power scanning support
 		 <1> support idle(low power) and active scanning rate setting
 		 <2> support switch from active to idle by timeout setting
 		 <3> set i2c bus mornitor ticks from current measure time: mptt_bus_monitor_ticks(measurement_period_store);
 		 <4> disable API_DEF_TCH_DRIFT_RATE sync with qtlib for calibration directly, it will affect the lowpower dynamical setting(caused calibration)
 		 
 		 the current in idle mode:
+	v23(1.1): 
+		 <1> add T126 object for low power control
+		 <2> wake up node mask
+		 <3> re-grouped the state machine of `qlib_touch_flag` to fix the frozen symptom after I2C command issued
+		 <4> Fixed the scanning issue in status switch
+		 <5> Fixed T126 skip message bug
+		 <6> Preliminary tested the t25 command in lowpower mode
+		 <8> Change mpt_api_request_irq() LOCK zone and placed into each call before sleep
+	v23(2.0):
+		 <1> add T126 diagnostic debug data support in T37
+		 <2> add T126 wakeup message report
+		 <3> T6 backup command result check added 
 		 
-		 
-		 
-		Object Table Index Object Type Address Size Instances Report IDs
-		0          37      77   66         1          -
-		1          44     143    1         1          -
-		2           5     144   10         1          -
-		3           6     154    6         1          1
-		4          38     160   16         1          -
-		5           7     176    4         1          -
-		6           8     180   15         1          -
-		7           9     195   35         1          2
-		8          15     230   11         2      3 - 4
-		9          25     252   22         1          5
-		10         111     274   29         1          -
 		 
 		Report ID Object Table Index Object Type Object Instance
 		0 = 0x00                  0           0               0
@@ -58,11 +56,28 @@
 		3 = 0x03                  8          15               0
 		4 = 0x04                  8          15               1
 		5 = 0x05                  9          25               0
+		6 = 0x06                 11         126               0
+
+
+		Object Table Index Object Type Address Size Instances Report IDs
+		0          37      83   66         1          -
+		1          44     149    1         1          -
+		2           5     150   10         1          -
+		3           6     160    6         1          1
+		4          38     166   16         1          -
+		5           7     182    4         1          -
+		6           8     186   15         1          -
+		7           9     201   35         1          2
+		8          15     236   11         2      3 - 4
+		9          25     258   22         1          5
+		10         111     280   29         1          -
+		11         126     309    9         1          6
+
 */
 
 #define MPTT_FW_FAMILY_ID 0xa6
-#define MPTT_FW_VARIANT_ID 0x08
-#define MPTT_FW_VERSION 0x22
+#define MPTT_FW_VARIANT_ID 0x11
+#define MPTT_FW_VERSION 0x23
 /* use the latest byte for the build version */
 #define MPTT_FW_BUILD (PROJECT_CODE & 0xFF)
 
@@ -151,6 +166,9 @@ typedef struct objects_config {
 #ifdef OBJECT_T111
 	object_t111_t t111;
 #endif
+#ifdef OBJECT_T126
+	object_t126_t t126;
+#endif
 	data_crc24_t crc;
 	data_crc24_t ib;	// This is redundant design for checking FW match config 
 } __attribute__ ((packed)) objects_config_t;
@@ -212,6 +230,9 @@ mxt_object_t ib_objects_tables[] = {
 #ifdef OBJECT_T111	
 	{	MXT_SPT_SELFCAPCONFIG_T111, /*start_address*/-1, sizeof(struct object_t111) - 1, /*instances_minus_one*/MXT_SPT_SELFCAPCONFIG_T111_INST - 1, /*num_report_ids*/0	},
 #endif
+#ifdef OBJECT_T126
+	{	MXT_SPT_LOWPOWERIDLECONFIG_T126, /*start_address*/-1, sizeof(struct object_t126) - 1, /*instances_minus_one*/0, /*num_report_ids*/MXT_SPT_LOWPOWERIDLECONFIG_T126_RIDS	},
+#endif
 };
 
 #define MXT_OBJECTS_NUM ((u8)ARRAY_SIZE(ib_objects_tables))
@@ -223,7 +244,8 @@ mxt_object_t ib_objects_tables[] = {
 								MXT_TOUCH_MULTI_T9_RIDS * MXT_TOUCH_MULTI_T9_INST + \
 								MXT_TOUCH_KEYARRAY_T15_RIDS * MXT_TOUCH_KEYARRAY_T15_INST +\
 								MXT_SPT_SELFTEST_T25_RIDS + \
-								MXT_SPT_SELFCAPGLOBALCONFIG_T109_RIDS)
+								MXT_SPT_SELFCAPGLOBALCONFIG_T109_RIDS + \
+								MXT_SPT_LOWPOWERIDLECONFIG_T126_RIDS)
 								
 #if MXT_REPORT_ID_COUNT > 254
 #error "Report id count too large, varible may overflow"
@@ -300,6 +322,9 @@ object_callback_t object_initialize_list[] = {
 #endif
 #ifdef OBJECT_T111
 	{	MXT_SPT_SELFCAPCONFIG_T111, object_t111_init, object_t111_start, object_t111_data_sync, NULL, (void *)&ib_objects_reg.cfg.t111	},
+#endif
+#ifdef OBJECT_T126
+	{	MXT_SPT_LOWPOWERIDLECONFIG_T126, object_t126_init, object_t126_start, object_t126_data_sync, object_t126_report_status, (void *)&ib_objects_reg.cfg.t126	},
 #endif
 };
 #define MXT_OBJECTS_INITIALIZE_LIST_NUM (ARRAY_SIZE(object_initialize_list))
@@ -832,29 +857,31 @@ static u8 message_count(const mxt_message_fifo_t *msg_fifo)
 }
 #endif
 
-void mpt_api_request_irq(void)
+u8 mpt_api_request_irq(void)
 {
+	u8 count = 0;
+	
 #ifdef OBJECT_T5
 	mxt_message_fifo_t *msg_fifo = &message_fifo;
-	u8 count;
 	bool retrigger = false;
 
-	LOCK();
-
 #ifdef OBJECT_T6	
-	if (object_t6_check_chip_critical())
-		count = 0;
-	else
+	if (!object_t6_check_chip_critical())
 #endif
+	{
+		LOCK();
+		
 		count = message_count(msg_fifo);
-	
+		
+		UNLOCK();
+	}
 #if OBJECT_T18
 	retrigger = object_t18_check_retrigger();
 #endif		
 	mpt_chip_assert_irq(count, retrigger);
-	
-	UNLOCK();
 #endif
+
+	return count;
 }
 
 #ifdef OBJECT_T5

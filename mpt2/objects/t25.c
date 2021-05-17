@@ -303,7 +303,7 @@ void object_api_t25_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 c
 		if (result <= 0) {
 			CLR_BIT(testop, TEST_T15_SIGNAL_LIMIT);
 		}
-	} 
+	}
 	
 	if (result == 0 && TEST_BIT(testop, TEST_T9_SIGNAL_LIMIT)) {
 		result = t25_inspect_t9_sensor_data(ptr, channel, reference, cap);

@@ -21,7 +21,7 @@ void mpt_api_set_chip_status(u8 mask, u8 set);
 void mpt_api_report_status(void);
 
 /* Will lock FIFO get count operation */
-void mpt_api_request_irq(void);
+u8 mpt_api_request_irq(void);
 
 //void mpt_api_handle_command(void);
 void mpt_api_writeback(void);

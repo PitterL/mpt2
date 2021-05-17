@@ -44,6 +44,7 @@ uint16_t get_sensor_node_signal(uint16_t sensor_node);
 void     update_sensor_node_signal(uint16_t sensor_node, uint16_t new_signal);
 uint16_t get_sensor_node_reference(uint16_t sensor_node);
 void     update_sensor_node_reference(uint16_t sensor_node, uint16_t new_reference);
+uint16_t get_sensor_node_delta(uint16_t sensor_node);
 uint16_t get_sensor_cc_val(uint16_t sensor_node);
 void     update_sensor_cc_val(uint16_t sensor_node, uint16_t new_cc_value);
 uint8_t  get_sensor_state(uint16_t sensor_node);
@@ -52,11 +53,12 @@ void     calibrate_node(uint16_t sensor_node);
 uint8_t  get_scroller_state(uint16_t sensor_node);
 uint16_t get_scroller_position(uint16_t sensor_node);
 
-void touch_timer_handler(void);
-void touch_init(void);
-/* USE_MPTT_WRAPPER  required */
-uint8_t touch_process(void);
-void touch_suspend(uint8_t);
+void	touch_timer_handler(void);
+void	touch_init(void);
+/* USE_MPTT_WRAPPER */
+void	touch_process(void);
+void	touch_suspend(uint8_t);
+uint8_t	touch_inbusy(void);
 
 #ifdef __cplusplus
 }

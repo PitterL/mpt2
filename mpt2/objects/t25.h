@@ -54,6 +54,9 @@ enum MSG_T25_PIN_FAULT {
 	PIN_FAULT_Y
 };
 
+/*
+Move to pinfault.h
+
 enum PIN_FAULT_SEQ_CODE {
 	DRIVEN_GROUND = 1,
 	DRIVEN_HIGH,
@@ -61,6 +64,7 @@ enum PIN_FAULT_SEQ_CODE {
 	WALKING_0,
 	HIGH_VOLTAGE = 0x7,
 };
+*/
 
 enum MSG_T25_SIGNAL_LIMIT {
 	SIGNAL_LIMIT_OBJECT = 2,

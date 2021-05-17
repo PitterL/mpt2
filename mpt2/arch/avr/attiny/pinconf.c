@@ -314,22 +314,22 @@ uint8_t pinfault_test(uint8_t delay,uint8_t thld, uint8_t *test_pin, uint8_t *te
 	//Driven ground
 	result = pinfault_test_cycle(delay, thld, 0, 0, test_pin, test_val);
 	if (!result) {
-		seq = 1;
+		seq = DRIVEN_GROUND;
 	} else {
 		//Driven high
 		result = pinfault_test_cycle(delay, thld, 0, 1, test_pin, test_val);
 		if (!result) {
-			seq = 2;
+			seq = DRIVEN_HIGH;
 		} else {
 			//Walk 1
 			result = pinfault_test_cycle(delay, thld, 1, 1, test_pin, test_val);
 			if (!result) {
-				seq = 3;
+				seq = WALKING_1;
 			} else {
 				//Walk 0
 				result = pinfault_test_cycle(delay, thld, 1, 0, test_pin, test_val);
 				if (!result)
-					seq = 4;
+					seq = WALKING_0;
 			}
 		}
 	}

@@ -18,13 +18,13 @@ void mptt_interface_init(void);
 ssint mptt_start(void);
 
 /* Call run at main while loop */
-void mptt_run(void);
+void mptt_run(uint8_t done);
 
 /* Call pre_process before each sampling*/
 void mptt_pre_process(void);
 
 /* Call mptt_process at each sampling*/
-void mptt_process(uint8_t done);
+void mptt_process(void);
 
 /* Call process when sampling finished each time*/
 void mptt_post_process(void);

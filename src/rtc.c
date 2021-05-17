@@ -50,7 +50,7 @@ int8_t Timer_init()
 
 	// RTC.CNT = 0x0; /* Counter: 0x0 */
 
-	/* USE_MPTT_WRAPPER  required */
+	/* USE_MPTT_WRAPPER */
 	RTC.CTRLA = RTC_PRESCALER_DIV8_gc   /* a quarter of 1ms(0.25 ms) */
 	            | 1 << RTC_RTCEN_bp     /* Enable: enabled */
 	            | 1 << RTC_RUNSTDBY_bp; /* Run In Standby: enabled */
