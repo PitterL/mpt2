@@ -140,7 +140,7 @@ ssint t25_inspect_t15_sensor_data(t25_data_t *ptr, u8 channel, u16 reference, u1
 {
 	object_t25_result_t *tdat = &ptr->cache;
 	ssint result = 0;
-	
+			
 #ifdef OBJECT_T15
 	result = inspect_button_data(ptr, channel, reference, cap, tdat);
 #endif
@@ -222,12 +222,18 @@ ssint t25_inspect_avdd(t25_data_t *ptr)
 /**
  * \brief T25 Pin fault test, 
 	report error code to message buffer if fault detected
- * @Return: Zero means normal, other value means something error detected
+ * @Return: Zero means normal, negative value means something error detected, possitive means busy
  */
 ssint t25_inspect_pinfault(t25_data_t *ptr, u8 pindwellus, u8 pinthr)
 {
 	object_t25_result_t *tdat = &ptr->cache;
 	uint8_t seq, pin, val;
+	ssint ret = 2; /* busy */;
+
+	if (!object_ts_state_idle(&ptr->common))
+		return ret;
+		
+	object_ts_suspend(&ptr->common, true);
 
 	pindwellus = pindwellus ? pindwellus : 200;
 	pinthr = pinthr ? pinthr : 225;
@@ -239,10 +245,14 @@ ssint t25_inspect_pinfault(t25_data_t *ptr, u8 pindwellus, u8 pinthr)
 		tdat->data.info[1] = pin + 1;
 		tdat->data.info[2] = val;
 
-		return -2;
+		ret = -2;
+	} else {
+		ret = 0;
 	}
 
-	return 0;
+	object_ts_suspend(&ptr->common, false);
+
+	return ret;
 }
 
 void t25_inspect_init(t25_data_t *ptr, u8 testop)

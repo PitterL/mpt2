@@ -38,54 +38,44 @@ inline void bus_monitor_reset();
 inline void bus_monitor_stop();
 #endif
 
-#define CHG_DUTY_CYCLES	4
-#define CHG_SET_DUTY_ON_CYCLE 0
-
 bus_monitor_t data_bus;
-
-u8 current_tick()
-{
-	static u8 ticks = 0;
-	
-	ticks++;
-	if (ticks >= CHG_DUTY_CYCLES)
-		ticks = 0;
-	
-	return ticks;
-}
 
 void bus_state_change(u8 state)
 {
     bus_monitor_t * const bus = &data_bus;
 
+	bus->state = state;
     switch(state) {
         case BUS_READ:
+		{
             bus->counter[BUS_READ] = 0;
-            bus->state = state;
 #ifdef MPTT_BUS_MONITOR		
 			bus_monitor_reset();
 #endif
-            break;
+		}
+        break;
         case BUS_WRITE:
+		{
             bus->counter[BUS_WRITE] = 0;
-            bus->state = state;
 #ifdef MPTT_BUS_MONITOR
 			bus_monitor_reset();
 #endif
-            break;
-        default:
-            memset(bus, 0, sizeof(*bus));
+		}
+		break;
+		case BUS_STOP:
+		{
 #ifdef MPTT_BUS_MONITOR
 			bus_monitor_stop();
 #endif
+		}
+		break;
+        default:
+			;
     }
 }
 
 void bus_assert_irq(u8 assert, bool retrigger)
 {
-	//bus_monitor_t *bus = &data_bus;
-	const u8 ticks = current_tick();
-	
 	/*
 	if (!bus->state == BUS_STOP)	// THis stop is a state, not mean real STOP signal at bus
 		return;
@@ -94,18 +84,13 @@ void bus_assert_irq(u8 assert, bool retrigger)
 	if (!assert) {
 		gpio_release_chg();
 	} else {
-		if (ticks == CHG_SET_DUTY_ON_CYCLE) {
-			gpio_assert_chg();
-		} else {
 #ifdef OBJECT_T18
-			if (retrigger) {
-				if (ticks == CHG_SET_DUTY_ON_CYCLE + 1) {
-					gpio_release_chg();
-					} else if (ticks == CHG_SET_DUTY_ON_CYCLE + 2) {
-					gpio_assert_chg();
-				}
-			}
+		if (retrigger) {
+			gpio_toggle_chg();
+		} else
 #endif
+		{
+			gpio_assert_chg();
 		}
 	}
 }
@@ -113,41 +98,39 @@ void bus_assert_irq(u8 assert, bool retrigger)
 ssint handle_bus_event(u8 state, u8 *val)
 {
 	bus_monitor_t *bus = &data_bus;
-	u16 count;
+	u16 offset;
 	ssint result = 0;
 
 	switch(state) {
 		case BUS_WRITE:
-			count = bus->counter[BUS_WRITE];
-			if (count < sizeof(bus->regaddr)) {
-				bus->regaddr.val[count] = *val;
-                count++;
+			offset = bus->counter[BUS_WRITE];
+			if (offset < sizeof(bus->regaddr)) {
+				bus->regaddr.val[offset] = *val;
+                offset++;
 			} else {
-				result = tsl_mem_write(bus->regaddr.value, count - sizeof(bus->regaddr), *val);
+				result = tsl_mem_write(bus->regaddr.value, offset - sizeof(bus->regaddr), *val);
                 if (result > 0) {
-                    count += result;
+                    offset += result;
                 }
 			}
-            bus->counter[BUS_WRITE] = count;
+            bus->counter[BUS_WRITE] = offset;
 		break;
 		case BUS_READ:
-			count = bus->counter[BUS_READ];
-			result = tsl_mem_read(bus->regaddr.value, count, val);
+			offset = bus->counter[BUS_READ];
+			result = tsl_mem_read(bus->regaddr.value, offset, val);
             if (result > 0) {
-                bus->counter[BUS_READ] = count + result;
+                bus->counter[BUS_READ] = offset + result;
             }
 		break;
 		case BUS_STOP:
-			if (bus->counter[BUS_WRITE] > sizeof(bus->regaddr) || bus->counter[BUS_READ]) {
-				memset(bus, 0, sizeof(*bus));
-			}
-            tsl_end();
+			// Just set the state, that will cache `regaddr` in write cycle
+			bus_state_change(state);
+            tsl_end(bus->counter[BUS_WRITE] > sizeof(bus->regaddr));
 		break;
 		case BUS_COLLISION:
 		case BUS_ERROR:
-			; // Here we could report communication error
 		default:
-			memset(bus, 0, sizeof(*bus));
+			; // Do nothing, let bus monitor handle
 	}
 	
 	return result;
@@ -161,7 +144,7 @@ u8 mptt_get_bus_state(void)
 
 #ifdef MPTT_BUS_MONITOR
 
-extern bool get_bus_line_level(void);
+extern bool gpio_get_bus_line_level(void);
 
 #define MONITOR_TICKS_STOP 0
 #define MONITOR_TICKS_START 1
@@ -180,7 +163,7 @@ void mptt_bus_monitor_ticks(u8 tick)
 		return;
 
 	if (data_bus.current >= MONITOR_TICKS_RESET_TIME) {	/* 200 ms monitor */
-		if (!get_bus_line_level()) {
+		if (!gpio_get_bus_line_level()) {
 			sys_reset();
 		}
 

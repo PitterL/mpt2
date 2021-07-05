@@ -26,7 +26,7 @@
     <OverrideVtorValue>exception_table</OverrideVtorValue>
     <BootSegment>2</BootSegment>
     <ResetRule>0</ResetRule>
-    <eraseonlaunchrule>0</eraseonlaunchrule>
+    <eraseonlaunchrule>1</eraseonlaunchrule>
     <EraseKey />
     <AsfFrameworkConfig>
       <framework-data xmlns="">
@@ -120,14 +120,14 @@
         <NonsecureFilesInfo />
       </AcmeProjectConfig>
     </AcmeProjectConfig>
-    <avrtool>com.atmel.avrdbg.tool.edbg</avrtool>
-    <avrtoolserialnumber>ATML2835031800000974</avrtoolserialnumber>
+    <avrtool>com.atmel.avrdbg.tool.powerdebugger</avrtool>
+    <avrtoolserialnumber>J51800001787</avrtoolserialnumber>
     <avrdeviceexpectedsignature>0x1E9522</avrdeviceexpectedsignature>
     <avrtoolinterface>UPDI</avrtoolinterface>
     <com_atmel_avrdbg_tool_powerdebugger>
       <ToolOptions>
         <InterfaceProperties>
-          <UpdiClock>500000</UpdiClock>
+          <UpdiClock>750000</UpdiClock>
         </InterfaceProperties>
         <InterfaceName>UPDI</InterfaceName>
       </ToolOptions>
@@ -135,11 +135,11 @@
       <ToolNumber>J51800001787</ToolNumber>
       <ToolName>Power Debugger</ToolName>
     </com_atmel_avrdbg_tool_powerdebugger>
-    <avrtoolinterfaceclock>500000</avrtoolinterfaceclock>
+    <avrtoolinterfaceclock>750000</avrtoolinterfaceclock>
     <com_atmel_avrdbg_tool_edbg>
       <ToolOptions>
         <InterfaceProperties>
-          <UpdiClock>500000</UpdiClock>
+          <UpdiClock>0</UpdiClock>
         </InterfaceProperties>
         <InterfaceName>UPDI</InterfaceName>
       </ToolOptions>
@@ -243,7 +243,7 @@
             <Value>OBJECT_T6</Value>
             <Value>OBJECT_T7</Value>
             <Value>OBJECT_T8</Value>
-            <Value>OBJECT_T9</Value>
+            <Value>xOBJECT_T9</Value>
             <Value>xOBJECT_T9_ORIENT</Value>
             <Value>OBJECT_T15</Value>
             <Value>xOBJECT_T18</Value>

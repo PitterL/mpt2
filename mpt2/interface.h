@@ -27,6 +27,6 @@ void mptt_pre_process(void);
 void mptt_process(void);
 
 /* Call process when sampling finished each time*/
-void mptt_post_process(void);
+void mptt_post_process(uint8_t done);
 
 #endif

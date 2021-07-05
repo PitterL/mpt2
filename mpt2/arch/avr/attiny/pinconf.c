@@ -100,7 +100,9 @@ void ptc_disable(void)
 void ptc_enable(void) 
 {
 	memcpy((void *)PTC_REG_START + 1, ptc_register_buffer + 1, PTC_REG_LENGTH - 1);
-    //memcpy((void *)PTC_REG_START, ptc_register_buffer, 1);
+	
+	/* disable after test finished */
+    // memcpy((void *)PTC_REG_START, ptc_register_buffer, 1);
 }
 
 bool ptc_channel_used(uint8_t channel)
@@ -146,15 +148,17 @@ extern void touch_ptc_pin_config(void);
 #	define delay_ms(_v)
 #endif
 
-uint16_t gpio_get_adc_value(uint8_t adc, ADC_MUXPOS_t channel, uint8_t vrshift)
+uint16_t gpio_get_adc_value(uint8_t adc, ADC_MUXPOS_t channel, uint8_t vrshift, uint8_t delay)
 {
-	uint8_t delay = 50;
 	ADC_t *reg;
 
 	if (adc == 0)
 		reg = &ADC0;
 	else
 		reg = &ADC1;
+
+	// Drop the result first
+	ADC_get_conversion_result(reg);
 
 	ADC_start_conversion(reg, channel);
 	do {
@@ -168,7 +172,6 @@ uint16_t gpio_get_adc_value(uint8_t adc, ADC_MUXPOS_t channel, uint8_t vrshift)
 	return (uint16_t)(ADC_get_conversion_result(reg) >> vrshift);
 }
 
-extern void tsl_suspend(uint8_t suspend);
 /**
  * \brief Pin fault init
 	initialize ADC and disable PTC, set tsl suspend
@@ -177,8 +180,6 @@ void pinfault_test_init(void)
 {
 	ADC_disable(&ADC0);
 	ADC_disable(&ADC1);
-
-	tsl_suspend(1);
 
 	ptc_disable();
 
@@ -223,7 +224,7 @@ bool pinfault_test_cycle(uint8_t delay,uint8_t thld, bool walk, bool level, uint
 			}
 
 			delay_us(delay);
-			val = (uint8_t)gpio_get_adc_value(ptc_map[i].adc, ptc_map[i].adc_channel, 4);
+			val = (uint8_t)gpio_get_adc_value(ptc_map[i].adc, ptc_map[i].adc_channel, ADC_SAMPNUM_ACC16_gc, delay);
 			
 			if (walk) {
 				gpio_set_pin_dir(ptc_map[i].port, ptc_map[i].pin, PORT_DIR_OUT);
@@ -261,8 +262,6 @@ void pinfault_test_end(void)
 #endif
 
 	ptc_enable();
-
-	tsl_suspend(0);
 }
 
 uint8_t avdd_test(void)
@@ -289,7 +288,7 @@ uint8_t avdd_test(void)
 		
 	*/
 
-	val = (uint8_t)gpio_get_adc_value(1, ADC_MUXPOS_INTREF_gc, 4);
+	val = (uint8_t)gpio_get_adc_value(1, ADC_MUXPOS_INTREF_gc, ADC_SAMPNUM_ACC16_gc, 255);
 	ADC_disable(&ADC1);
 
 	// standard 116
@@ -342,6 +341,12 @@ uint8_t pinfault_test(uint8_t delay,uint8_t thld, uint8_t *test_pin, uint8_t *te
 void gpio_assert_chg(void)
 {
 	CHG_set_level(0);
+	CHG_set_dir(PORT_DIR_OUT);
+}
+
+void gpio_toggle_chg(void)
+{
+	CHG_toggle_level(0);
 	CHG_set_dir(PORT_DIR_OUT);
 }
 

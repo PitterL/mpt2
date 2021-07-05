@@ -83,5 +83,7 @@ void object_txx_readback(const txx_data_t *ptr, const txx_cb_param_t *params, u8
 void object_txx_writeback(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index);
 void object_txx_op(const txx_data_t *ptr, const txx_cb_param_t *params, u8 count, u8 index, u8 rw);
 void object_txx_report_msg(const txx_data_t *ptr, const void *data, u8 size);
+bool object_ts_state_idle(const txx_data_t *ptr);
+void object_ts_suspend(const txx_data_t *ptr, bool suspend);
 
 #endif /* TXX_H_ */

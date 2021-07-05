@@ -101,45 +101,54 @@ void mptt_pre_process(void)
  */
 void mptt_process(void)
 {
+	if (g_mptt_state == 0) {
+		touch_process();
+	}
+
 	tsl_process();	
 }
 
 /**
  * \brief MPTT framework post-work when touch process measure done,
  */
-void mptt_post_process(void)
-{
-	tsl_post_process();
+void mptt_post_process(uint8_t done)
+{	
+	if (done) {
+		tsl_post_process();
+	}
+	
+	tsl_assert_irq();
 }
 
 void mptt_sleep() 
-{
-	tsl_assert_irq();
-	 
+{	
+	// Fist step is optional for fast inspection
 	if (mptt_get_bus_state() != BUS_STOP)
 		return;
-		
-	if (touch_inbusy() != 0)
+
+	if (tsl_sleep() != 0)
 		return;
-		
+
+	// Must check the bus status before sleep, otherwise may latch scl line too long time
+	if (mptt_get_bus_state() != BUS_STOP)
+		return;
+	
 	sleep_cpu();
 }
 
 
 void mptt_run(uint8_t done)
 {
+	/* Pre process */
 	mptt_pre_process();
 
-	if (g_mptt_state == 0) {
-		touch_process();
-	}
-	
+	/* Process */
 	mptt_process();
 	
-	if (done) {
-		mptt_post_process();
-	}
+	/* Post process */
+	mptt_post_process(done);
 	
+	/* Sleep */
 	mptt_sleep();
 }
 

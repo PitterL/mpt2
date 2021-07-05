@@ -19,7 +19,6 @@ enum {
 };
 
 typedef struct bus_monitor {
-	size_t counter[NUM_BUS_STATES];
 	union {
 		struct {
 			u8 low;
@@ -29,6 +28,9 @@ typedef struct bus_monitor {
 		u16 value;
 	} regaddr;
 
+	/* bus data counter */
+	size_t counter[NUM_BUS_STATES];
+	
 	u8 state;
 
 	/* current bit heart ticks: 1ms unit */

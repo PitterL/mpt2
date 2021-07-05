@@ -130,7 +130,8 @@ void ADC_start_conversion(ADC_t *reg, adc_channel_t channel)
  */
 bool ADC_is_conversion_done(ADC_t *reg)
 {
-	return (reg->INTFLAGS & ADC_RESRDY_bm);
+	/* COMMAND must be clear before result will be valid */
+	return ((!reg->COMMAND) && (reg->INTFLAGS & ADC_RESRDY_bm));
 }
 
 /**

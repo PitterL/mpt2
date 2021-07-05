@@ -47,7 +47,23 @@
 		 <1> add T126 diagnostic debug data support in T37
 		 <2> add T126 wakeup message report
 		 <3> T6 backup command result check added 
-		 
+	v24(2.1):
+		<1> I2c end callback(flash data) only when written transfer larger than 2 bytes
+		<2> Set bus_asset_irq in each cycle for fast response(special in sleep state)
+		<3> Use gpio_release_chg() for retrigger int pulse(not verified)
+		<4> rename `get_bus_line_level` to `gpio_get_bus_line_level`
+		<5> remove `tsl_suspend()` in pinfault.c
+		<6> async handle calibration and initialize sensor by `qtm_init_sensor_key_post` and `calibrate_node_post`, note the all sensor will be processed whatever
+		<7> move `touch_process()` to `mptt_process()`
+		<8> add `tsl_assert_irq()` at `mptt_post_process()` becasue some message generated after process()
+		<9> check i2c status twice by call mptt_get_bus_state() in mptt_sleep() before sleep_cpu(), that avoids I2C snatched be sleep instruction
+		<10> add mpt_get_message_count() for message count, which will decide `t5.reportid != MXT_RPTID_NOMSG`. That will avoid non-standard reading size of accessing t5 to discard a valid message
+		<11> update t44 value only in object read cycle
+		<12> T25 Pin fault test with library idle check object_ts_state_idle() limit, and set object_ts_suspend()
+		<13> T37 SIGNAL will return delta in refmode `DBG_CAP`
+		<14> change sleep logic: mptt_sleep()->tsl_sleep()->touch_sleep()->touch_process_lowpower()=>sleep_cpu(), it will check tsapi_get_chip_state() and mptt_get_bus_state()
+		<15> change to`qlib_touch_state` from `qlib_touch_flag` for touch lib state management
+		<16> add `measurement_state` for for calibration and initialization post process
 		 
 		Report ID Object Table Index Object Type Object Instance
 		0 = 0x00                  0           0               0
@@ -77,7 +93,7 @@
 
 #define MPTT_FW_FAMILY_ID 0xa6
 #define MPTT_FW_VARIANT_ID 0x11
-#define MPTT_FW_VERSION 0x23
+#define MPTT_FW_VERSION 0x24
 /* use the latest byte for the build version */
 #define MPTT_FW_BUILD (PROJECT_CODE & 0xFF)
 
@@ -855,6 +871,25 @@ static u8 message_count(const mxt_message_fifo_t *msg_fifo)
 	
 	return count;
 }
+
+u8 mpt_get_message_count(void) 
+{
+	mxt_message_fifo_t *msg_fifo = &message_fifo;
+	mxt_objects_reg_t * ibreg = &ib_objects_reg;
+	u8 count = 0;
+	
+	LOCK();
+	
+	count = message_count(msg_fifo);
+	// If T5 has cached data last time, 1 more message when `count` available
+	if (ibreg->ram.t5.reportid != MXT_RPTID_NOMSG) {
+		count++;
+	}
+		
+	UNLOCK();
+	
+	return count;
+}
 #endif
 
 u8 mpt_api_request_irq(void)
@@ -862,19 +897,15 @@ u8 mpt_api_request_irq(void)
 	u8 count = 0;
 	
 #ifdef OBJECT_T5
-	mxt_message_fifo_t *msg_fifo = &message_fifo;
 	bool retrigger = false;
 
 #ifdef OBJECT_T6	
-	if (!object_t6_check_chip_critical())
+	if (object_t6_check_chip_critical())
+		return count;
 #endif
-	{
-		LOCK();
 		
-		count = message_count(msg_fifo);
-		
-		UNLOCK();
-	}
+	count = mpt_get_message_count();
+	
 #if OBJECT_T18
 	retrigger = object_t18_check_retrigger();
 #endif		
@@ -887,33 +918,31 @@ u8 mpt_api_request_irq(void)
 #ifdef OBJECT_T5
 static ssint mpt_read_message(object_t5_t *msg)
 {
-#ifdef OBJECT_T44
-	mxt_objects_reg_t * ibreg = &ib_objects_reg;
-	mxt_message_fifo_t *msg_fifo = &message_fifo;
-#endif	
 	message_buffer_t *buf;
+#if (defined(OBJECT_T6) && defined(OBJECT_T7) && defined(OBJECT_T7_OVERFLOW))
+	mxt_message_fifo_t *msg_fifo = &message_fifo;
+	u8 count = 0;
+#endif
 	int result = 0;
-		
+	
 	LOCK();
 	
 	//Pop first message from FIFO
-	buf = pop_message_fifo(0);
+	buf = pop_message_fifo(0);	// Note this function will Pop one message to target ram
 	if (buf) {
 		memcpy(msg, &buf->message, sizeof(*msg));
 		destory_buffer(buf);
-
 #ifdef OBJECT_T44
-		//Update T44
-		ibreg->ram.t44.count = message_count(msg_fifo);
-#if (defined(OBJECT_T6) && defined(OBJECT_T7))
-		if (object_t7_report_overflow()) {
-			if (ibreg->ram.t44.count < MXT_MESSAGE_FIFO_SIZE - 1) {	//at lease 2 empty spaces
-				object_api_t6_clr_status(MXT_T6_STATUS_OFL);
-				} else {
-				//If FIFO is full, we need send a overflow message
-				object_api_t6_set_status(MXT_T6_STATUS_OFL);
-			}		
+#if (defined(OBJECT_T6) && defined(OBJECT_T7) && defined(OBJECT_T7_OVERFLOW))
+	if (object_t7_report_overflow()) {
+		count = message_count(msg_fifo);
+		if (count < MXT_MESSAGE_FIFO_SIZE - 1) {	//at lease 2 empty spaces
+			object_api_t6_clr_status(MXT_T6_STATUS_OFL);
+		} else {
+			//If FIFO is full, we need send a overflow message
+			object_api_t6_set_status(MXT_T6_STATUS_OFL);
 		}
+	}
 #endif
 #endif
 	} else {
@@ -929,10 +958,6 @@ static ssint mpt_read_message(object_t5_t *msg)
 static ssint mpt_write_message(const /*object_t5_t*/void *msg_ptr) 
 {
 	const object_t5_t *msg = (const object_t5_t *)msg_ptr;
-#ifdef OBJECT_T44
-	mxt_objects_reg_t * ibreg = &ib_objects_reg;
-	mxt_message_fifo_t *msg_fifo = &message_fifo;
-#endif
 	message_buffer_t *buf;
 	ssint result = 0;
 	
@@ -942,11 +967,6 @@ static ssint mpt_write_message(const /*object_t5_t*/void *msg_ptr)
 	if (buf) {
 		memcpy(&buf->message, msg, sizeof(*msg));
 		push_message_fifo(buf);
-
-#ifdef OBJECT_T44
-		//Update T44
-		ibreg->ram.t44.count = message_count(msg_fifo);
-#endif	
 	} else {
 		result = -2;
 	}
@@ -990,9 +1010,10 @@ ssint mpt_api_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 		if (offset > 0) {   //That mean T5
 			baseaddr++;
 			offset--;
+		} else {
+			ibreg->ram.t44.count = mpt_get_message_count();
 		}
 	}
-	
 #endif
 	//If start address is T5 address, that means looping read message fifo
 	if (baseaddr == obj_t5->start_address) {
@@ -1032,7 +1053,9 @@ ssint mpt_api_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
 		if (baseaddr == obj_t5->start_address) {
 			if (offset == 0) {	// First byte in T5 memory, reload message if read from at T5 and msg is invalid
 				if (ibreg->ram.t5.reportid == MXT_RPTID_NOMSG) {
-					// Read new message to T5 memory
+					/* Pop one message to T5 memory if T5 ram message is invalid, 
+						Note the message has been removed from Fifo trail
+					*/
 					mpt_read_message(&ibreg->ram.t5);
 				}
 				mpt_chip_assert_irq(0, false);	//Release CHG line as protocol, FIXME: release CHG before first byte transferred, which different with protocol

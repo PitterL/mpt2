@@ -81,6 +81,7 @@ u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
 #ifdef OBJECT_T8
 	refmode = object_api_t8_ref_mode();
 #endif
+	s16 delta = (s16)signal- (s16)reference;
 	switch(cmd) {
 		case MXT_DIAGNOSTIC_PTC_DELTA:
 		case MXT_DIAGNOSTIC_KEY_DELTA:
@@ -89,7 +90,7 @@ u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
 			if (refmode == DBG_CAP)
 				return signal;
 			else
-				return (u16)((s16)signal- (s16)reference);
+				return (u16)delta;
 		case MXT_DIAGNOSTIC_PTC_REF:
 		case MXT_DIAGNOSTIC_KEY_REF:
 		case MXT_DIAGNOSTIC_MC_REF:
@@ -102,7 +103,10 @@ u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
 		case MXT_DIAGNOSTIC_MC_SIGNAL: 
 		case MXT_DIAGNOSTIC_KEY_SIGNAL:
 		case MXT_DIAGNOSTIC_SC_SIGNAL:
-			return cap;
+			if (refmode == DBG_CAP)
+				return (u16)delta;
+			else
+				return cap;
 		default:
 			;
 	};

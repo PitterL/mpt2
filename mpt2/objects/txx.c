@@ -55,3 +55,13 @@ void object_txx_writeback(const txx_data_t *ptr, const txx_cb_param_t *params, u
 {
 	object_txx_op(ptr, params, count, index, OP_WRITE);
 }
+
+bool object_ts_state_idle(const txx_data_t *ptr)
+{
+	return MPT_QTAPI_CALLBACK(ptr->cb, idle)();
+}
+
+void object_ts_suspend(const txx_data_t *ptr, bool suspend)
+{
+	MPT_QTAPI_CALLBACK(ptr->cb, suspend)(suspend);
+}

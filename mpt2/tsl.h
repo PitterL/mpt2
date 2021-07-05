@@ -41,9 +41,10 @@ void tsl_pre_process(void);
 void tsl_process(void);
 void tsl_post_process(void);
 u8 tsl_assert_irq(void);
+ssint tsl_sleep(void);
 
 ssint tsl_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr);
 ssint tsl_mem_write(u16 baseaddr, u16 offset, u8 val);
-void tsl_end(void);
+void tsl_end(ssint write);
 
 #endif /* TSL_H_ */

@@ -179,50 +179,20 @@ tch_config_callback_t touch_config_list[] ={
 
 #define TCH_CONFIG_WRITEBACK_NUM ARRAY_SIZE(touch_config_list)
 
-void force_init_sensor_key(u8 sensor_node, u8 cal)
-{
-	qtm_init_sensor_key(&qtlib_key_set1, sensor_node, &ptc_qtlib_node_stat1[sensor_node]);
-	if (cal) {
-        //qtm_calibrate_sensor_node(&qtlib_acq_set1, sensor_node);
-        calibrate_node(sensor_node);	
-    }
-}
-
-void force_init_all_sensor_key(void) {
-	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
-	u8 i;
-	
-	for ( i = 0; i < (u8)qttkg->num_key_sensors; i++) {
-		force_init_sensor_key(i, 1);
-	}
-}
-
-#ifdef TOUCH_API_SCROLLER
-void force_init_slider(void)
-{
-	qtm_init_scroller_module(&qtm_scroller_control1);
-}
-#endif
-
-#ifdef TOUCH_API_SURFACE
-void force_init_surface(void)
-{
-	qtm_init_surface_cs(&qtm_surface_cs_control1);
-}
-#endif
 
 void force_parameters(u8 type, u8 index)
 {		
 	switch (type)
 	{
 		case API_DEF_SENSOR_TYPE:
-			force_init_all_sensor_key();
+			qtm_init_sensor_key_post(index);
 			break;
 		case API_NODE_PARAMS_CSD:
 		case API_NODE_PARAMS_RESISTOR_PRESCALER:
 		case API_NODE_PARAMS_GAIN:
 		case API_NODE_PARAMS_ADC_OVERSAMPLING:
-			force_init_sensor_key(index, 1);
+			qtm_init_sensor_key_post(index);
+			calibrate_node_post(index);
 			break;
 		
 		case API_KEY_PARAMS_THRESHOLD:
@@ -236,7 +206,7 @@ void force_parameters(u8 type, u8 index)
 		case API_DEF_TCH_DRIFT_RATE:
 		case API_DEF_ANTI_TCH_DRIFT_RATE:
 		case API_DEF_DRIFT_HOLD_TIME:
-			force_init_sensor_key(index, 0);
+			qtm_init_sensor_key_post(index);
 			break;
 #ifdef TOUCH_API_SCROLLER
 		case API_SLIDER_START_KEY:
@@ -245,7 +215,7 @@ void force_parameters(u8 type, u8 index)
 		//case API_SLIDER_FILT_CFG:
 		case API_SLIDER_POS_HYST:
 		case API_SLIDER_MIN_CONTACT:
-			force_init_slider();
+			qtm_init_scroller_module_post();
 			break;
 #endif
 #ifdef TOUCH_API_SURFACE
@@ -257,7 +227,7 @@ void force_parameters(u8 type, u8 index)
 		case API_SURFACE_CS_FILT_CFG:
 		case API_SURFACE_CS_POS_HYST:
 		case API_SURFACE_CS_MIN_CONTACT:
-			force_init_surface();
+			qtm_init_surface_cs_post();
 			break;
 #endif
 		default:
@@ -350,8 +320,7 @@ void tsapi_calibrate(void)
 	for (i = 0; i < (u8)qtacq->num_sensor_nodes; i++) {
 		/* Calibrate Node */
 		
-		calibrate_node(i);
-		//qtm_calibrate_sensor_node(&qtlib_acq_set1, i);
+		calibrate_node_post(i);
 	}
 }
 
@@ -519,4 +488,19 @@ u8 tsapi_t8_sensing_mode_translate(u8 mode, u8 rw)
 u16 tsapi_t6_get_sensor_base_ref(void)
 {
 	return SENSOR_BASE_REF_VALUE;
+}
+
+void tsapi_touch_suspend(bool suspend) 
+{
+	touch_suspend(suspend);
+}
+
+void tsapi_touch_inject_event(void)
+{
+	touch_inject_event();
+}
+
+bool tsapi_touch_state_idle(void)
+{
+	return (touch_state_idle() == 0);
 }

@@ -134,6 +134,7 @@ void chip_diagnostic(u8 arg)
 			break;
 			case MXT_DIAGNOSTIC_MC_DELTA:
 			case MXT_DIAGNOSTIC_MC_REF:
+			case MXT_DIAGNOSTIC_MC_SIGNAL:
 			case MXT_DIAGNOSTIC_PTC_DELTA:
 			case MXT_DIAGNOSTIC_PTC_REF:
 			case MXT_DIAGNOSTIC_PTC_SIGNAL:

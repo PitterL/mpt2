@@ -115,10 +115,10 @@ extern "C" {
 	}
 
 #define NODE_2_PARAMS                                                                                                  \
-{                                                                                                                  \
-	X_NONE, Y(2) | Y(3), 0, PRSC_DIV_SEL_4,       \
-	NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_8                                                                 \
-}
+	{                                                                                                                  \
+		X_NONE, Y(2) | Y(3), 0, PRSC_DIV_SEL_4,       \
+		NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_8                                                                 \
+	}
 
 /**********************************************************/
 /***************** Key Params   ******************/

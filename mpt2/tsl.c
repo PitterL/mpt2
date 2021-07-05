@@ -94,6 +94,8 @@ qtouch_api_callback_t tsl_api_info =
 #ifdef OBJECT_T6
 	.calibrate = tsapi_calibrate,
 #endif
+	.idle = tsapi_touch_state_idle,
+	.suspend = tsapi_touch_suspend
 };
 
 tsl_interface_info_t interface_tsl = 
@@ -371,11 +373,27 @@ void tsl_post_process(void)
 		tch_ref_signal_update();
 }
 
-void tsl_suspend(uint8_t suspend)
-{
-#ifdef OBJECT_T25
-	touch_suspend(suspend);
-#endif
+/*============================================================================
+USE_MPTT_WRAPPER
+bool tsl_inbusy(void)
+------------------------------------------------------------------------------
+Purpose: Indicate whether the touch is busy now, outside could decide whether enter into sleep mode
+Input  : none
+Output : Zero: idle, None: Busy
+Notes  :
+============================================================================*/
+ssint tsl_sleep()
+{	
+	/* check chip status */
+	if (tsapi_get_chip_state() == 0) {
+		
+		/* execute touch processor sleep */
+		if (touch_sleep() == 0) {
+			return 0;
+		}
+	}
+	
+	return -2;
 }
 
 ssint tsl_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr)
@@ -388,9 +406,16 @@ ssint tsl_mem_write(u16 baseaddr, u16 offset, u8 val)
 	return mpt_api_mem_write(baseaddr, offset, val);
 }
 
-void tsl_end(void)
+void tsl_end(ssint write)
 {
-	mpt_api_writeback();
-	
+	if (write) {
+		/* write back data to library */
+		mpt_api_writeback();
+		
+		/* Note a external event to touch process handler*/
+		tsapi_touch_inject_event();
+	}
+
+	/* Note irq state */
 	tsl_assert_irq();
 }

@@ -167,7 +167,7 @@ void I2C_0_initialization(void)
 
 
 #ifdef MPTT_BUS_MONITOR
-bool get_bus_line_level(void)
+bool gpio_get_bus_line_level(void)
 {
 	return PA1_get_level() && PA2_get_level();
 }

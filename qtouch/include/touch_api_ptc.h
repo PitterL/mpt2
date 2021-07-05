@@ -52,13 +52,18 @@ void     update_sensor_state(uint16_t sensor_node, uint8_t new_state);
 void     calibrate_node(uint16_t sensor_node);
 uint8_t  get_scroller_state(uint16_t sensor_node);
 uint16_t get_scroller_position(uint16_t sensor_node);
+/* USE_MPTT_WRAPPER */
+void     calibrate_node_post(uint8_t sensor_node);
+void     qtm_init_sensor_key_post(uint8_t sensor_node);
 
 void	touch_timer_handler(void);
 void	touch_init(void);
 /* USE_MPTT_WRAPPER */
 void	touch_process(void);
-void	touch_suspend(uint8_t);
-uint8_t	touch_inbusy(void);
+uint8_t	touch_sleep(void);
+void	touch_suspend(uint8_t suspend);
+void	touch_inject_event(void);
+int8_t	touch_state_idle(void);
 
 #ifdef __cplusplus
 }

@@ -32,7 +32,8 @@
 #ifdef MPTT_SAVE_CONFIG
 ssint inf_load_cfg(u8 *data, size_t len)
 {
-	if (len >  EEPROM_SIZE - OFFSET_CONFIG_IN_EEPROM)
+	/* the nvm lib doesn't judge the length, so we should check it here */
+	if (!len || len >  EEPROM_SIZE - OFFSET_CONFIG_IN_EEPROM)
 		return -2;
 
 	/* Read EEPROM */
@@ -43,7 +44,8 @@ ssint inf_load_cfg(u8 *data, size_t len)
 
 ssint inf_save_cfg(const u8 *data, size_t len)
 {
-	if (len >  EEPROM_SIZE - OFFSET_CONFIG_IN_EEPROM)
+	/* the nvm lib doesn't judge the length, so we should check it here */
+	if (!len || len >  EEPROM_SIZE - OFFSET_CONFIG_IN_EEPROM)
 		return -2;
 
 	/* Write EEPROM */

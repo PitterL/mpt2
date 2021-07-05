@@ -92,6 +92,8 @@ enum {SENSOR_SELFCAP, SENSOR_SELFCAP_SHIELD, SENSOR_MUTUAL, SENSOR_MUTUAL_4P, SE
 
 typedef ssint (*cb_qlib_sync_op_t)(u8 type, /*read or write */void *buf, size_t size, u8 index, u8 rw);
 typedef void (*cb_qlib_calibrate_t)(void);
+typedef bool (*cb_qlib_state_idle_t)(void);
+typedef void (*cb_qlib_suspend_t)(bool);
 
 typedef union {
 	struct {
@@ -152,6 +154,8 @@ typedef struct qtouch_config {
 typedef struct qtouch_api_callback {
 	const cb_qlib_sync_op_t sync;
 	const cb_qlib_calibrate_t calibrate;
+	const cb_qlib_state_idle_t idle;
+	const cb_qlib_suspend_t suspend;
 } qtouch_api_callback_t;
 #define QTOUCH_API_CALLBACK(_cb, _fn) (((qtouch_api_callback_t *)(_cb))->_fn)
 
@@ -208,5 +212,8 @@ ssint tsapi_read_surface_state(u8 id,/*t9_point_status_t */void *sts);
 u8 tsapi_t8_sensing_mode_translate(u8 mode, u8 rw);
 
 u16 tsapi_t6_get_sensor_base_ref(void);
+void tsapi_touch_suspend(bool suspend);
+void tsapi_touch_inject_event(void);
+bool tsapi_touch_state_idle(void);
 
 #endif /* TSLAPI_H_ */
