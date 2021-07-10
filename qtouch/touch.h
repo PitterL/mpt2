@@ -88,11 +88,11 @@ extern "C" {
  * Default value: 1
  */
 /*
-	Y0:	PA6		Y(2)		
-	Y1:	PA7		Y(3)	
+	Y0:	PA6		Y(2)		//BTN2
+	Y1:	PA7		Y(3)		//BTN1
 */
 
-#define DEF_NUM_CHANNELS 3
+#define DEF_NUM_CHANNELS 1
 /* Defines node parameter setting of mutual cap
  * {X-line, Y-line, Charge Share Delay, NODE_RSEL_PRSC(series resistor, prescaler), NODE_G(Analog Gain , Digital Gain),
  * filter level}
@@ -104,20 +104,20 @@ extern "C" {
  */
 #define NODE_0_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		X_NONE, Y(2), 0, PRSC_DIV_SEL_4,       \
-		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_8                                                                 \
+		X_NONE, Y(3), 2, PRSC_DIV_SEL_2,       \
+		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 
 #define NODE_1_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		X_NONE, Y(3), 0, PRSC_DIV_SEL_4,       \
-			NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_8                                                                 \
+		X_NONE, Y(2), 2, PRSC_DIV_SEL_2,       \
+			NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 
 #define NODE_2_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		X_NONE, Y(2) | Y(3), 0, PRSC_DIV_SEL_4,       \
-		NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_8                                                                 \
+		X_NONE, Y(2) | Y(3), 2, PRSC_DIV_SEL_2,       \
+		NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 
 /**********************************************************/
@@ -223,6 +223,7 @@ extern "C" {
  */
 #ifdef OBJECT_T126
 #define DEF_TOUCH_LOWPOWER_ENABLE 1u
+//#define DEF_TOUCH_LOWPOWER_SOFT 1u
 #endif
 
 /* Node selection for Low-power scan.

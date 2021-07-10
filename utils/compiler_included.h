@@ -59,7 +59,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-
+#include <string.h>
 /**
  * \def UNUSED
  * \brief Marking \a v as a unused parameter or value.

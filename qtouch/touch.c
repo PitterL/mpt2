@@ -104,13 +104,26 @@ static void touch_measure_wcomp_match(void);
 static void touch_cancel_autoscan(void);
 static void touch_enable_lowpower_measurement(void);
 static void touch_disable_lowpower_measurement(void);
+static uint16_t touch_read_lp_button_delta(void);
+static int8_t touch_read_lp_button_state(void);
 
+#ifdef DEF_TOUCH_LOWPOWER_SOFT
+/* Low-power measurement sensor currently, it will change for next scanning channel if multi channel enabled in low power mode
+	initialized as 0
+*/
+uint16_t current_lp_sensor;
+/* Low-power measurement variables, store how long last drift elapsed, unit: ms 
+	initialized as 0
+*/
+uint16_t time_since_last_drift = 0;
+#endif
 #endif
 
 /* USE_MPTT_WRAPPER */
 static void touch_set_measurement_state(void);
 static void touch_handle_calibration(void);
-
+touch_ret_t touch_autoscan_sensor_node(qtm_auto_scan_config_t *qtm_auto_scan_config_ptr,
+	void (*auto_scan_callback)(void));
 /*----------------------------------------------------------------------------
  *     Global Variables
  *----------------------------------------------------------------------------*/
@@ -222,7 +235,7 @@ qtm_acq_node_group_config_t ptc_qtlib_acq_gen1
 qtm_acq_node_data_t ptc_qtlib_node_stat1[DEF_NUM_CHANNELS];
 
 /* Node configurations */
-qtm_acq_t321x_node_config_t ptc_seq_node_cfg1[DEF_NUM_CHANNELS] = {NODE_0_PARAMS, NODE_1_PARAMS, NODE_2_PARAMS};
+qtm_acq_t321x_node_config_t ptc_seq_node_cfg1[DEF_NUM_CHANNELS] = {NODE_0_PARAMS, NODE_1_PARAMS/*, NODE_2_PARAMS*/};
 
 /* Container */
 qtm_acquisition_control_t qtlib_acq_set1 = {&ptc_qtlib_acq_gen1, &ptc_seq_node_cfg1[0], &ptc_qtlib_node_stat1[0]};
@@ -275,7 +288,7 @@ qtm_touch_key_group_data_t qtlib_key_grp_data_set1;
 qtm_touch_key_data_t qtlib_key_data_set1[DEF_NUM_SENSORS];
 
 /* Key Configurations */
-qtm_touch_key_config_t qtlib_key_configs_set1[DEF_NUM_SENSORS] = {KEY_0_PARAMS, KEY_1_PARAMS, KEY_2_PARAMS};
+qtm_touch_key_config_t qtlib_key_configs_set1[DEF_NUM_SENSORS] = {KEY_0_PARAMS, KEY_1_PARAMS/*, KEY_2_PARAMS*/};
 
 /* Container */
 qtm_touch_key_control_t qtlib_key_set1
@@ -515,7 +528,7 @@ void touch_start(void)
 uint8_t touch_process(void)
 ------------------------------------------------------------------------------
 Purpose: Main processing function of touch library. This function initiates the
-         acquisition, calls post processing after the acquistion complete and
+         acquisition, calls post processing after the acquisition complete and
          sets the flag for next measurement based on the sensor status.
 Input  : none
 Output : None Zero touch is busy, Zero means idle
@@ -550,7 +563,7 @@ void touch_process(void)
 				
 		/* Do the acquisition */
 		touch_ret = qtm_ptc_start_measurement_seq(&qtlib_acq_set1, qtm_measure_complete_callback);
-		/* if the Acquistion request was successful then clear the request flag */
+		/* if the Acquisition request was successful then clear the request flag */
 		if (TOUCH_SUCCESS == touch_ret) {
 			/* USE_MPTT_WRAPPER */
 			// time_to_measure_touch_flag = 0u;
@@ -598,14 +611,28 @@ void touch_process(void)
 			measurement_done_touch = 1u;
 #if (DEF_TOUCH_LOWPOWER_ENABLE == 1u)
 			if (0u != (qtlib_key_grp_data_set1.qtm_keys_status & QTM_KEY_DETECT)) {
-				/* Touch in detect, updte `time_since_touch` varible
-					If in sleep mode, we also should check whether it's the wakeup key pressed */
+				/* Touch in detect, update `time_since_touch` varible
+					If in sleep mode, we also should check whether it's the wakeup key pressed(this avoid all keys' drift scanning wakeup) */
 				if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP) || TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK)) {
-					if (tsapi_read_button_state(auto_scan_setup.auto_scan_node_number) > 0)
+					if (touch_read_lp_button_state() > 0) {
+#ifdef DEF_TOUCH_LOWPOWER_SOFT
+						// Exit lowpower mode if button pressed
+						touch_measure_wcomp_match();
+#else
 						time_since_touch = 0u;
+#endif
+					}
 				} else {
 					time_since_touch = 0;
 				}
+			} else {
+			// Touch not detected
+#ifdef DEF_TOUCH_LOWPOWER_SOFT
+				// For soft sleep, we switch sensor node after each complete and no detected
+				if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP)) {
+					touch_autoscan_sensor_node(NULL, NULL);
+				}
+#endif
 			}
 #endif
 		}
@@ -706,35 +733,53 @@ static void touch_set_measurement_state(void)
 		
 		/* touch detection exit */
 		if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_PRE_EXIT)) {
-			/* exit sleep mode */
-			qlib_touch_state = BIT(QTLIB_STATE_TIME_TO_MEASURE);
 			/* notice t126 register the status changed */
-			object_api_t126_breach_waked(get_sensor_node_delta(auto_scan_setup.auto_scan_node_number));
+			object_api_t126_breach_waked(touch_read_lp_button_delta());
 		} else {
-			/* external T7 command forced exit or
-				external T126 disable force exit
+			/* `QTLIB_STATE_EXTERNAL_EVENT`
+					external T7 command forced exit or
+					external T126 disable force exit
 			*/
 			if (!measurement_active_to_idle || !object_api_t126_lowpower_mode_enabled()) {
-				/* exit sleep mode */
-				qlib_touch_state = BIT(QTLIB_STATE_TIME_TO_MEASURE);
 				/* notice t126 register the status changed */
-				object_api_t126_force_waked(get_sensor_node_delta(auto_scan_setup.auto_scan_node_number));			
+				object_api_t126_force_waked(touch_read_lp_button_delta());			
+			} else {
+				/* invalid external event */
+				CLR_BIT(qlib_touch_state, QTLIB_STATE_EXTERNAL_EVENT);
 			}
 		}
 		
-		if (TEST_BIT(qlib_touch_state, QTLIB_STATE_TIME_TO_MEASURE) || TEST_BIT(qlib_touch_state, QTLIB_STATE_EXTERNAL_EVENT) ) {
-			CLR_BIT(qlib_touch_state, QTLIB_STATE_SLEEP);
-			CLR_BIT(qlib_touch_state, QTLIB_STATE_EXTERNAL_EVENT);
+		if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK) ||
+			TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_PRE_EXIT) ||
+			TEST_BIT(qlib_touch_state, QTLIB_STATE_EXTERNAL_EVENT)) {
+					
 			/* Cancel node auto scan */
 			touch_cancel_autoscan();
+			
+			if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK)) {
+				/* In sleep walk, wake up */
+				CLR_BIT(qlib_touch_state, QTLIB_STATE_SLEEP);
+			} else {
+				/* Clear all flag and start to measure */
+				qlib_touch_state = BIT(QTLIB_STATE_TIME_TO_MEASURE);
+			}
 		}
 	}
 #endif
-	
+
+#if (DEF_TOUCH_LOWPOWER_ENABLE == 1u)
 	/* if it's in sleep mode, we set to drift period */
-	if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP) || TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK)) {		
+	if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP) || TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK)) {
+#ifdef DEF_TOUCH_LOWPOWER_SOFT
+		// For soft sleep, we measured at each idle cycle
+		period = measurement_period_idle_store;
+#else
+		// For event sleep, we measured at each drift cycle
 		period = (uint16_t)measurement_period_idle_drift * 200;
-	} else {
+#endif
+	} else 
+#endif	
+	{
 	/* if it's not in sleep mode, we will check and set the active measurement period */
 		period = measurement_period_active_store;
 	}
@@ -793,9 +838,11 @@ Notes  :
 /* USE_MPTT_WRAPPER, we simplily set EVSYS here */
 static void touch_disable_lowpower_measurement(void)
 {
+#ifndef DEF_TOUCH_LOWPOWER_SOFT
 	/* Disable RTC to PTC Event system */
 	EVSYS.ASYNCCH3   = EVSYS_ASYNCCH3_OFF_gc;
 	EVSYS.ASYNCUSER1 = EVSYS_ASYNCUSER1_OFF_gc;
+#endif
 }
 
 /*============================================================================
@@ -809,6 +856,7 @@ Notes  :
 /* USE_MPTT_WRAPPER, we simplily set evsys here */
 static void touch_enable_lowpower_measurement(void)
 {
+#ifndef DEF_TOUCH_LOWPOWER_SOFT
 	uint8_t i;
 	
 	if (measurement_period_idle_store != 0) {
@@ -821,6 +869,183 @@ static void touch_enable_lowpower_measurement(void)
 		EVSYS.ASYNCCH3   = (EVSYS_ASYNCCH3_PIT_DIV64_gc - i);
 		EVSYS.ASYNCUSER1 = EVSYS_ASYNCUSER1_ASYNCCH3_gc; /* Asynchronous Event Channel 3 */
 	}
+#endif
+}
+
+#ifdef DEF_TOUCH_LOWPOWER_SOFT
+/*============================================================================
+touch_ret_t touch_disable_nonlp_sensors(void)
+------------------------------------------------------------------------------
+Purpose: Disable
+Input  : None
+Output : touch_ret_t
+Notes  : none
+============================================================================*/
+static void soft_enable_nonlp_sensors(uint8_t mask, bool en)
+{
+	const uint8_t num_sensor_nodes = (uint8_t)ptc_qtlib_acq_gen1.num_sensor_nodes;
+	uint8_t state;
+
+
+	for (uint8_t cnt = 0; cnt < num_sensor_nodes; cnt++) {
+		state = qtlib_key_data_set1[cnt].sensor_state;
+		
+		if (TEST_BIT(mask, cnt)) {
+			if (state == QTM_KEY_STATE_SUSPEND) {
+				qtm_key_resume(cnt, &qtlib_key_set1);
+			}
+		} else {
+			if (en) {
+				if (state == QTM_KEY_STATE_SUSPEND) {
+					qtm_key_resume(cnt, &qtlib_key_set1);
+				}
+			} else {
+				if (state != QTM_KEY_STATE_SUSPEND) {
+					qtm_key_suspend(cnt, &qtlib_key_set1);
+				}
+			}
+		}
+	}
+}
+
+/*============================================================================
+touch_ret_t qtm_autoscan_sensor_node_soft(void)
+------------------------------------------------------------------------------
+Purpose: Configures the PTC for sleep mode measurement of a current sleep node
+Input  : none
+Output : touch_ret_t
+Notes  : none
+============================================================================*/
+touch_ret_t qtm_autoscan_sensor_node_soft(void) 
+{
+	const uint8_t num_sensor_nodes = (uint8_t)ptc_qtlib_acq_gen1.num_sensor_nodes;
+	const uint8_t mask = auto_scan_setup.auto_scan_node_number;
+	uint8_t next;
+
+	if (current_lp_sensor >= num_sensor_nodes) {
+		// Select first low power sensor
+		current_lp_sensor = ffs(mask) - 1;
+	} else {
+		// Select next low power sensor
+		for (uint8_t cnt = current_lp_sensor + 1; cnt <= current_lp_sensor + num_sensor_nodes; cnt++) {
+			next = cnt;
+			if (next >= num_sensor_nodes) {
+				next -= num_sensor_nodes;
+			}
+				
+			if (TEST_BIT(mask, next)) {
+				current_lp_sensor = next;
+				break;
+			}
+		}
+	}
+	
+	if (current_lp_sensor >= num_sensor_nodes) {
+		return TOUCH_INVALID_INPUT_PARAM;
+	}
+
+	// Disable non-lowpower sensor
+	soft_enable_nonlp_sensors(BIT(current_lp_sensor), false);
+
+	return TOUCH_SUCCESS;
+}
+
+/*============================================================================
+void autoscan_node_cancel_soft(void)
+------------------------------------------------------------------------------
+Purpose: Cancel auto-scan soft sleep config
+Input  : None
+Output : None
+Notes  : none
+============================================================================*/
+void qtm_autoscan_node_cancel_soft(void)
+{
+	const uint8_t num_sensor_nodes = (uint8_t)ptc_qtlib_acq_gen1.num_sensor_nodes;
+	uint8_t mask = auto_scan_setup.auto_scan_node_number;
+	
+	// enable all non-lowpoer sensor
+	soft_enable_nonlp_sensors(mask, true);
+	
+	// mask lp sensor invalid
+	current_lp_sensor = num_sensor_nodes;
+}
+#endif
+
+/*============================================================================
+touch_ret_t autoscan_sensor_node(qtm_auto_scan_config_t* qtm_auto_scan_config_ptr, void (*auto_scan_callback)(void))
+------------------------------------------------------------------------------
+Purpose: Configures the PTC for sleep mode measurement of a single node, with window comparator wake
+Input  : Acquisition set, channel number, threshold, scan trigger
+Output : touch_ret_t
+Notes  : none
+============================================================================*/
+touch_ret_t touch_autoscan_sensor_node(qtm_auto_scan_config_t *qtm_auto_scan_config_ptr,
+	void (*auto_scan_callback)(void))
+{
+#ifdef DEF_TOUCH_LOWPOWER_SOFT
+	return qtm_autoscan_sensor_node_soft();
+#else
+	return qtm_autoscan_sensor_node(qtm_auto_scan_config_ptr, auto_scan_callback);
+#endif
+}
+
+/*============================================================================
+static void touch_autoscan_node_cancel(void)
+------------------------------------------------------------------------------
+Purpose: Configures the PTC for normal scanning, all channel will be enabled
+Input  : None
+Output : None
+Notes  : none
+============================================================================*/
+static void touch_autoscan_node_cancel(void)
+{
+#ifdef DEF_TOUCH_LOWPOWER_SOFT
+	qtm_autoscan_node_cancel_soft();
+#else
+	qtm_autoscan_node_cancel();
+#endif
+}
+
+/*============================================================================
+int8_t touch_read_lp_button_state(void)
+------------------------------------------------------------------------------
+Purpose: get lowpower key status
+Input  : None
+Output : Zero, Not pressed; Large than Zero, pressed, Negative error
+Notes  : none
+============================================================================*/
+static int8_t touch_read_lp_button_state(void)
+{
+	uint8_t node;
+	
+#ifdef DEF_TOUCH_LOWPOWER_SOFT
+	node = current_lp_sensor;
+#else
+	node = auto_scan_setup.auto_scan_node_number;
+#endif
+	
+	return tsapi_read_button_state(node);
+}
+
+/*============================================================================
+uint16_t touch_read_lp_button_delta(void)
+------------------------------------------------------------------------------
+Purpose: get lowpower key delta
+Input  : None
+Output : current low power button delta
+Notes  : none
+============================================================================*/
+static uint16_t touch_read_lp_button_delta(void)
+{
+	uint8_t node;
+	
+#ifdef DEF_TOUCH_LOWPOWER_SOFT
+	node = current_lp_sensor;
+#else
+	node = auto_scan_setup.auto_scan_node_number;
+#endif
+	
+	return get_sensor_node_delta(node);
 }
 
 /*============================================================================
@@ -840,6 +1065,7 @@ extern void object_api_t126_breach_sleep(void);
 static void touch_process_lowpower(void)
 {
 	touch_ret_t touch_ret;
+	uint16_t period;
 	bool sleep = false;
 
 	/* T126 object must be enabled */
@@ -858,7 +1084,7 @@ static void touch_process_lowpower(void)
 	/* active to idle timeout none Zero */
 	if (sleep) {	// Enter into low power mode
 		/* Start Autoscan */
-		touch_ret = qtm_autoscan_sensor_node(&auto_scan_setup, touch_measure_wcomp_match);
+		touch_ret = touch_autoscan_sensor_node(&auto_scan_setup, touch_measure_wcomp_match);
 		if (touch_ret == TOUCH_SUCCESS) {
 			/* Ready for Sleep */
 			SET_BIT(qlib_touch_state, QTLIB_STATE_SLEEP);
@@ -869,7 +1095,12 @@ static void touch_process_lowpower(void)
 			touch_enable_lowpower_measurement();
 						
 			// For drift measurement
-			measurement_period_store = get_next_measurement_period((uint16_t)measurement_period_idle_drift * 200);
+#ifdef DEF_TOUCH_LOWPOWER_SOFT
+			period = measurement_period_idle_store;
+#else
+			period = (uint16_t)measurement_period_idle_drift * 200;
+#endif
+			measurement_period_store = get_next_measurement_period(period);
 			Timer_set_period(measurement_period_store, true);
 		}
 	}
@@ -912,7 +1143,7 @@ static void touch_cancel_autoscan(void)
 	touch_disable_lowpower_measurement();
 	
 	/* Cancel node auto scan */
-	qtm_autoscan_node_cancel();
+	touch_autoscan_node_cancel();
 }
 #endif
 
@@ -956,20 +1187,29 @@ void touch_timer_handler(void)
 	/* USE_MPTT_WRAPPER */
 	// time_to_measure_touch_flag = 1u;
 	SET_BIT(qlib_touch_state, QTLIB_STATE_TIME_TO_MEASURE);
-	if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP))
-		SET_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK);
-
+	
 #if (DEF_TOUCH_LOWPOWER_ENABLE == 1u)
-
+	if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP)) {
+#ifdef DEF_TOUCH_LOWPOWER_SOFT
+		// For software drift, we need record last drift time, and do measurement if timeout
+		if (measurement_period_idle_drift) {
+			time_since_last_drift += measurement_period_store;
+			if (time_since_last_drift > measurement_period_idle_drift * 200) {
+				time_since_last_drift = 0;
+				SET_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK);
+			}
+		}
+#else
+		SET_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK);
+#endif
+	} 
+#endif
+	// For active to idle status, we need record last touch time
 	if (time_since_touch < (65535u - measurement_period_store)) {
 		time_since_touch += measurement_period_store;
 	} else {
 		time_since_touch = 65535;
 	}
-#else
-	/* USE_MPTT_WRAPPER */
-	// qtm_update_qtlib_timer(DEF_TOUCH_MEASUREMENT_PERIOD_MS);
-#endif
 
 	qtm_update_qtlib_timer(measurement_period_store);	
 }

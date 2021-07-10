@@ -109,6 +109,18 @@ void object_api_t126_breach_sleep(void)
 	object_t126_lowpower_status_change(NUM_WK_TYPES, 0);
 }
 
+static bool is_lo_node(u8 node)
+{
+	t126_data_t *ptr =  &t126s_data_status;
+	object_t126_t *mem = (object_t126_t *) ptr->common.mem;
+	
+#ifdef DEF_TOUCH_LOWPOWER_SOFT
+	return (BIT(node) & mem->node);
+#else
+	return node == mem->node;
+#endif
+}
+
 bool object_api_t126_node_skipped(u8 node)
 {
 	t126_data_t *ptr =  &t126s_data_status;
@@ -122,7 +134,7 @@ bool object_api_t126_node_skipped(u8 node)
 	
 	// In idle mode
 	if (ptr->button.status & MXT_T126_STATUS_IDLE) {
-		if (node == mem->node) {
+		if (is_lo_node(node)) {
 			if (!(mem->ctrl & MXT_T126_CTRL_RPTTCHEN)) {
 				ret = true;
 			}
@@ -133,7 +145,7 @@ bool object_api_t126_node_skipped(u8 node)
 		}
 	// In active mode
 	} else {
-		if (node == mem->node) {	
+		if (is_lo_node(node)) {	
 			if (!(mem->ctrl & MXT_T126_CTRL_DBGEN))
 				ret = true;
 		}
