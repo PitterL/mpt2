@@ -151,7 +151,9 @@ ssint object_api_t15_set_button_status(/* Slot id */u8 id, u8 pressed)
 #ifdef OBJECT_T126
 					if (!object_api_t126_node_skipped(id))
 #endif
+					{
 						status |= BIT32(offset);
+					}
 				} else {
 					status &= ~BIT32(offset);
 				}

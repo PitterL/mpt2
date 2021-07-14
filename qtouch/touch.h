@@ -51,7 +51,7 @@ extern "C" {
 /* Defines the Type of sensor
  * Default value: NODE_MUTUAL.
  */
-#define DEF_SENSOR_TYPE NODE_SELFCAP_SHIELD
+#define DEF_SENSOR_TYPE NODE_SELFCAP
 
 /* Set sensor calibration mode for charge share delay ,Prescaler or series resistor.
  * Range: CAL_AUTO_TUNE_NONE / CAL_AUTO_TUNE_RSEL / CAL_AUTO_TUNE_PRSC / CAL_AUTO_TUNE_CSD
@@ -92,7 +92,7 @@ extern "C" {
 	Y1:	PA7		Y(3)		//BTN1
 */
 
-#define DEF_NUM_CHANNELS 1
+#define DEF_NUM_CHANNELS 2
 /* Defines node parameter setting of mutual cap
  * {X-line, Y-line, Charge Share Delay, NODE_RSEL_PRSC(series resistor, prescaler), NODE_G(Analog Gain , Digital Gain),
  * filter level}
@@ -104,21 +104,26 @@ extern "C" {
  */
 #define NODE_0_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		X_NONE, Y(3), 2, PRSC_DIV_SEL_2,       \
+		X_NONE, Y(3), 2, PRSC_DIV_SEL_2,																			\
 		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 
 #define NODE_1_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		X_NONE, Y(2), 2, PRSC_DIV_SEL_2,       \
+		X_NONE, Y(2), 2, PRSC_DIV_SEL_2,																				\
 			NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 
 #define NODE_2_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		X_NONE, Y(2) | Y(3), 2, PRSC_DIV_SEL_2,       \
+	{																													\
+		X_NONE, Y(2) | Y(3), 2, PRSC_DIV_SEL_2,																		\
 		NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
+
+
+#define PTC_SEQ_NODE_CFG1	{	\
+	NODE_0_PARAMS, NODE_1_PARAMS	\
+}
 
 /**********************************************************/
 /***************** Key Params   ******************/
@@ -145,6 +150,10 @@ extern "C" {
 #define KEY_2_PARAMS                                                                                                   \
 {                                                                                                                  \
 	100, HYST_25, NO_AKS_GROUP                                                                                      \
+}
+
+#define QTLIB_KEY_CONFIGS_SET {	\
+	KEY_0_PARAMS, KEY_1_PARAMS	\
 }
 
 /* De-bounce counter for additional measurements to confirm touch detection
@@ -223,14 +232,13 @@ extern "C" {
  */
 #ifdef OBJECT_T126
 #define DEF_TOUCH_LOWPOWER_ENABLE 1u
-//#define DEF_TOUCH_LOWPOWER_SOFT 1u
 #endif
 
 /* Node selection for Low-power scan.
  * Range: 0 to (DEF_NUM_CHANNELS-1).
  * Default value: 0
  */
-#define QTM_AUTOSCAN_NODE 2
+#define QTM_AUTOSCAN_NODE 1
 
 /* Touch detection threshold for Low-power node.
  * Range: 10 to 255

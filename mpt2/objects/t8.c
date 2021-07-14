@@ -31,6 +31,7 @@ void t8_set_unsupport_area(object_t8_t *mem)
 	mem->cfg = 0;
 }
 
+#ifdef OBJECT_T8_RSD_SWITCH
 u8 object_api_t8_ref_mode(void)
 {
 	t8_data_t *ptr = &t8_data_status;
@@ -38,6 +39,7 @@ u8 object_api_t8_ref_mode(void)
 		
 	return mem->refmode;
 }
+#endif
 
 void t8_data_sync(const txx_data_t *ptr, u8 rw)
 {

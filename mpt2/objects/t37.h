@@ -37,6 +37,11 @@ typedef struct dbg_low_power_data {
 typedef struct t37_data {
 	txx_data_t common;
 	t37_page_status_t status;
+
+#ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
+	const u8 *sigrow;
+	u8 sigrow_len;
+#endif
 } t37_data_t;
 
 enum REF_MODE { DBG_NORMAL, DBG_CAP };
@@ -47,6 +52,6 @@ ssint object_t37_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, co
 void object_t37_start(void);
 
 void object_api_t37_set_data_page(u8 cmd, u8 page);
-void object_api_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap);
+ssint object_api_t37_set_sensor_data(u8 channel, /*const cap_sample_value_t * const*/const void *cv);
 
 #endif /* T37_H_ */

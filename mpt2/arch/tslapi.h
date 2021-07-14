@@ -94,6 +94,7 @@ typedef ssint (*cb_qlib_sync_op_t)(u8 type, /*read or write */void *buf, size_t 
 typedef void (*cb_qlib_calibrate_t)(void);
 typedef bool (*cb_qlib_state_idle_t)(void);
 typedef void (*cb_qlib_suspend_t)(bool);
+typedef const u8 *(*cb_get_signature_row)(u8 *);
 
 typedef union {
 	struct {
@@ -126,6 +127,10 @@ typedef struct qtouch_params {
 	u8 max_resl;
 }qtouch_params_t;
 
+typedef struct chip_info_cb {
+	cb_get_signature_row get_sigrow;
+} chip_info_cb_t;
+
 typedef struct qtouch_config {
 	nodes_desc_t matrix_nodes[NUM_NODE_2D];
 	u8 maxtrix_channel_count;	//	logical channels count(actual channels for selfcap or nodes for mutualcap)
@@ -141,6 +146,8 @@ typedef struct qtouch_config {
 	u8 num_surfaces_slider_channel_count;
 	
 	qtouch_params_t params;
+
+	chip_info_cb_t chip_cb;
 } qtouch_config_t;
 
 #define QTOUCH_CONFIG_VAL(_p, _n) (((qtouch_config_t *)(_p))->_n)
@@ -205,6 +212,9 @@ u8 tsapi_read_group_config_byte(u8 type, u8 index);
 u8 tsapi_read_config_byte(u8 type);
 void tsapi_calibrate(void);
 u8 tsapi_get_chip_state(void);
+u8 tsapi_get_number_sensor_channels(void);
+u8 tsapi_get_number_key_sensors(void);
+bool tsapi_sensor_state_is_suspend(uint8_t node);
 ssint tsapi_read_ref_signal_cap(u8 index, cap_sample_value_t *cval);
 ssint tsapi_read_button_state(u8 index);
 ssint tsapi_read_slider_state(u8 index, /*t9_point_status_t */ void *sts);
@@ -215,5 +225,15 @@ u16 tsapi_t6_get_sensor_base_ref(void);
 void tsapi_touch_suspend(bool suspend);
 void tsapi_touch_inject_event(void);
 bool tsapi_touch_state_idle(void);
+bool tsapi_touch_state_sleep(void);
+uint8_t	tsapi_touch_sleep(void);
+
+#ifdef MPTT_FUSE_CHECK
+uint8_t tsapi_fuse_check(void);
+#endif
+
+#ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
+const u8 *tsapi_get_signature_row_data(u8 *len_ptr);
+#endif
 
 #endif /* TSLAPI_H_ */

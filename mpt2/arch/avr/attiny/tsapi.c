@@ -10,8 +10,10 @@
 
 #include "include/types.h"
 #include "arch/cpu.h"
+#include "arch/fuse.h"
 #include "objects/txx.h"
 #include "arch/tslapi.h"
+#include "pack.h"
 
 #ifdef TOUCH_API_KEYS_H
 #ifdef OBJECT_T15
@@ -37,6 +39,10 @@ extern qtm_acq_node_group_config_t ptc_qtlib_acq_gen1;
 
 /* Node status, signal, calibration values */
 extern qtm_acq_node_data_t ptc_qtlib_node_stat1[];
+
+#if defined(OBJECT_T25) || defined(OBJECT_T37)
+extern qtm_comp_to_cc_cache_t ptc_node_cccap_cache[];
+#endif
 
 /* Container */
 extern qtm_touch_key_control_t qtlib_key_set1;
@@ -153,8 +159,9 @@ tch_config_callback_t touch_config_list[] ={
 	{API_DEF_QTM_AUTOSCAN_NODE, &auto_scan_setup.auto_scan_node_number, sizeof(auto_scan_setup.auto_scan_node_number), 0 },
 #endif
 	//
+#ifdef OBJECT_T109
 	{API_NODE_COMPCAP_VALUE, &ptc_qtlib_node_stat1[0].node_comp_caps, sizeof(ptc_qtlib_node_stat1[0].node_comp_caps), sizeof(ptc_qtlib_node_stat1[0]) },	
-
+#endif
 #ifdef TOUCH_API_SCROLLER
 	{API_NUM_SLIDERS, &qtm_scroller_group_config1.num_scrollers, sizeof(qtm_scroller_group_config1.num_scrollers), 0},
 	{API_SLIDER_START_KEY, &qtm_scroller_config1[0].start_key, sizeof(qtm_scroller_config1[0].start_key), sizeof(qtm_scroller_config1[0]) },
@@ -328,9 +335,9 @@ u8 tsapi_get_chip_state(void)
 {
 	u8 state = 0;
 #ifdef OBJECT_T6
-	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
-	const qtm_acq_node_data_t * qtns= &ptc_qtlib_node_stat1[0];
-	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
+	const qtm_touch_key_data_t * const qtkds = &qtlib_key_data_set1[0];
+	const qtm_acq_node_data_t * const qtns= &ptc_qtlib_node_stat1[0];
+	const qtm_touch_key_group_config_t * const qttkg = &qtlib_key_grp_config_set1;
 	u8 sensor_state, cal;
 	u8 i;
 
@@ -342,16 +349,14 @@ u8 tsapi_get_chip_state(void)
 		} else {
 			sensor_state = qtkds[i].sensor_state & ~KEY_TOUCHED_MASK;
 			switch (sensor_state) {
-				case QTM_KEY_STATE_DISABLE:
-					state = MXT_T6_STATUS_RESET;
-					break;
-				case QTM_KEY_STATE_CAL:
-					state = MXT_T6_STATUS_CAL;
-					break;
-				case QTM_KEY_STATE_CAL_ERR:
-					state = MXT_T6_STATUS_SIGERR;
-					break;
-				default:
+			case QTM_KEY_STATE_DISABLE:
+				state = MXT_T6_STATUS_RESET;
+				break;
+			case QTM_KEY_STATE_CAL:
+			case QTM_KEY_STATE_CAL_ERR:
+				state = MXT_T6_STATUS_CAL;
+				break;
+			default:
 				;
 			}
 		}
@@ -363,10 +368,39 @@ u8 tsapi_get_chip_state(void)
 	return state;
 }
 
+u8 tsapi_get_number_sensor_channels(void)
+{
+	// normal we call tsapi_read_config_byte(API_NUM_CHANNELS), but we need fast access here
+	
+	// Fast read
+	return (u8)ptc_qtlib_acq_gen1.num_sensor_nodes;
+}
+
+u8 tsapi_get_number_key_sensors(void)
+{
+	// normal we call tsapi_read_config_byte(API_NUM_SENSORS), but we need fast access here
+	
+	// Fast read
+	return (u8)qtlib_key_grp_config_set1.num_key_sensors;
+}
+
+#if defined(OBJECT_T25) || defined(OBJECT_T37)
+u16 calculate_and_cache_cccap(qtm_comp_to_cc_cache_t * pcap, u16 comcap)
+{
+	if (pcap->node_comp_caps != comcap) {
+		pcap->node_comp_caps = comcap;
+		pcap->node_cc_caps = CALCULATE_CAP(comcap);
+	}
+
+	return pcap->node_cc_caps;
+}
+#endif
+
 ssint tsapi_read_ref_signal_cap(u8 index, cap_sample_value_t *cval)
 {
 	const qtm_touch_key_group_config_t * const qttkg = &qtlib_key_grp_config_set1;
-	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
+	const qtm_touch_key_data_t * const qtkds = &qtlib_key_data_set1[0];
+	qtm_comp_to_cc_cache_t * const pcap = &ptc_node_cccap_cache[0];
 
 	if (index >= (u8)qttkg->num_key_sensors)
 		return -2;
@@ -375,7 +409,9 @@ ssint tsapi_read_ref_signal_cap(u8 index, cap_sample_value_t *cval)
 	cval->signal = qtkds[index].node_data_struct_ptr->node_acq_signals;
 	//FIXME: button order may not match sensor order
 	cval->comcap = qtkds[index].node_data_struct_ptr->node_comp_caps;
-	cval->cccap = CALCULATE_CAP(cval->comcap);
+#if defined(OBJECT_T25) || defined(OBJECT_T37)
+	cval->cccap = calculate_and_cache_cccap(pcap + index, cval->comcap);
+#endif
 
 	return 0;
 }
@@ -383,7 +419,7 @@ ssint tsapi_read_ref_signal_cap(u8 index, cap_sample_value_t *cval)
 ssint tsapi_read_button_state(u8 index)
 {	
 	const qtm_touch_key_group_config_t * const qttkg = &qtlib_key_grp_config_set1;
-	const qtm_touch_key_data_t *qtkds = &qtlib_key_data_set1[0];
+	const qtm_touch_key_data_t * const qtkds = &qtlib_key_data_set1[0];
 	u8 status;
 
 	if (index >= (u8)qttkg->num_key_sensors)
@@ -503,4 +539,33 @@ void tsapi_touch_inject_event(void)
 bool tsapi_touch_state_idle(void)
 {
 	return (touch_state_idle() == 0);
+}
+
+bool tsapi_touch_state_sleep(void)
+{
+	return (touch_state_sleep() == 0);
+}
+
+uint8_t	tsapi_touch_sleep(void)
+{
+	return touch_sleep();
+}
+
+#ifdef MPTT_FUSE_CHECK
+uint8_t tsapi_fuse_check(void)
+{
+	return fuse_check();
+}
+#endif
+
+#ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
+const u8 *tsapi_get_signature_row_data(u8 *len_ptr)
+{
+	return get_signature_row_data(len_ptr);
+}
+#endif
+
+bool tsapi_sensor_state_is_suspend(uint8_t node)
+{
+	return (get_sensor_state(node) == QTM_KEY_STATE_SUSPEND);
 }

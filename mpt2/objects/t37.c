@@ -14,9 +14,15 @@ t37_data_t t37_data_status;
 ssint object_t37_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb)
 {
 	t37_data_t *t37_ptr = &t37_data_status;
+	qtouch_config_t *qdef = (qtouch_config_t *)def;
 
 	object_txx_init(&t37_ptr->common, rid, def, mem, cb);
 	
+#ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
+	if (qdef && qdef->chip_cb.get_sigrow) {
+		t37_ptr->sigrow = qdef->chip_cb.get_sigrow(&t37_ptr->sigrow_len);
+	}
+#endif
 	return 0;
 }
 
@@ -77,8 +83,8 @@ void object_api_t37_set_data_page(u8 cmd, u8 page)
 
 u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
 {
+#ifdef OBJECT_T8_RSD_SWITCH
 	u8 refmode = DBG_NORMAL;
-#ifdef OBJECT_T8
 	refmode = object_api_t8_ref_mode();
 #endif
 	s16 delta = (s16)signal- (s16)reference;
@@ -87,25 +93,31 @@ u16 t37_get_data(u8 cmd, u8 channel, u16 reference, u16 signal, u16 cap)
 		case MXT_DIAGNOSTIC_KEY_DELTA:
 		case MXT_DIAGNOSTIC_MC_DELTA: 
 		case MXT_DIAGNOSTIC_SC_DELTA:
+#ifdef OBJECT_T8_RSD_SWITCH
 			if (refmode == DBG_CAP)
 				return signal;
 			else
+#endif
 				return (u16)delta;
 		case MXT_DIAGNOSTIC_PTC_REF:
 		case MXT_DIAGNOSTIC_KEY_REF:
 		case MXT_DIAGNOSTIC_MC_REF:
 		case MXT_DIAGNOSTIC_SC_REF:
+#ifdef OBJECT_T8_RSD_SWITCH
 			if (refmode == DBG_CAP)
 				return cap;
 			else
+#endif
 				return reference;
 		case MXT_DIAGNOSTIC_PTC_SIGNAL:
 		case MXT_DIAGNOSTIC_MC_SIGNAL: 
 		case MXT_DIAGNOSTIC_KEY_SIGNAL:
 		case MXT_DIAGNOSTIC_SC_SIGNAL:
+#ifdef OBJECT_T8_RSD_SWITCH
 			if (refmode == DBG_CAP)
 				return (u16)delta;
 			else
+#endif
 				return cap;
 		default:
 			;
@@ -209,10 +221,21 @@ void t37_set_low_power_data(u8 cmd, u8 page, u8 channel, u16 reference, u16 sign
 	copy_node_data_to_buffer(cmd, page, 0, &data, sizeof(data));
 }
 #endif
-
-void object_api_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
+#ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
+void t37_set_diagnostic_platform_info(u8 cmd, u8 page)
+{
+	const t37_data_t * const ptr = &t37_data_status;
+	
+	if (ptr->sigrow) {
+		copy_node_data_to_buffer(cmd, page, 0, ptr->sigrow, ptr->sigrow_len);
+	}
+}
+#endif
+ssint object_api_t37_set_sensor_data(u8 channel, /*const cap_sample_value_t * const*/ const void * cv)
 {
 	t37_data_t *ptr = &t37_data_status;
+	const cap_sample_value_t * const cval = (const cap_sample_value_t *)cv;
+	ssint ret = 0;
 
 	u8 cmd = ptr->status.cmd;
 	u8 page = ptr->status.page;
@@ -233,19 +256,34 @@ void object_api_t37_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 c
 		case MXT_DIAGNOSTIC_KEY_SIGNAL:
 		case MXT_DIAGNOSTIC_SC_SIGNAL:
 		{
-			t37_set_rsf_data(cmd, page, channel, reference, signal, cap);
+			if (cval) {
+				t37_set_rsf_data(cmd, page, channel, cval->reference, cval->signal, cval->cccap);
+			}
 		}
 		break;
 #ifdef OBJECT_T126
+#ifdef OBJECT_T37_DEBUG_LOWPOWER_INFO
 		case MXT_DIAGNOSTIC_LOW_POWER_MODE:
 		{
-			t37_set_low_power_data(cmd, page, channel, reference, signal, cap);
+			if (cval) {
+				t37_set_low_power_data(cmd, page, channel, cval->reference, cval->signal, cval->cccap);
+			}
+		}
+		break;
+#endif
+#endif
+#ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
+		case MXT_DIAGNOSTIC_DEVICE_INFO:
+		{
+			t37_set_diagnostic_platform_info(cmd, page);
 		}
 		break;
 #endif
 		default:
-			;
+			ret = -1;
 	};
+	
+	return ret;
 }
 
 #endif

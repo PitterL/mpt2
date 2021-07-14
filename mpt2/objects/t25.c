@@ -278,16 +278,22 @@ void t25_inspect_completed(t25_data_t *ptr, u8 testop, u8 testclr)
 #endif
 }
 
-void object_api_t25_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap)
+ssint object_api_t25_set_sensor_data(u8 channel, /*const cap_sample_value_t **/ const void * cv)
 {
 	t25_data_t *ptr = &t25_data_status;
 	object_t25_result_t *tdat = &ptr->cache;
 	object_t25_t *mem = (object_t25_t *) ptr->common.mem;
 	u8 testop = ptr->cache.testop;
+	const cap_sample_value_t * const cval = (const cap_sample_value_t *)cv;
 	ssint result = 0;	/* 0: success; negative: failed; other value: not finished */
 
-	if (!(mem->ctrl & MXT_T25_CTRL_ENABLE))
-		return;
+	if (!(mem->ctrl & MXT_T25_CTRL_ENABLE)) {
+		return -1;
+	}
+	
+	if (!cval || !testop) {
+		return 0;
+	}
 
 	//Test AVDD
 	if (TEST_BIT(testop, TEST_AVDD)) {
@@ -309,14 +315,14 @@ void object_api_t25_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 c
 
 	// Test signal, randomly start tested sensor
 	if (result == 0 && TEST_BIT(testop, TEST_T15_SIGNAL_LIMIT)) {
-		result = t25_inspect_t15_sensor_data(ptr, channel, reference, cap);
+		result = t25_inspect_t15_sensor_data(ptr, channel, cval->reference, cval->cccap);
 		if (result <= 0) {
 			CLR_BIT(testop, TEST_T15_SIGNAL_LIMIT);
 		}
 	}
 	
 	if (result == 0 && TEST_BIT(testop, TEST_T9_SIGNAL_LIMIT)) {
-		result = t25_inspect_t9_sensor_data(ptr, channel, reference, cap);
+		result = t25_inspect_t9_sensor_data(ptr, channel, cval->reference, cval->cccap);
 		if (result <= 0) {
 			CLR_BIT(testop, TEST_T9_SIGNAL_LIMIT);
 		}
@@ -336,6 +342,8 @@ void object_api_t25_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 c
 		t25_inspect_completed(ptr, testop, tdat->testop ^ testop);
 		tdat->testop = testop;
 	}
+	
+	return 0;
 }
 
 /**

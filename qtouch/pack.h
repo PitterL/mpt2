@@ -19,11 +19,11 @@ The below definition is used for cupdi package tool.
 	Warning: Support '//' comment mark, but not support '/ * * /' comment mark inside the definition
 */
 /* Project code*/
-#define PROJECT_CODE 0x5630323421	/*V024, v1.1*/
+#define PROJECT_CODE 0x5630323512	/*V025, v1.2*/
 
 /* Fuse content */
 // BOD level 2(2.6v Sampled 1Khz at Sleep, Enabled at Active), OSC 16Mhz, NVM protect after POR, EEPROM erased£¬WDT(4096ms)
-#define FUSES_CONTENT {0x0A, 0x46, 0x7D, 0xFF, 0x00, 0xF6, 0xFF, 0x00, 0x00, 0xFF, 0xC5 }	/*BYTE order, ignore set as NULL or the value*/
+#define FUSES_CONTENT {0x0A, 0x46, 0x7D, 0xFF, 0x00, 0xF6, 0xFF, 0x00, 0x00, 0xFF, 0xC5 }	/* BYTE order */
 
 
 #endif /* PACK_H_ */

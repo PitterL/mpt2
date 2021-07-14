@@ -121,7 +121,7 @@
       </AcmeProjectConfig>
     </AcmeProjectConfig>
     <avrtool>com.atmel.avrdbg.tool.edbg</avrtool>
-    <avrtoolserialnumber>ATML2835031800001942</avrtoolserialnumber>
+    <avrtoolserialnumber>ATML2835031800000974</avrtoolserialnumber>
     <avrdeviceexpectedsignature>0x1E9522</avrdeviceexpectedsignature>
     <avrtoolinterface>UPDI</avrtoolinterface>
     <com_atmel_avrdbg_tool_powerdebugger>
@@ -144,7 +144,7 @@
         <InterfaceName>UPDI</InterfaceName>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.edbg</ToolType>
-      <ToolNumber>ATML2835031800001942</ToolNumber>
+      <ToolNumber>ATML2835031800000974</ToolNumber>
       <ToolName>EDBG</ToolName>
     </com_atmel_avrdbg_tool_edbg>
   </PropertyGroup>
@@ -235,9 +235,12 @@
       <Value>MPTT_AUTO_PINMUX</Value>
       <Value>MPTT_BUS_MONITOR</Value>
       <Value>MPTT_SAVE_CONFIG</Value>
+      <Value>MPTT_FUSE_CHECK</Value>
       <Value>xMPTT_MATRIX_NODES</Value>
       <Value>OBJECT_WRITEBACK</Value>
       <Value>OBJECT_T37</Value>
+      <Value>xOBJECT_T37_DEBUG_LOWPOWER_INFO</Value>
+      <Value>OBJECT_T37_DEBUG_PLATFORM_INFO</Value>
       <Value>OBJECT_T44</Value>
       <Value>OBJECT_T5</Value>
       <Value>OBJECT_T6</Value>
@@ -252,8 +255,8 @@
       <Value>OBJECT_T25_EXTENSION</Value>
       <Value>OBJECT_T38</Value>
       <Value>xOBJECT_T104</Value>
-      <Value>OBJECT_T111</Value>
-      <Value>OBJECT_T111_DUMMY</Value>
+      <Value>xOBJECT_T111</Value>
+      <Value>xOBJECT_T111_DUMMY</Value>
       <Value>xOBJECT_T109</Value>
       <Value>OBJECT_T126</Value>
       <Value>xDEBUG_FORMAT_HAWKEYE</Value>
@@ -552,6 +555,9 @@
     <Compile Include="mpt2\arch\avr\attiny\flash.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="mpt2\arch\avr\attiny\Fuse.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="mpt2\arch\avr\attiny\i2c.c">
       <SubType>compile</SubType>
     </Compile>
@@ -582,6 +588,9 @@
     <Compile Include="mpt2\arch\flash.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="mpt2\arch\fuse.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="mpt2\arch\i2c.h">
       <SubType>compile</SubType>
     </Compile>
@@ -595,6 +604,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="mpt2\arch\tslapi.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\board.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\board.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="mpt2\crc.c">

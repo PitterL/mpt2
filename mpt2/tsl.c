@@ -8,85 +8,14 @@
 #include <string.h>
 #include "include/types.h"
 #include "arch/cpu.h"
-#include "arch/tslapi.h"
+//#include "arch/tslapi.h"
 #include "arch/timer.h"
 #include "arch/bus.h"
 #include "objects/txx.h"
 #include "mptt.h"
 #include "interface.h"
 #include "tsl.h"
-
-#ifdef TOUCH_API_BUTTON
-qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
-#ifdef EVK_QT1
-	// Note QT1 need modify circle to support QT1
-	{ .node = {	.origin = 0, .size = 2 } },	// Button
-	{ .node = {	.origin = 2, .size = 4 } },	// Surface slider
-#endif
-#ifdef EVK_QT7	
-	{ .node = {	.origin = 0, .size = 2 } },	// Button
-	{ .node = {	.origin = 2, .size = 3 } },	// Surface slider
-#endif
-#ifdef EVK_QT8	
-	{ .node = {	.origin = 0, .size = 5 } },	// Button
-	{ .node = {	.origin = 5, .size = 5 } },	
-#endif
-#ifdef EVK_WATER_SURFACE
-	{ .node = {	.origin = 0, .size = 11 } },	// Surface slider
-	{ .node = {	.origin = 11, .size = 2 } },	// Button
-#endif
-#ifdef EVK_3217_XPLAIN
-    { .node = {	.origin = 0, .size = 2 } },
-#endif
-};
-#endif
-
-#if defined(OBJECT_T9)
-// For simpling the algorithm, we set v for x, h for y, but must care, v should start first, h follow up
-qsurface_config_t surfaces_sliders_config[MXT_TOUCH_MULTI_T9_INST] = {
-	{
-		/*.resolution_bit = 8,	*/
-		/*.resolution_max = (1 << 8) -1,	*/
-	}
-};
-#endif
-
-qtouch_config_t tsl_qtouch_def = {
-#ifdef EVK_QT1
-	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 4}},
-#endif
-#ifdef EVK_QT7
-	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 3}},
-#endif
-#ifdef EVK_WATER_SURFACE
-	.matrix_nodes = {{.origin = 0, .size = 5}, {.origin =  5, .size = 8}},
-#endif
-#ifdef EVK_3217_XPLAIN
-	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 2}},
-#endif
-#ifdef TOUCH_API_BUTTON
-	//If define num_button, should filled the buttons_config
-	.buttons = &buttons_config[0],
-	.num_button = ARRAY_SIZE(buttons_config),
-	/*.num_buttons_channel_count,*/
-#endif
-
-#if defined(OBJECT_T9)
-	//If define num_surfaces_slider, should filled the surfaces_sliders_config
-	.surface_sliders = &surfaces_sliders_config[0],
-	.num_surfaces_slider = ARRAY_SIZE(surfaces_sliders_config),
-	/*.num_surfaces,*/
-	/*.num_slider,*/
-	/*.num_surfaces_slider_channel_count,*/
-#endif
-
-	.params = {
-		.max_prsc_div = 0xff,
-		.max_gain = GAIN_16,
-		.max_filter_count = FILTER_LEVEL_64,
-		.max_resl = RSEL_VAL_200,
-	},
-};
+#include "board.h"
 
 qtouch_api_callback_t tsl_api_info =
 {
@@ -264,15 +193,18 @@ void tsl_pre_process(void)
 void tch_ref_signal_update(void)
 {
 #if (defined(OBJECT_T37) || defined(OBJECT_T25) || defined(OBJECT_T109))
-	u8 sensor_count = tsapi_read_config_byte(API_NUM_CHANNELS);
+	u8 sensor_count = tsapi_get_number_sensor_channels();
 	u8 i;
 	ssint result;
 	cap_sample_value_t cvalue;
-	
+		
 	for (i = 0; i < sensor_count; i++) {
+		// Fetch `rsd` data
 		result = tsapi_read_ref_signal_cap(i, &cvalue);
-		if (result == 0)
-			mpt_api_set_sensor_data(i, cvalue.reference, cvalue.signal, cvalue.cccap, cvalue.comcap);
+		if (result == 0) {
+			// Dispatch `rsd` data
+			mpt_api_set_sensor_data(i, &cvalue);
+		}
 	}
 #endif
 }
@@ -284,7 +216,7 @@ void tch_update_chip_state(void)
 	if (state) {
 		mpt_api_set_chip_status(state, 1);
 	} else {
-		mpt_api_set_chip_status(MXT_T6_STATUS_RESET|MXT_T6_STATUS_CAL|MXT_T6_STATUS_SIGERR, 0);
+		mpt_api_set_chip_status(MXT_T6_STATUS_RESET|MXT_T6_STATUS_CAL, 0);
 	}
 #endif
 }
@@ -295,20 +227,27 @@ void tch_update_chip_state(void)
  */
 void tsl_process(void)
 {
+#if defined(DEF_TOUCH_LOWPOWER_SOFT) && (!defined(OBJECT_T37_DEBUG_LOWPOWER_INFO))
+	if (tsapi_touch_state_sleep()) {
+		return;
+	}
+#endif
+
 	tch_update_chip_state();
 }
 
 #ifdef TOUCH_API_BUTTON
 void tch_button_press_report(void)
 {
-	u8 button_count = tsapi_read_config_byte(API_NUM_SENSORS);
+	u8 button_count = tsapi_get_number_key_sensors();
 	u8 i;
 	ssint result;
 	
-	for (i = 0; i < button_count; i++) {	
+	for (i = 0; i < button_count; i++) {
 		result = tsapi_read_button_state(i);
-		if (result >= 0)
+		if (result >= 0) {
 			mpt_api_set_button_status(i, (u8)result);
+		}
 	}
 }
 #endif
@@ -359,6 +298,12 @@ void tsl_post_process(void)
 	qtouch_config_t *qdef = (qtouch_config_t *)tsl->qtdef;
 #endif
 
+#if defined(DEF_TOUCH_LOWPOWER_SOFT) && (!defined(OBJECT_T37_DEBUG_LOWPOWER_INFO))
+	if (tsapi_touch_state_sleep()) {
+		return;
+	}
+#endif
+
 #ifdef TOUCH_API_SCROLLER
 	tch_slider_location_report(qdef);
 #endif
@@ -369,8 +314,9 @@ void tsl_post_process(void)
 	tch_button_press_report();
 #endif
 
-	if (mptt_get_bus_state() != BUS_READ)	//the ref/signal is 16bits, data may crashed when bus is reading and update.
+	if (mptt_get_bus_state() != BUS_READ) {	//the ref/signal is 16bits, data may crashed when bus is reading and update.
 		tch_ref_signal_update();
+	}
 }
 
 /*============================================================================
@@ -388,7 +334,7 @@ ssint tsl_sleep()
 	if (tsapi_get_chip_state() == 0) {
 		
 		/* execute touch processor sleep */
-		if (touch_sleep() == 0) {
+		if (tsapi_touch_sleep() == 0) {
 			return 0;
 		}
 	}

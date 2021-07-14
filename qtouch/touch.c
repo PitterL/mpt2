@@ -234,8 +234,15 @@ qtm_acq_node_group_config_t ptc_qtlib_acq_gen1
 /* Node status, signal, calibration values */
 qtm_acq_node_data_t ptc_qtlib_node_stat1[DEF_NUM_CHANNELS];
 
+/* Node cccomp to cap value cache, used by MPTT t25/t37 */
+#ifdef USE_MPTT_WRAPPER
+#if defined(OBJECT_T25) || defined(OBJECT_T37)  
+qtm_comp_to_cc_cache_t ptc_node_cccap_cache[DEF_NUM_CHANNELS];
+#endif
+#endif
+
 /* Node configurations */
-qtm_acq_t321x_node_config_t ptc_seq_node_cfg1[DEF_NUM_CHANNELS] = {NODE_0_PARAMS, NODE_1_PARAMS/*, NODE_2_PARAMS*/};
+qtm_acq_t321x_node_config_t ptc_seq_node_cfg1[DEF_NUM_CHANNELS] = PTC_SEQ_NODE_CFG1;
 
 /* Container */
 qtm_acquisition_control_t qtlib_acq_set1 = {&ptc_qtlib_acq_gen1, &ptc_seq_node_cfg1[0], &ptc_qtlib_node_stat1[0]};
@@ -288,7 +295,7 @@ qtm_touch_key_group_data_t qtlib_key_grp_data_set1;
 qtm_touch_key_data_t qtlib_key_data_set1[DEF_NUM_SENSORS];
 
 /* Key Configurations */
-qtm_touch_key_config_t qtlib_key_configs_set1[DEF_NUM_SENSORS] = {KEY_0_PARAMS, KEY_1_PARAMS/*, KEY_2_PARAMS*/};
+qtm_touch_key_config_t qtlib_key_configs_set1[DEF_NUM_SENSORS] = QTLIB_KEY_CONFIGS_SET;
 
 /* Container */
 qtm_touch_key_control_t qtlib_key_set1
@@ -592,6 +599,7 @@ void touch_process(void)
 			if (TOUCH_SUCCESS != touch_ret) {
 				qtm_error_callback(1);
 			}
+
 			touch_ret = qtm_key_sensors_process(&qtlib_key_set1);
 			if (TOUCH_SUCCESS != touch_ret) {
 				qtm_error_callback(2);
@@ -626,13 +634,13 @@ void touch_process(void)
 					time_since_touch = 0;
 				}
 			} else {
-			// Touch not detected
-#ifdef DEF_TOUCH_LOWPOWER_SOFT
-				// For soft sleep, we switch sensor node after each complete and no detected
+				// Touch not detected
+			#ifdef DEF_TOUCH_LOWPOWER_SOFT
+				// For soft sleep, we switch sensor node before scanning
 				if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP)) {
 					touch_autoscan_sensor_node(NULL, NULL);
 				}
-#endif
+			#endif
 			}
 #endif
 		}
@@ -664,9 +672,12 @@ uint8_t touch_sleep(void)
 	// if (time_to_measure_touch_flag != 1u) {
 	
 	if (!TEST_BIT(qlib_touch_state, QTLIB_STATE_ACTIVE) && 
-		!TEST_BIT(qlib_touch_state, QTLIB_STATE_TIME_TO_MEASURE) && 
-		!TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP)) {		
-		touch_process_lowpower();
+		!TEST_BIT(qlib_touch_state, QTLIB_STATE_TIME_TO_MEASURE)) {
+		if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP)) {
+			// Last state in sleep already
+		} else {	
+			touch_process_lowpower();
+		}
 	}
 #endif
 
@@ -1344,8 +1355,31 @@ Input  : none
 Output : Zero Idle, Other Busy
 Notes  :
 ============================================================================*/
-int8_t touch_state_idle(void) {
-	return (TEST_BIT(qlib_touch_state, QTLIB_STATE_ACTIVE) || TEST_BIT(qlib_touch_state, QTLIB_STATE_TIME_TO_MEASURE));
+int8_t touch_state_idle(void) 
+{
+	if (TEST_BIT(qlib_touch_state, QTLIB_STATE_ACTIVE) || TEST_BIT(qlib_touch_state, QTLIB_STATE_TIME_TO_MEASURE)) {
+		return -1;
+	}
+	
+	return 0;
+}
+
+/*============================================================================
+USE_MPTT_WRAPPER
+int8_t touch_state_sleep(void)
+------------------------------------------------------------------------------
+Purpose: Indicate whether the touch is in sleep mode
+Input  : none
+Output : Zero Sleep, Other none sleep
+Notes  :
+============================================================================*/
+int8_t touch_state_sleep(void) 
+{
+	if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP)) {
+		return 0;
+	}
+	
+	return -1;
 }
 
 /*============================================================================

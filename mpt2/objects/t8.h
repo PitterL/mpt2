@@ -58,7 +58,10 @@ ssint object_t8_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, con
 void object_t8_start(u8 loaded);
 void object_t8_data_sync(u8 rw);
 
+#ifdef OBJECT_T8_RSD_SWITCH
 u8 object_api_t8_ref_mode(void);
+#endif
+
 void object_t8_switch_measure_mode(u8 idle);
 
 u8 object_t8_get_measure_mode(u8 *meas);

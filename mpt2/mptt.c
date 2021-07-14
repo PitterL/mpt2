@@ -15,6 +15,7 @@
 
 #include "include/list.h"
 #include "arch/cpu.h"
+#include "arch/tslapi.h"
 #include "objects/txx.h"
 #include "crc.h"
 #include "tsl.h"
@@ -64,30 +65,42 @@
 		<14> change sleep logic: mptt_sleep()->tsl_sleep()->touch_sleep()->touch_process_lowpower()=>sleep_cpu(), it will check tsapi_get_chip_state() and mptt_get_bus_state()
 		<15> change to`qlib_touch_state` from `qlib_touch_flag` for touch lib state management
 		<16> add `measurement_state` for for calibration and initialization post process
-		 
+	v25(1.0):
+		<1> Fuse check with `SigErr` T6 message
+		<2> Config check with `CfgErr` T6 message
+		<3> cccap calculation cache at call CALCULATE_CAP() to save power comsuption
+		<4> tsapi_get_number_sensor_channels() and tsapi_get_number_key_sensors() for fast access sensor count at main loop to save power comsuption
+		<5> move `buttons_config`, `surfaces_sliders_config` and `tsl_qtouch_def` from tsl.c to board.c
+		<6> mpt_api_set_sensor_data() use pointer to transfer parameter value(T37/T25/T109)
+		<7> Remove T111 default
+		
+		(1.1)
+		<1> Support Signature Row data
+		<2> Check suspend channel in data update
+		<3> Put `channel switch` in from touch_process() to touch_sleep() to make post_process with correct channels
+
+		(1.2)
+		<1> Revert the `channel switch` to touch_process() and use touch_state_sleep() to decide wether execute touch_post_process()
+				
 		Report ID Object Table Index Object Type Object Instance
 		0 = 0x00                  0           0               0
 		1 = 0x01                  3           6               0
-		2 = 0x02                  7           9               0
-		3 = 0x03                  8          15               0
-		4 = 0x04                  8          15               1
-		5 = 0x05                  9          25               0
-		6 = 0x06                 11         126               0
-
+		2 = 0x02                  7          15               0
+		3 = 0x03                  7          15               1
+		4 = 0x04                  8          25               0
+		5 = 0x05                  9         126               0
 
 		Object Table Index Object Type Address Size Instances Report IDs
-		0          37      83   66         1          -
-		1          44     149    1         1          -
-		2           5     150   10         1          -
-		3           6     160    6         1          1
-		4          38     166   16         1          -
-		5           7     182    4         1          -
-		6           8     186   15         1          -
-		7           9     201   35         1          2
-		8          15     236   11         2      3 - 4
-		9          25     258   22         1          5
-		10         111     280   29         1          -
-		11         126     309    9         1          6
+		0          37      71   66         1          -
+		1          44     137    1         1          -
+		2           5     138   10         1          -
+		3           6     148    6         1          1
+		4          38     154   16         1          -
+		5           7     170    4         1          -
+		6           8     174   15         1          -
+		7          15     189   11         2      2 - 3
+		8          25     211   16         1          4
+		9         126     227    9         1          5
 
 */
 
@@ -484,8 +497,18 @@ ssint mpt_api_chip_start(void)
 	const object_callback_t *ocbs = &object_initialize_list[0];
 	u8 i;
 	ssint result = -2;
+	
 #ifdef OBJECT_T6
+#ifdef MPTT_FUSE_CHECK
+	if (tsapi_fuse_check()) {
+		object_api_t6_set_status(MXT_T6_STATUS_SIGERR);
+	}
+#endif
+
 	result = mpt_chip_load_config();
+	if (result) {
+		object_api_t6_set_status(MXT_T6_STATUS_CFGERR);
+	}
 #endif
 	
 	// Run each object
@@ -495,10 +518,9 @@ ssint mpt_api_chip_start(void)
 	}
 
 #ifdef OBJECT_T25
-	return object_api_t25_pinfault_test();
-#else 
-	return 0;
-#endif
+	result = object_api_t25_pinfault_test();
+#endif	
+	return result;
 }
 
 void mem_readback(u8 regid)
@@ -1156,19 +1178,40 @@ void mpt_api_pre_process(void)
 #endif
 }
 
-void mpt_api_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap, u16 comcap)
+/*
+    API for dispatch sensor ref/delta/cap(rsd) data
+    @channel: sensor channel number
+    @cv: the `rsd` data, if import Null, that means to test whether `rsd` data is required
+    return: < 0 the rsd data is not required currently; 0 rsd data is processed.
+*/
+
+ssint mpt_api_set_sensor_data(u8 channel, /*const cap_sample_value_t * const*/ const void * cv)
 {
+	ssint checked = -1;
+	ssint result;
+	
 #ifdef OBJECT_T37
-	object_api_t37_set_sensor_data(channel, reference, signal, cap);
+	result = object_api_t37_set_sensor_data(channel, cv);
+	if (result == 0) {
+		checked = 0;
+	}
 #endif
 
 #ifdef OBJECT_T25
-	object_api_t25_set_sensor_data(channel, reference, signal, cap);
+	result = object_api_t25_set_sensor_data(channel, cv);
+	if (result == 0) {
+		checked = 0;
+	}
 #endif
 
 #ifdef OBJECT_T109
-	object_api_t109_set_sensor_data(channel, comcap);
+	result = object_api_t109_set_sensor_data(channel, cv);
+	if (result == 0) {
+		checked = 0;
+	}
 #endif
+
+	return checked;
 }
 
 void mpt_api_set_button_status(u8 id, u8 status)

@@ -58,7 +58,7 @@ typedef struct t109_data {
 
 ssint object_t109_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb);
 void object_t109_start(u8 unused);
-void object_api_t109_set_sensor_data(u8 channel, u16 compcap);
+ssint object_api_t109_set_sensor_data(u8 channel, /*const cap_sample_value_t * const*/ const void * cv);
 u8 object_t109_single_end_mode(void);
 void object_t109_param_sync(void);
 void object_t109_data_sync(u8 rw);

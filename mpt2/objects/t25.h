@@ -120,7 +120,7 @@ void object_t25_start(u8 unused);
 void object_t25_data_sync(u8 rw);
 void object_t25_report_status(u8 force);
 
-void object_api_t25_set_sensor_data(u8 channel, u16 reference, u16 signal, u16 cap);
+ssint object_api_t25_set_sensor_data(u8 channel, /*const cap_sample_value_t * const*/const void *cv);
 ssint object_api_t25_pinfault_test(void);
 
 #endif /* T25_H_ */

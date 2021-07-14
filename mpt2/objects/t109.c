@@ -134,14 +134,19 @@ void t109_set_sensor_data(t109_data_t *ptr, u8 channel, u16 compcap)
 	}
 }
 
-void object_api_t109_set_sensor_data(u8 channel, u16 compcap)
+ssint object_api_t109_set_sensor_data(u8 channel, /*const cap_sample_value_t * const*/ const void * cv)
 {
 	t109_data_t *ptr = &t109_data_status;
+	const cap_sample_value_t * const cval = (const cap_sample_value_t *)cv;
 	
 	if (!ptr->status.result.cmd)
-		return;
-		
-	t109_set_sensor_data(ptr, channel, compcap);
+		return -2;
+	
+	if (cval) {
+		t109_set_sensor_data(ptr, channel, cval->cccap);
+	}
+	
+	return 0;
 }
 
 #endif

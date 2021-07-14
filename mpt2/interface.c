@@ -72,7 +72,7 @@ void mptt_interface_init(void)
  * @return: 0: if successful, other value mean something error(mostly like the pin fault detect failed)
  */
 ssint mptt_start(void)
-{	
+{
 	ssint result;
 
 	result = tsl_start();
@@ -144,10 +144,10 @@ void mptt_run(uint8_t done)
 
 	/* Process */
 	mptt_process();
-	
+
 	/* Post process */
 	mptt_post_process(done);
-	
+
 	/* Sleep */
 	mptt_sleep();
 }
