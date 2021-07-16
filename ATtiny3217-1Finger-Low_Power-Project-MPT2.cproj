@@ -262,7 +262,7 @@
       <Value>xDEBUG_FORMAT_HAWKEYE</Value>
       <Value>xDEF_TOUCH_DATA_STREAMER_ENABLE</Value>
       <Value>__DELAY_BACKWARD_COMPATIBLE__</Value>
-      <Value>DEF_TOUCH_LOWPOWER_SOFT</Value>
+      <Value>xDEF_TOUCH_LOWPOWER_SOFT</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>
   <avrgcc.compiler.directories.IncludePaths>

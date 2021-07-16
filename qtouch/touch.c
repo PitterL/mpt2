@@ -542,7 +542,6 @@ Output : None Zero touch is busy, Zero means idle
 Notes  :
 ============================================================================*/
 extern int8_t tsapi_read_button_state(uint8_t index);
-
 void touch_process(void)
 {
 	touch_ret_t touch_ret;
@@ -566,8 +565,7 @@ void touch_process(void)
 	// if (time_to_measure_touch_flag == 1u) {
 	if (TEST_BIT(qlib_touch_state, QTLIB_STATE_TIME_TO_MEASURE)) {
 		/* Clear the Measure request flag */
-		CLR_BIT(qlib_touch_state, QTLIB_STATE_TIME_TO_MEASURE);
-				
+		CLR_BIT(qlib_touch_state, QTLIB_STATE_TIME_TO_MEASURE);	
 		/* Do the acquisition */
 		touch_ret = qtm_ptc_start_measurement_seq(&qtlib_acq_set1, qtm_measure_complete_callback);
 		/* if the Acquisition request was successful then clear the request flag */
@@ -681,7 +679,8 @@ uint8_t touch_sleep(void)
 	}
 #endif
 
-	return (TEST_BIT(qlib_touch_state, QTLIB_STATE_TIME_TO_MEASURE) ||
+	return (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK) ||
+		TEST_BIT(qlib_touch_state, QTLIB_STATE_TIME_TO_MEASURE) ||
 		/* TEST_BIT(qlib_touch_state, QTLIB_STATE_ACTIVE) || */
 		TEST_BIT(qlib_touch_state, QTLIB_STATE_MEASUREMENT_DONE));
 }
