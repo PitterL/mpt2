@@ -28,7 +28,7 @@ The v23 platformn embedded T126 object to control lowpower function, please chec
 	- bit[1] T126 Wake up message report enabled when low power button pressed
 	- bit[3] Report T15 button message on idle mode
 	- bit[4] Report T15 button message on active mode
-- byte[1] Node: wakeup node
+- byte[1] Node: wakeup node(For Event system system, this is the node channel; for software sleep, this is node channels mask, which supports multi channel wakeup)
 - byte[3] THRESHOLD: wakeup threshold of the key
 - byte[5] DRIFT: Drift time interval(200ms)
 
@@ -50,7 +50,7 @@ The v23 platformn embedded T126 object to control lowpower function, please chec
 
 
 ## Power comsuption measured:
-<img src="https://github.com/PitterL/mpt2/blob/v23/doc/Power%20consumption%20measured.png" />
+<img src="https://github.com/PitterL/mpt2/blob/EVK_3217_Xpro/doc/Power%20consumption%20measured.png" />
 
 
 
