@@ -34,9 +34,10 @@ The v25 platformn embedded T126 object to control lowpower function, please chec
 ### T126 configure:
 - byte[0] CTRL: 
 	- bit[0] enable 
-	- bit[1] T126 Wake up message report enabled when low power button pressed
-	- bit[3] Report T15 button message on idle mode
-	- bit[4] Report T15 button message on active mode
+	- bit[1] T126 Wake up message report enabled when low power status message changed.
+	- bit[2] Enable T15 message for Non-Low power button in diel mode.
+	- bit[3] Enables T15 message reporting for Low power button in idle mode.
+	- bit[4] Enables T15 message reporting for Low Power Button in active mode.
 - byte[1] Node: wakeup node(For `Event system sleep`, this is the node channel; for `software sleep`, this is node channels mask, which supports multi channel wakeup)
 - byte[3] THRESHOLD: wakeup threshold of the key( in `Event system mode` only, this byte is not use in `software sleep` mode).
 - byte[5] DRIFT: Drift time interval(200ms)
