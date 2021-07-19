@@ -1,4 +1,4 @@
-#	MPTT lowpower v23 platform
+#	MPTT lowpower v25 platform
 
 ## OBJECT PROTOCOL
 ### Introduction
@@ -17,7 +17,16 @@ The hardware based on ATtiny3217 Xplained Pro board:
 
 https://www.microchip.com/developmenttools/ProductDetails/ATTINY3217-XPRO
 
-The v23 platformn embedded T126 object to control lowpower function, please check protocol for more details:
+The v25 platformn embedded T126 object to control lowpower function, please check protocol for more details:
+
+### T6 message:
+- byte[0] ID: Report ID
+- byte[1] STATUS: 
+	- bit[3] CFGERR: the config crc checked mismatch
+	- bit[4] CAL: in calibration or calibration failed
+	- bit[5] SIGERR: the Fuse checked mismatch with packed firwmare
+	- bit[6] OFL: message overflow
+	- bit[7] RESET: chip reseting
 
 ### T7 configure:
 - byte[2] ACTV2IDLETO: Active to idle timeout
@@ -28,8 +37,8 @@ The v23 platformn embedded T126 object to control lowpower function, please chec
 	- bit[1] T126 Wake up message report enabled when low power button pressed
 	- bit[3] Report T15 button message on idle mode
 	- bit[4] Report T15 button message on active mode
-- byte[1] Node: wakeup node(For Event system system, this is the node channel; for software sleep, this is node channels mask, which supports multi channel wakeup)
-- byte[3] THRESHOLD: wakeup threshold of the key
+- byte[1] Node: wakeup node(For `Event system sleep`, this is the node channel; for `software sleep`, this is node channels mask, which supports multi channel wakeup)
+- byte[3] THRESHOLD: wakeup threshold of the key( in `Event system mode` only, this byte is not use in `software sleep` mode).
 - byte[5] DRIFT: Drift time interval(200ms)
 
 ### T126 message:
