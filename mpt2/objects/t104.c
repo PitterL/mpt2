@@ -45,6 +45,8 @@ void t104_set_unsupport_area(object_t104_t *mem)
 void t104_data_sync(const t104_data_t *ptr, u8 rw)
 {
 	object_t104_t *mem = (object_t104_t *)ptr->common.mem;
+
+#ifndef OBJECT_T15
 #ifndef MPTT_MATRIX_NODES
 	const nodes_desc_t *ns = (nodes_desc_t *)ptr->ns;
 	txx_cb_param_t xparams[] = {
@@ -63,7 +65,7 @@ void t104_data_sync(const t104_data_t *ptr, u8 rw)
 	if (!(mem->ctrl & MXT_T104_CTRL_ENABLE))	// Not enabled is readonly mode
 		if  (rw != OP_READ)
 			return;
-		
+
 #ifndef MPTT_MATRIX_NODES
 	// Sensor channel parameter for X channel
 	for (i = ns[NODE_X].origin; i < ns[NODE_X].origin + ns[NODE_X].size; i++) {
@@ -81,7 +83,7 @@ void t104_data_sync(const t104_data_t *ptr, u8 rw)
 #else
 	// For matrix sensing, readonly mode
 #endif
-	
+#endif
 	t104_set_unsupport_area(mem);
 }
 

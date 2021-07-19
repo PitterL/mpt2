@@ -255,16 +255,17 @@ void tch_button_press_report(void)
 #ifdef TOUCH_API_SCROLLER
 void tch_slider_location_report(const qtouch_config_t *qdef)
 {
-	u8 slider_count = tsapi_read_config_byte(API_NUM_SLIDERS);
+	u8 slider_count = tsapi_get_number_slider_sensors();
 	t9_point_status_t point;
 	u8 i;
 	ssint result;
 	
 	for ( i = 0; i < slider_count; i++ ) {
-		#define SLIDER_FINGER_ID 0
+#define SLIDER_FINGER_ID 0
 		result = tsapi_read_slider_state(i, &point);
-		if (result == 0)
+		if (result == 0) {
 			mpt_api_set_pointer_location(i, SLIDER_FINGER_ID, point.status,  point.pos.x, point.pos.y);
+		}
 	}
 }
 #endif

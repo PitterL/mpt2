@@ -35,6 +35,9 @@ extern "C" {
 #include "qtm_acq_t321x_0x0017_api.h"
 #include "qtm_touch_key_0x0002_api.h"
 #include "qtm_freq_hop_0x0006_api.h"
+#ifdef OBJECT_T9
+#include "qtm_scroller_0x000b_api.h"
+#endif
 
 /*----------------------------------------------------------------------------
  *   prototypes
@@ -55,6 +58,9 @@ uint16_t get_scroller_position(uint16_t sensor_node);
 /* USE_MPTT_WRAPPER */
 void     calibrate_node_post(uint8_t sensor_node);
 void     qtm_init_sensor_key_post(uint8_t sensor_node);
+#ifdef TOUCH_API_SCROLLER_H
+void	 qtm_init_scroller_module_post(void);
+#endif
 
 void	touch_timer_handler(void);
 void	touch_init(void);

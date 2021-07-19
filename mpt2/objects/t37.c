@@ -14,7 +14,9 @@ t37_data_t t37_data_status;
 ssint object_t37_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, const /*mpt_api_callback_t*/void *cb)
 {
 	t37_data_t *t37_ptr = &t37_data_status;
+#ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
 	qtouch_config_t *qdef = (qtouch_config_t *)def;
+#endif
 
 	object_txx_init(&t37_ptr->common, rid, def, mem, cb);
 	

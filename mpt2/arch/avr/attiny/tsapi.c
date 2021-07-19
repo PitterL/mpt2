@@ -384,6 +384,16 @@ u8 tsapi_get_number_key_sensors(void)
 	return (u8)qtlib_key_grp_config_set1.num_key_sensors;
 }
 
+#ifdef TOUCH_API_SCROLLER
+u8 tsapi_get_number_slider_sensors(void)
+{
+	// normal we call tsapi_read_config_byte(API_NUM_SLIDERS), but we need fast access here
+	
+	// Fast read
+	return (u8)qtm_scroller_group_config1.num_scrollers;
+}
+#endif
+
 #if defined(OBJECT_T25) || defined(OBJECT_T37)
 u16 calculate_and_cache_cccap(qtm_comp_to_cc_cache_t * pcap, u16 comcap)
 {

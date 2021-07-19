@@ -189,11 +189,13 @@
             <Value>libqtm_freq_hop_t3217_0x0006.a</Value>
             <Value>libqtm_acq_runtime_t3217_0x0018.a</Value>
             <Value>libm</Value>
+            <Value>libqtm_scroller_t3217_0x000b.a</Value>
           </ListValues>
         </avrgcc.linker.libraries.Libraries>
         <avrgcc.linker.libraries.LibrarySearchPaths>
           <ListValues>
             <Value>../qtouch/lib/gcc</Value>
+            <Value>D:\Users\a41450\atmel studio\ATtiny3217-1Finger-Low_Power-Project-MPT2\ATtiny3217-1Finger-Low_Power-Project-MPT2\qtouch\lib\gcc</Value>
           </ListValues>
         </avrgcc.linker.libraries.LibrarySearchPaths>
         <avrgcc.assembler.general.IncludePaths>
@@ -228,7 +230,7 @@
   <avrgcc.compiler.symbols.DefSymbols>
     <ListValues>
       <Value>DEBUG</Value>
-      <Value>EVK_3217_XPLAIN</Value>
+      <Value>EVK_3217_QT7</Value>
       <Value>USE_WDT</Value>
       <Value>USE_MPTT_WRAPPER</Value>
       <Value>MPTT_CCAMP_DIV100</Value>
@@ -239,14 +241,14 @@
       <Value>xMPTT_MATRIX_NODES</Value>
       <Value>OBJECT_WRITEBACK</Value>
       <Value>OBJECT_T37</Value>
-      <Value>xOBJECT_T37_DEBUG_LOWPOWER_INFO</Value>
-      <Value>OBJECT_T37_DEBUG_PLATFORM_INFO</Value>
+      <Value>OBJECT_T37_DEBUG_LOWPOWER_INFO</Value>
+      <Value>xOBJECT_T37_DEBUG_PLATFORM_INFO</Value>
       <Value>OBJECT_T44</Value>
       <Value>OBJECT_T5</Value>
       <Value>OBJECT_T6</Value>
       <Value>OBJECT_T7</Value>
       <Value>OBJECT_T8</Value>
-      <Value>xOBJECT_T9</Value>
+      <Value>OBJECT_T9</Value>
       <Value>xOBJECT_T9_ORIENT</Value>
       <Value>OBJECT_T15</Value>
       <Value>xOBJECT_T18</Value>
@@ -292,11 +294,13 @@
       <Value>libqtm_freq_hop_t3217_0x0006.a</Value>
       <Value>libqtm_acq_runtime_t3217_0x0018.a</Value>
       <Value>libm</Value>
+      <Value>libqtm_scroller_t3217_0x000b.a</Value>
     </ListValues>
   </avrgcc.linker.libraries.Libraries>
   <avrgcc.linker.libraries.LibrarySearchPaths>
     <ListValues>
       <Value>../qtouch/lib/gcc</Value>
+      <Value>D:\Users\a41450\atmel studio\ATtiny3217-1Finger-Low_Power-Project-MPT2\ATtiny3217-1Finger-Low_Power-Project-MPT2\qtouch\lib\gcc</Value>
     </ListValues>
   </avrgcc.linker.libraries.LibrarySearchPaths>
   <avrgcc.assembler.general.IncludePaths>

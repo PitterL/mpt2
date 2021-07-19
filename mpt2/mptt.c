@@ -648,6 +648,8 @@ static ssint mpt_chip_backup(/*data_crc24_t*/ void *crc_ptr)
 			//((data_crc24_t *)crc_ptr)->value = ibreg->cfg.crc.value;
 			memcpy(crc_ptr, &ibreg->cfg.crc, sizeof(ibreg->cfg.crc));
 		}
+		
+		object_api_t6_clr_status(MXT_T6_STATUS_CFGERR);
 	}
 	
 	return result;

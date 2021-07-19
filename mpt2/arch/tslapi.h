@@ -214,6 +214,7 @@ void tsapi_calibrate(void);
 u8 tsapi_get_chip_state(void);
 u8 tsapi_get_number_sensor_channels(void);
 u8 tsapi_get_number_key_sensors(void);
+u8 tsapi_get_number_slider_sensors(void);
 bool tsapi_sensor_state_is_suspend(uint8_t node);
 ssint tsapi_read_ref_signal_cap(u8 index, cap_sample_value_t *cval);
 ssint tsapi_read_button_state(u8 index);

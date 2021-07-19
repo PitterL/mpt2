@@ -86,6 +86,10 @@ static void calibrate_all_nodes(void);
  */
 static void qtm_init_all_sensor_keys(void);
 
+/*! \brief Touch initialize slider parameters for all the nodes.
+ */
+void qtm_init_all_scroller_module(void);
+
 /*! \brief Touch measure complete callback function example prototype.
  */
 static void qtm_measure_complete_callback(void);
@@ -167,10 +171,15 @@ volatile uint8_t measurement_done_touch = 0;
 
 /* Measurement status Touch Flag  */
 enum _MEASUREMENT_STATE {
+	// Do calibration for nodes
 	MEASUREMENT_CAL_REQ,
+	
 	// initialize key parameters
 	MEASUREMENT_INIT_SENSOR_REQ,
-	// lib at sleep mode
+	
+	// initialize key parameters
+	MEASUREMENT_INIT_SLIDER_REQ,
+	
 	NUM_MEASURE_STATES
 };
 volatile uint8_t measurement_state = 0;
@@ -236,7 +245,7 @@ qtm_acq_node_data_t ptc_qtlib_node_stat1[DEF_NUM_CHANNELS];
 
 /* Node cccomp to cap value cache, used by MPTT t25/t37 */
 #ifdef USE_MPTT_WRAPPER
-#if defined(OBJECT_T25) || defined(OBJECT_T37)  
+#if defined(OBJECT_T25) || defined(OBJECT_T37)
 qtm_comp_to_cc_cache_t ptc_node_cccap_cache[DEF_NUM_CHANNELS];
 #endif
 #endif
@@ -300,6 +309,32 @@ qtm_touch_key_config_t qtlib_key_configs_set1[DEF_NUM_SENSORS] = QTLIB_KEY_CONFI
 /* Container */
 qtm_touch_key_control_t qtlib_key_set1
     = {&qtlib_key_grp_data_set1, &qtlib_key_grp_config_set1, &qtlib_key_data_set1[0], &qtlib_key_configs_set1[0]};
+
+#ifdef TOUCH_API_SCROLLER_H
+/**********************************************************/
+/***************** Scroller Module ********************/
+/**********************************************************/
+
+/* Individual and Group Data */
+qtm_scroller_data_t       qtm_scroller_data1[DEF_NUM_SCROLLERS];
+qtm_scroller_group_data_t qtm_scroller_group_data1 = {0};
+
+/* Group Configuration */
+qtm_scroller_group_config_t qtm_scroller_group_config1 = {&qtlib_key_data_set1[0], DEF_NUM_SCROLLERS};
+
+/* scroller Configurations */
+qtm_scroller_config_t qtm_scroller_config1[DEF_NUM_SCROLLERS] = {
+
+    SCROLLER_0_PARAMS
+
+};
+
+/* Container */
+qtm_scroller_control_t qtm_scroller_control1
+    = {&qtm_scroller_group_data1, &qtm_scroller_group_config1, &qtm_scroller_data1[0], &qtm_scroller_config1[0]
+
+};
+#endif
 
 #ifndef MPTT_AUTO_PINMUX
 #error "be careful to re-configure here since there isn't enabled PTC pin auto config"
@@ -377,6 +412,11 @@ static touch_ret_t touch_sensors_config(void)
 	for (sensor_nodes = 0u; sensor_nodes < DEF_NUM_CHANNELS; sensor_nodes++) {
 		qtm_init_sensor_key(&qtlib_key_set1, sensor_nodes, &ptc_qtlib_node_stat1[sensor_nodes]);
 	}
+
+#ifdef TOUCH_API_SCROLLER_H
+	/* scroller init */
+	touch_ret |= qtm_init_scroller_module(&qtm_scroller_control1);
+#endif
 
 	return (touch_ret);
 }
@@ -602,6 +642,15 @@ void touch_process(void)
 			if (TOUCH_SUCCESS != touch_ret) {
 				qtm_error_callback(2);
 			}
+#ifdef TOUCH_API_SCROLLER_H
+			// No need check slider in sleep mode
+			if (!(TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP) || TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK))) {
+				touch_ret = qtm_scroller_process(&qtm_scroller_control1);
+				if (TOUCH_SUCCESS != touch_ret) {
+					qtm_error_callback(3);
+				}
+			}
+#endif
 		} else {
 			/* Acq module Eror Detected: Issue an Acq module common error code 0x80 */
 			qtm_error_callback(0);
@@ -821,16 +870,24 @@ static void touch_handle_calibration(void)
 {
 	if (!TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP)) {
 		/* process calibration and initialized sensor request */
-		if (TEST_BIT(measurement_state, MEASUREMENT_CAL_REQ)) {
-			CLR_BIT(measurement_state, MEASUREMENT_CAL_REQ);
-			CLR_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK);	// Cancel sleep walk to get more running time
-			calibrate_all_nodes();
-		}
-		
 		if (TEST_BIT(measurement_state, MEASUREMENT_INIT_SENSOR_REQ)) {
 			CLR_BIT(measurement_state, MEASUREMENT_INIT_SENSOR_REQ);
 			CLR_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK);
 			qtm_init_all_sensor_keys();
+		}
+		
+#ifdef TOUCH_API_SCROLLER_H
+		if (TEST_BIT(measurement_state, MEASUREMENT_INIT_SLIDER_REQ)) {
+			CLR_BIT(measurement_state, MEASUREMENT_INIT_SLIDER_REQ);
+			CLR_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK);
+			qtm_init_all_scroller_module();
+		}
+#endif
+				
+		if (TEST_BIT(measurement_state, MEASUREMENT_CAL_REQ)) {
+			CLR_BIT(measurement_state, MEASUREMENT_CAL_REQ);
+			CLR_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK);	// Cancel sleep walk to get more running time
+			calibrate_all_nodes();
 		}
 	}
 }
@@ -883,6 +940,26 @@ static void touch_enable_lowpower_measurement(void)
 }
 
 #ifdef DEF_TOUCH_LOWPOWER_SOFT
+/*============================================================================
+touch_ret_t sensor_node_is_busy(void)
+------------------------------------------------------------------------------
+Purpose: check whether sensor node is busy
+Input  : None
+Output : True, busy; false, not idle
+Notes  : none
+============================================================================*/
+static bool sensor_node_is_busy(uint8_t node)
+{
+	const uint8_t num_sensor_nodes = (uint8_t)ptc_qtlib_acq_gen1.num_sensor_nodes;
+	uint8_t state;
+
+	if (node < num_sensor_nodes) {
+		state = qtlib_key_data_set1[node].sensor_state;
+		return (state == QTM_KEY_STATE_CAL) || (state == QTM_KEY_STATE_FILT_IN) || (state == QTM_KEY_STATE_FILT_OUT) ;
+	}
+
+	return 0;
+}
 /*============================================================================
 touch_ret_t touch_disable_nonlp_sensors(void)
 ------------------------------------------------------------------------------
@@ -937,15 +1014,17 @@ touch_ret_t qtm_autoscan_sensor_node_soft(void)
 		current_lp_sensor = ffs(mask) - 1;
 	} else {
 		// Select next low power sensor
-		for (uint8_t cnt = current_lp_sensor + 1; cnt <= current_lp_sensor + num_sensor_nodes; cnt++) {
-			next = cnt;
-			if (next >= num_sensor_nodes) {
-				next -= num_sensor_nodes;
-			}
+		if (!sensor_node_is_busy(current_lp_sensor)) {
+			for (uint8_t cnt = current_lp_sensor + 1; cnt <= current_lp_sensor + num_sensor_nodes; cnt++) {
+				next = cnt;
+				if (next >= num_sensor_nodes) {
+					next -= num_sensor_nodes;
+				}
 				
-			if (TEST_BIT(mask, next)) {
-				current_lp_sensor = next;
-				break;
+				if (TEST_BIT(mask, next)) {
+					current_lp_sensor = next;
+					break;
+				}
 			}
 		}
 	}
@@ -1278,6 +1357,18 @@ void calibrate_node(uint16_t sensor_node)
 	qtm_init_sensor_key(&qtlib_key_set1, sensor_node, &ptc_qtlib_node_stat1[sensor_node]);
 }
 
+#ifdef TOUCH_API_SCROLLER_H
+uint8_t get_scroller_state(uint16_t sensor_node)
+{
+	return (qtm_scroller_control1.qtm_scroller_data[sensor_node].scroller_status);
+}
+
+uint16_t get_scroller_position(uint16_t sensor_node)
+{
+	return (qtm_scroller_control1.qtm_scroller_data[sensor_node].position);
+}
+#endif
+
 void calibrate_node_post(uint8_t sensor_node)
 {
 	SET_BIT(measurement_state, MEASUREMENT_CAL_REQ);
@@ -1313,6 +1404,19 @@ void qtm_init_all_sensor_keys(void)
 	}
 }
 
+#ifdef TOUCH_API_SCROLLER_H
+void qtm_init_scroller_module_post(void)
+{
+	SET_BIT(measurement_state, MEASUREMENT_INIT_SLIDER_REQ);
+}
+
+void qtm_init_all_scroller_module(void)
+{
+	//const qtm_scroller_control_t * const qsc = &qtm_scroller_control1;
+
+	qtm_init_scroller_module(&qtm_scroller_control1);
+}
+#endif
 /*============================================================================
 USE_MPTT_WRAPPER
 void touch_suspend(uint8_t suspend)

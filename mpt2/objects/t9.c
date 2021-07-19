@@ -84,7 +84,9 @@ void t9_set_unsupport_area(t9_data_t *ptr)
 
 void t9_data_sync(t9_data_t *ptr, u8 rw)
 {
+#ifndef OBJECT_T15
 	const qsurface_config_t *surdef = (qsurface_config_t *)ptr->surdef;
+#endif
 	object_t9_t *mem = (object_t9_t *) ptr->common.mem;
 	/*
 	u16 xorigin = mem->xorigin, yorigin = mem->yorigin + ptr->surdef->nodes[NODE_X].origin + ptr->surdef->nodes[NODE_X].size;
@@ -97,7 +99,7 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 		{ API_SURFACE_CS_NUM_KEYS_H, &mem->ysize, sizeof(mem->ysize) },
 	};
 	*/
-
+#ifndef OBJECT_T15
 	u8 i;
 #ifdef MPTT_MATRIX_NODES
 	u8 j, count;	/*	Max nodes should less than 255, or the count may overrun */
@@ -107,7 +109,8 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 		{ API_KEY_PARAMS_THRESHOLD, &mem->tchthr, sizeof(mem->tchthr) },
 		{ API_KEY_PARAMS_HYSTERESIS, &mem->tchhyst, sizeof(mem->tchhyst) }
 	};
-	
+#endif
+
 	nibble_t  movfilter = { .value = 0 };
 	u16 amplitude = 0;
 	txx_cb_param_t params_touch[] = {
@@ -126,6 +129,7 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 		amplitude = mem->amphyst;
 	}
 	
+#ifndef OBJECT_T15
 	if ((mem->ctrl & MXT_T9_CTRL_ENABLE) || (rw == OP_READ)) {
 		if (surdef) {
 	#ifdef MPTT_MATRIX_NODES
@@ -161,7 +165,7 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 	#endif
 		}
 	}
-	
+#endif
 	// Touch parameters
 	object_txx_op(&ptr->common, params_touch, ARRAY_SIZE(params_touch), 0, rw);
 	

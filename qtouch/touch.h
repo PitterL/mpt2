@@ -51,7 +51,7 @@ extern "C" {
 /* Defines the Type of sensor
  * Default value: NODE_MUTUAL.
  */
-#define DEF_SENSOR_TYPE NODE_SELFCAP
+#define DEF_SENSOR_TYPE NODE_SELFCAP_SHIELD
 
 /* Set sensor calibration mode for charge share delay ,Prescaler or series resistor.
  * Range: CAL_AUTO_TUNE_NONE / CAL_AUTO_TUNE_RSEL / CAL_AUTO_TUNE_PRSC / CAL_AUTO_TUNE_CSD
@@ -88,11 +88,14 @@ extern "C" {
  * Default value: 1
  */
 /*
-	Y0:	PA6		Y(2)		//BTN2
-	Y1:	PA7		Y(3)		//BTN1
+	Y0:	PA7		Y(3)		//BTN2
+	Y1:	PA4		Y(0)		//BTN1
+	Y2:	PB0		Y(5)		//SLD0
+	Y3:	PB1		Y(4)		//SLD1
+	Y4:	PA5		Y(1)		//SLD2
 */
 
-#define DEF_NUM_CHANNELS 2
+#define DEF_NUM_CHANNELS 5
 /* Defines node parameter setting of mutual cap
  * {X-line, Y-line, Charge Share Delay, NODE_RSEL_PRSC(series resistor, prescaler), NODE_G(Analog Gain , Digital Gain),
  * filter level}
@@ -103,26 +106,33 @@ extern "C" {
  * Gain), filter level}
  */
 #define NODE_0_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		X_NONE, Y(3), 2, PRSC_DIV_SEL_2,																			\
-		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
-	}
-
+{                                                                                                                  \
+	Y(2) | Y(0) | Y(1) | Y(4) | Y(5), Y(3), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                         \
+	NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
+}
 #define NODE_1_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		X_NONE, Y(2), 2, PRSC_DIV_SEL_2,																				\
-			NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
-	}
-
+{                                                                                                                  \
+	Y(2) | Y(3) | Y(1) | Y(4) | Y(5), Y(0), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                         \
+	NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
+}
 #define NODE_2_PARAMS                                                                                                  \
-	{																													\
-		X_NONE, Y(2) | Y(3), 2, PRSC_DIV_SEL_2,																		\
-		NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
-	}
+{                                                                                                                  \
+	Y(2) | Y(0) | Y(3) | Y(1) | Y(4), Y(5), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                         \
+	NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
+}
+#define NODE_3_PARAMS                                                                                                  \
+{                                                                                                                  \
+	Y(2) | Y(0) | Y(3) | Y(1) | Y(5), Y(4), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                         \
+	NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
+}
+#define NODE_4_PARAMS                                                                                                  \
+{                                                                                                                  \
+	Y(2) | Y(0) | Y(3) | Y(4) | Y(5), Y(1), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                         \
+	NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
+}
 
-
-#define PTC_SEQ_NODE_CFG1	{	\
-	NODE_0_PARAMS, NODE_1_PARAMS	\
+#define PTC_SEQ_NODE_CFG1 {	\
+	NODE_0_PARAMS, NODE_1_PARAMS, NODE_2_PARAMS, NODE_3_PARAMS, NODE_4_PARAMS	\
 }
 
 /**********************************************************/
@@ -147,13 +157,8 @@ extern "C" {
 	100, HYST_25, NO_AKS_GROUP                                                                                      \
 }
 
-#define KEY_2_PARAMS                                                                                                   \
-{                                                                                                                  \
-	100, HYST_25, NO_AKS_GROUP                                                                                      \
-}
-
 #define QTLIB_KEY_CONFIGS_SET {	\
-	KEY_0_PARAMS, KEY_1_PARAMS	\
+	KEY_0_PARAMS, KEY_0_PARAMS, KEY_1_PARAMS, KEY_1_PARAMS, KEY_1_PARAMS	\
 }
 
 /* De-bounce counter for additional measurements to confirm touch detection
@@ -202,7 +207,7 @@ extern "C" {
  * Range: REBURST_NONE / REBURST_UNRESOLVED / REBURST_ALL
  * Default value: REBURST_UNRESOLVED
  */
-#define DEF_REBURST_MODE REBURST_ALL
+#define DEF_REBURST_MODE REBURST_NONE
 
 /* Sensor maximum ON duration upon touch.
  * Range: 0-255
@@ -211,7 +216,27 @@ extern "C" {
 #define DEF_MAX_ON_DURATION 250 //200ms
 
 /**********************************************************/
-/********* Frequency Hop Module ****************/
+/***************** Slider/Wheel Parameters ****************/
+/**********************************************************/
+/* Defines the number of scrollers (sliders or wheels)
+ */
+#define DEF_NUM_SCROLLERS (1)
+
+/* Defines scroller parameter setting
+ * {touch_scroller_type, touch_start_key, touch_scroller_size,
+ * SCR_RESOL_DEADBAND(touch_scroller_resolution,touch_scroller_deadband), touch_scroller_hysterisis,
+ * touch_contact_min_threshold} Configuring contact_min_threshold: By default, contact_min_threshold parameter should be
+ * set equal to threshold value of the underlying keys. Then the parameter has to be tuned based on the actual contact
+ * size of the touch when moved over the scroller. The contact size of the moving touch can be observed from
+ * "contact_size" parameter on scroller runtime data structure.
+ */
+#define SCROLLER_0_PARAMS                                                                                              \
+	{                                                                                                                  \
+		SCROLLER_TYPE_SLIDER, 2, 3, SCR_RESOL_DEADBAND(RESOL_8_BIT, DB_10_PERCENT), 8, 20                              \
+	}
+
+/**********************************************************/
+/********* Frequency Hop Auto tune Module ****************/
 /**********************************************************/
 
 /* sets the frequency steps for hop.
