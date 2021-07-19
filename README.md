@@ -10,8 +10,10 @@ of the device into objects that can be controlled individually. Each object repr
 device, such as a touchscreen. Where appropriate, objects can be disabled or enabled as needed.
 The Object Protocol is designed in such a way that a driver can be “future-proofed”
 
+For Generated protocol, you could refer below link.
 https://www.microchip.com/content/dam/mchp/documents/OTH/ApplicationNotes/ApplicationNotes/MXTAN0213_Interfacing_with_maXTouch_Touchscreen_Controllers_00002428A.pdf
 
+For detailed protocol, please request the protocol file `MCU Based Maxtouch Framework and Protocol - MPTT Vxxx` for us.
 
 The hardware based on ATtiny3217 Xplained Pro board:
 
