@@ -68,3 +68,7 @@ The v25 platformn embedded T126 object to control lowpower function, please chec
 Maxtouch studio:
 
 https://www.microchip.com/en-us/products/touch-and-gesture/solutions-for-touchpads-and-touchscreens/maxtouch-touchscreen-controllers
+
+
+## Porting guide:
+https://github.com/PitterL/mpt2/blob/EVK_3217_Xpro/doc/MPTT%20architecture%20update(v25)%2020210716.pdf
