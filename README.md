@@ -61,10 +61,9 @@ The v25 platformn embedded T126 object to control lowpower function, please chec
 	- byte [7–8]: Raw (unfiltered) low power signal
 
 
-## Power comsuption measured:
-<img src="https://github.com/PitterL/mpt2/blob/EVK_3217_Xpro/doc/Power%20consumption%20measured.png" />
-
-
+## Mark and Power comsuption measured:
+Current with the exampel of QT7 on ATTINY3217-XPRO, the example shows how to use T15/T9 call back to light LEDs
+the measurement with QT7 board, 13uA@64ms (eventsystem wakeup)
 
 ## Other tools:
 

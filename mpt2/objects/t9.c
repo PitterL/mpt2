@@ -354,8 +354,14 @@ ssint object_api_t9_set_pointer_location(u8 inst, /* Slot id */u8 id, u8 status,
 		#ifdef OBJECT_T9_ORIENT
 			transfer_pos(ptr, &point.pos);
 		#endif
-			if (mem->ctrl & MXT_T9_CTRL_RPTEN)
+			if (mem->ctrl & MXT_T9_CTRL_RPTEN) {
 				t9_report_status(ptr->common.rid + id, &point, surdef->resolution_bit, ptr->common.cb);	//Each Touch finger has own ID
+#ifdef OBJECT_T9_USE_STATE_CB
+				if (surdef->set_touch_state) {
+					surdef->set_touch_state(inst, id, status, x, y, surdef->resolution_max);
+				}
+#endif
+			}
 		}
 	}
 	

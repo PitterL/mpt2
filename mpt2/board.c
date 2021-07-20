@@ -9,6 +9,7 @@
 #include "arch/cpu.h"
 #include "objects/txx.h"
 #include "board.h"
+#include "led.h"
 
 #ifdef TOUCH_API_BUTTON
 qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
@@ -18,7 +19,11 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 	{ .node = {	.origin = 2, .size = 4 } },	// Surface slider
 	#endif
 	#ifdef EVK_3217_QT7
-	{ .node = {	.origin = 0, .size = 2 } },	// Button
+	{ .node = {	.origin = 0, .size = 2 },
+#ifdef OBJECT_T15_USE_STATE_CB
+		.set_button_state = button_led_state_change
+#endif
+	},	// Button
 	{ .node = {	.origin = 2, .size = 3 } },	// Surface slider
 	#endif
 	#ifdef EVK_3217_QT8
@@ -45,6 +50,9 @@ qsurface_config_t surfaces_sliders_config[MXT_TOUCH_MULTI_T9_INST] = {
 	{
 		/*.resolution_bit = 8,	*/
 		/*.resolution_max = (1 << 8) -1,	*/
+#ifdef OBJECT_T9_USE_STATE_CB
+		.set_touch_state = slider_led_state_change
+#endif
 	}
 };
 #endif

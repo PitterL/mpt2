@@ -241,8 +241,8 @@
       <Value>xMPTT_MATRIX_NODES</Value>
       <Value>OBJECT_WRITEBACK</Value>
       <Value>OBJECT_T37</Value>
-      <Value>OBJECT_T37_DEBUG_LOWPOWER_INFO</Value>
-      <Value>xOBJECT_T37_DEBUG_PLATFORM_INFO</Value>
+      <Value>xOBJECT_T37_DEBUG_LOWPOWER_INFO</Value>
+      <Value>OBJECT_T37_DEBUG_PLATFORM_INFO</Value>
       <Value>OBJECT_T44</Value>
       <Value>OBJECT_T5</Value>
       <Value>OBJECT_T6</Value>
@@ -250,7 +250,9 @@
       <Value>OBJECT_T8</Value>
       <Value>OBJECT_T9</Value>
       <Value>xOBJECT_T9_ORIENT</Value>
+      <Value>OBJECT_T9_USE_STATE_CB</Value>
       <Value>OBJECT_T15</Value>
+      <Value>OBJECT_T15_USE_STATE_CB</Value>
       <Value>xOBJECT_T18</Value>
       <Value>OBJECT_T25</Value>
       <Value>OBJECT_T25_PIN_FAULT_ENABLE</Value>
@@ -548,6 +550,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="include\wdt.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="led.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="led.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="main.c">

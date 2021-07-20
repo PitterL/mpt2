@@ -15,5 +15,7 @@ void atmel_start_init(void)
 	mptt_interface_init();
 #endif
 
+	leds_init();
+
 	touch_init();
 }
