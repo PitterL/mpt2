@@ -53,15 +53,6 @@ void button_led_state_change(uint8_t groupid, uint32_t status)
 #endif
 
 #define NUM_SLIDER_LEDS ARRAY_SIZE(slider_led_gpios)
-static GPIO_STATE_LIST_T slider_led_gpios1[] = {
-	{GPIOB, 7, false},
-	//{GPIOA, 2, false},	//Invalid, used by CHG Line
-	{GPIOC, 3, false},
-	{GPIOC, 2, false},
-	{GPIOC, 1, false},
-	{GPIOC, 0, false},
-};
-
 static GPIO_STATE_LIST_T slider_led_gpios[] = {
 	{GPIOC, 0, false},
 	{GPIOC, 1, false},

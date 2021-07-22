@@ -87,10 +87,12 @@ enum T25_TEST_ITEMS_TYPE {
 	TEST_PINFAULT,
 	TEST_T9_SIGNAL_LIMIT,
 	TEST_T15_SIGNAL_LIMIT,
+	TEST_SIGNAL_PENDING,
 	NUM_TEST_ITEMS_TYPE,
-	TEST_ALL = ((1 << NUM_TEST_ITEMS_TYPE) - 1),
-	TEST_MASK = TEST_ALL
 };
+
+#define TEST_ALL ((1 << NUM_TEST_ITEMS_TYPE) - 1)
+#define TEST_MASK TEST_ALL
 
 #define SIGNAL_LIMIT_MASK (BIT(TEST_T9_SIGNAL_LIMIT) | BIT(TEST_T15_SIGNAL_LIMIT))
 
@@ -120,7 +122,8 @@ void object_t25_start(u8 unused);
 void object_t25_data_sync(u8 rw);
 void object_t25_report_status(u8 force);
 
-ssint object_api_t25_set_sensor_data(u8 channel, /*const cap_sample_value_t * const*/const void *cv);
+ssint object_api_t25_selftest(u8 channel, /*const cap_sample_value_t * const*/const void *cv);
 ssint object_api_t25_pinfault_test(void);
+u8 object_api_t25_get_test_op(void);
 
 #endif /* T25_H_ */

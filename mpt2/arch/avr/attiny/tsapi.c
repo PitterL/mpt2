@@ -192,8 +192,6 @@ void force_parameters(u8 type, u8 index)
 	switch (type)
 	{
 		case API_DEF_SENSOR_TYPE:
-			qtm_init_sensor_key_post(index);
-			break;
 		case API_NODE_PARAMS_CSD:
 		case API_NODE_PARAMS_RESISTOR_PRESCALER:
 		case API_NODE_PARAMS_GAIN:
@@ -201,11 +199,9 @@ void force_parameters(u8 type, u8 index)
 			qtm_init_sensor_key_post(index);
 			calibrate_node_post(index);
 			break;
-		
 		case API_KEY_PARAMS_THRESHOLD:
 		case API_KEY_PARAMS_HYSTERESIS:
 		case API_KEY_PARAMS_AKS_GROUP:
-		
 		case API_DEF_TOUCH_DET_INT:
 		case API_DEF_MAX_ON_DURATION:
 		case API_DEF_ANTI_TCH_DET_INT:

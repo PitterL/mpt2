@@ -75,17 +75,13 @@ ssint mptt_start(void)
 {
 	ssint result;
 
-	result = tsl_start();
-	if (result) {
-		g_mptt_state = result;
-		return result;
-	}
+	result= tsl_start();
 	
 	bus_start();
-
-	g_mptt_state = 0;
 	
-	return 0;
+	g_mptt_state = result;
+	
+	return result;
 }
 
 /**

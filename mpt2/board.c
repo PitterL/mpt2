@@ -9,7 +9,9 @@
 #include "arch/cpu.h"
 #include "objects/txx.h"
 #include "board.h"
+#if defined(OBJECT_T15_USE_STATE_CB) || defined(OBJECT_T9_USE_STATE_CB)
 #include "led.h"
+#endif
 
 #ifdef TOUCH_API_BUTTON
 qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
@@ -34,10 +36,6 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 	{ .node = {	.origin = 0, .size = 11 } },	// Surface slider
 	{ .node = {	.origin = 11, .size = 2 } },	// Button
 	#endif
-#ifdef PROJECT_BX11
-    { .node = {	.origin = 0, .size = 3 } },
-	{ .node = {	.origin = 3, .size = 1 } },	
-#endif
 	#ifdef EVK_3217_XPLAIN
 	{ .node = {	.origin = 0, .size = 2 } },
 	#endif
@@ -70,9 +68,6 @@ qtouch_config_t tsl_qtouch_def = {
 	#ifdef EVK_WATER_SURFACE
 	.matrix_nodes = {{.origin = 0, .size = 5}, {.origin =  5, .size = 8}},
 	#endif
-#ifdef PROJECT_BX11
-	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 2}},
-#endif
 	#ifdef EVK_3217_XPLAIN
 	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 2}},
 	#endif

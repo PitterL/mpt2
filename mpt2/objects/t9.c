@@ -114,8 +114,10 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 	nibble_t  movfilter = { .value = 0 };
 	u16 amplitude = 0;
 	txx_cb_param_t params_touch[] = {
+#ifndef OBJECT_T15
 		{ API_DEF_TOUCH_DET_INT, &mem->tchdi, sizeof(mem->tchdi) },
 		{ API_DEF_ANTI_TCH_DET_INT, &mem->nexttchdi, sizeof(mem->nexttchdi) },
+#endif
 		{ API_SURFACE_CS_POS_HYST, &mem->movhysti, sizeof(mem->movhysti) },
 		//{ API_SURFACE_CS_POS_HYST, &mem->movhystn, sizeof(mem->movhystn) },
 		//* Bits 1:0 = IIR (0% / 25% / 50% / 75%), Bit 4 = Enable Median Filter (3-point) */

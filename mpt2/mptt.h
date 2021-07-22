@@ -19,6 +19,7 @@ void mpt_api_set_button_status(u8 id, u8 status);
 void mpt_api_set_pointer_location(u8 type, u8 id, u8 status, u16 x, u16 y);
 void mpt_api_set_chip_status(u8 mask, u8 set);
 void mpt_api_report_status(void);
+u8 mpt_api_get_selftest_op(void);
 
 /* Will lock FIFO get count operation */
 u8 mpt_api_request_irq(void);

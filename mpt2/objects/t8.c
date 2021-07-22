@@ -24,7 +24,7 @@ void t8_set_unsupport_area(object_t8_t *mem)
 	mem->atchfrccalratio = 0;
 /*
 	mem->measallow = MXT_T8_MEASALLOW_ALLOWED;
-	mem->measidledef = 0;
+	mem->meastestdef = 0;
 	mem->measactvdef = MXT_T8_MEASALLOW_SELFTCH;
 	mem->refmode = 0;
 */
@@ -94,16 +94,20 @@ void object_t8_data_sync(u8 rw)
 	t8_data_sync(ptr, rw);
 }
 
-void object_t8_switch_measure_mode(u8 idle)
+ssint object_t8_switch_measure_mode(u8 test)
 {
 	t8_data_t *ptr = &t8_data_status;
 	object_t8_t *mem = (object_t8_t *)ptr->mem;
-	u8 measallow = idle ? mem->measidledef : mem->measactvdef;
+	u8 measallow = test ? mem->meastestdef : mem->measactvdef;
 
 	if (measallow && measallow != mem->measallow) {
 		mem->measallow = measallow;
 		t8_data_sync(ptr, OP_WRITE);
+		
+		return 0;
 	}
+	
+	return -1;
 }
 
 #endif

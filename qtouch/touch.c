@@ -177,8 +177,11 @@ enum _MEASUREMENT_STATE {
 	// initialize key parameters
 	MEASUREMENT_INIT_SENSOR_REQ,
 	
-	// initialize key parameters
+	// initialize slider parameters
 	MEASUREMENT_INIT_SLIDER_REQ,
+	
+	// initialize slider parameters
+	MEASUREMENT_INIT_SURFACE_REQ,
 	
 	NUM_MEASURE_STATES
 };
@@ -775,6 +778,7 @@ Output : None Zero touch is busy, Zero means idle
 Notes  :
 ============================================================================*/
 extern bool object_api_t126_lowpower_mode_enabled(void);
+extern uint8_t object_api_t25_get_test_op(void);
 extern void object_api_t126_force_waked(int16_t val);
 extern void object_api_t126_breach_waked(int16_t val);
 static void touch_set_measurement_state(void)
@@ -799,7 +803,13 @@ static void touch_set_measurement_state(void)
 					external T7 command forced exit or
 					external T126 disable force exit
 			*/
-			if (!measurement_active_to_idle || !object_api_t126_lowpower_mode_enabled()) {
+			if (measurement_state 
+				|| !measurement_active_to_idle 
+				|| !object_api_t126_lowpower_mode_enabled() 
+#ifdef OBJECT_T25
+				|| object_api_t25_get_test_op()
+#endif
+			) {
 				/* notice t126 register the status changed */
 				object_api_t126_force_waked(touch_read_lp_button_delta());			
 			} else {
@@ -808,21 +818,21 @@ static void touch_set_measurement_state(void)
 			}
 		}
 		
-		if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK) ||
-			TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_PRE_EXIT) ||
-			TEST_BIT(qlib_touch_state, QTLIB_STATE_EXTERNAL_EVENT)) {
+		if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_PRE_EXIT) || TEST_BIT(qlib_touch_state, QTLIB_STATE_EXTERNAL_EVENT)) {
+			/* Clear all flag and start to measure */
+			qlib_touch_state = BIT(QTLIB_STATE_TIME_TO_MEASURE);
+		} else if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK)) {
+			/* In sleep walk, wake up */
+			CLR_BIT(qlib_touch_state, QTLIB_STATE_SLEEP);
+		}
 					
+		if (!TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP)) {
 			/* Cancel node auto scan */
 			touch_cancel_autoscan();
-			
-			if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK)) {
-				/* In sleep walk, wake up */
-				CLR_BIT(qlib_touch_state, QTLIB_STATE_SLEEP);
-			} else {
-				/* Clear all flag and start to measure */
-				qlib_touch_state = BIT(QTLIB_STATE_TIME_TO_MEASURE);
-			}
 		}
+	} else {
+		CLR_BIT(qlib_touch_state, QTLIB_STATE_EXTERNAL_EVENT);
+		CLR_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_PRE_EXIT);
 	}
 #endif
 
@@ -845,8 +855,11 @@ static void touch_set_measurement_state(void)
 	
 	/* if it's in sleep mode, we will check whether do scanning */
 	if (measurement_period_store != period) {	// FIXME: if the idle period is equal active period, we will skip here?
-		measurement_period_store = get_next_measurement_period(period);
-		Timer_set_period(measurement_period_store, true);
+		period = get_next_measurement_period(period);
+		if (measurement_period_store  != period) {
+			measurement_period_store  = period;
+			Timer_set_period(measurement_period_store, true);
+		}
 		
 		if (!period) {
 			CLR_BIT(qlib_touch_state, QTLIB_STATE_TIME_TO_MEASURE);
@@ -868,28 +881,29 @@ Notes  :
  */
 static void touch_handle_calibration(void)
 {
-	if (!TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP)) {
-		/* process calibration and initialized sensor request */
-		if (TEST_BIT(measurement_state, MEASUREMENT_INIT_SENSOR_REQ)) {
-			CLR_BIT(measurement_state, MEASUREMENT_INIT_SENSOR_REQ);
-			CLR_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK);
-			qtm_init_all_sensor_keys();
-		}
+	if (!measurement_state)
+		return;
 		
-#ifdef TOUCH_API_SCROLLER_H
-		if (TEST_BIT(measurement_state, MEASUREMENT_INIT_SLIDER_REQ)) {
-			CLR_BIT(measurement_state, MEASUREMENT_INIT_SLIDER_REQ);
-			CLR_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK);
-			qtm_init_all_scroller_module();
-		}
-#endif
-				
-		if (TEST_BIT(measurement_state, MEASUREMENT_CAL_REQ)) {
-			CLR_BIT(measurement_state, MEASUREMENT_CAL_REQ);
-			CLR_BIT(qlib_touch_state, QTLIB_STATE_SLEEP_WALK);	// Cancel sleep walk to get more running time
-			calibrate_all_nodes();
-		}
+	if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP))
+		return;
+	
+	/* process calibration and initialized sensor request */
+	
+	if (TEST_BIT(measurement_state, MEASUREMENT_INIT_SENSOR_REQ)) {
+		qtm_init_all_sensor_keys();
 	}
+	
+	#ifdef TOUCH_API_SCROLLER_H
+	if (TEST_BIT(measurement_state, MEASUREMENT_INIT_SLIDER_REQ)) {
+		qtm_init_all_scroller_module();
+	}
+	#endif
+	
+	if (TEST_BIT(measurement_state, MEASUREMENT_CAL_REQ)) {
+		calibrate_all_nodes();
+	}
+	
+	measurement_state = 0;
 }
 
 #if (DEF_TOUCH_LOWPOWER_ENABLE == 1u)
@@ -1189,8 +1203,14 @@ static void touch_process_lowpower(void)
 #else
 			period = (uint16_t)measurement_period_idle_drift * 200;
 #endif
-			measurement_period_store = get_next_measurement_period(period);
-			Timer_set_period(measurement_period_store, true);
+
+			if (measurement_period_store != period) {	// FIXME: if the idle period is equal active period, we will skip here?
+				period = get_next_measurement_period(period);
+				if (measurement_period_store  != period) {
+					measurement_period_store  = period;
+					Timer_set_period(measurement_period_store, true);
+				}
+			}
 		}
 	}
 }
@@ -1412,8 +1432,6 @@ void qtm_init_scroller_module_post(void)
 
 void qtm_init_all_scroller_module(void)
 {
-	//const qtm_scroller_control_t * const qsc = &qtm_scroller_control1;
-
 	qtm_init_scroller_module(&qtm_scroller_control1);
 }
 #endif
@@ -1478,10 +1496,11 @@ Notes  :
 ============================================================================*/
 int8_t touch_state_sleep(void) 
 {
+#if (DEF_TOUCH_LOWPOWER_ENABLE == 1u)
 	if (TEST_BIT(qlib_touch_state, QTLIB_STATE_SLEEP)) {
 		return 0;
 	}
-	
+#endif	
 	return -1;
 }
 
