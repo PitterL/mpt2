@@ -293,6 +293,16 @@ extern "C" {
  */
 #define DEF_TOUCH_DRIFT_PERIOD_MS 20
 
+/* Defines overflow measage of the measurement
+ * During measurement, acquisition should be done before next measurement. If not, that means sampling interval is two fast or something wrong of the measurement
+ * Range: count that notice overflow
+	0 ~ 255
+ */
+#ifdef DEF_TOUCH_MEASUREMENT_OVERFLOW
+#define DEF_TOUCH_MEASUREMENT_OVERFLOW_THRESHOLD 2
+#define DEF_TOUCH_MEASUREMENT_OVERFLOW_FORCE_DONE (DEF_TOUCH_MEASUREMENT_OVERFLOW_THRESHOLD * 2)
+#endif
+
 /**********************************************************/
 /***************** Communication - Data Streamer ******************/
 /**********************************************************/

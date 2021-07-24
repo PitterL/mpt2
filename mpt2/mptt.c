@@ -94,7 +94,12 @@
 		<6> Drift decide with get_next_measurement_period() and set margin from 200ms to 40ms to save power and avoid frozen timer issue(restart timer before timeout)
 		<7> Fix the issue I2C communication will be stalled if Pinfault detected at bootup 
 		<8> Tested the sleep mode in 5*6 surface(15uA@event system system, 55uA@software sleep / 1.5mA@active)
-		
+		(1.5)
+		<1> Use indenpent global varible for qlib_touch_state_xxx states instead of bit mask, which cause un-atomic mutex between interupt and main thread
+		<2> Add overflow counter for qtm_ptc_start_measurement_seq() timeout, which will report overflow tag in T6 message
+		<3> split touch_process() to touch_handle_measurement() and touch_handle_acquisition_process(), the later one will called first
+
+
 		Report ID Object Table Index Object Type Object Instance
 		0 = 0x00                  0           0               0
 		1 = 0x01                  3           6               0

@@ -231,4 +231,13 @@ u8 object_api_t6_get_status(void)
 
 	return ptr->status.value;
 }
+
+void object_api_t6_set_overflow(u8 set)
+{
+	if (set) {
+		object_api_t6_set_status(MXT_T6_STATUS_OFL);
+	} else {
+		object_api_t6_clr_status(MXT_T6_STATUS_OFL);
+	}
+}
 #endif

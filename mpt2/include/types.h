@@ -54,6 +54,7 @@ typedef union {
 
 #define VALID_PTR(_ptr) ((_ptr) && (size_t)(_ptr) != ERROR_PTR)
 
+/* Note: Below operation is not atomic, using in notice the mutex in multi thread */
 #if defined(UTILS_COMPILER_H_INCLUDED)
 #define SET_BIT(_x, _bit) Set_bits((_x), (1 << (_bit)))
 #define CLR_BIT(_x, _bit) Clr_bits((_x), (1 << (_bit)))

@@ -267,6 +267,7 @@
       <Value>xDEF_TOUCH_DATA_STREAMER_ENABLE</Value>
       <Value>__DELAY_BACKWARD_COMPATIBLE__</Value>
       <Value>xDEF_TOUCH_LOWPOWER_SOFT</Value>
+      <Value>DEF_TOUCH_MEASUREMENT_OVERFLOW</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>
   <avrgcc.compiler.directories.IncludePaths>
