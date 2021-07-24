@@ -64,7 +64,7 @@ uint8_t	touch_sleep(void);
 void	touch_suspend(uint8_t suspend);
 void	touch_inject_event(void);
 int8_t	touch_state_idle(void);
-int8_t touch_state_sleep(void);
+int8_t  touch_state_sleep(void);
 
 #ifdef __cplusplus
 }

@@ -8,7 +8,6 @@
 #include <string.h>
 #include <atmel_start_pins.h>
 #include <adc_basic2.h>
-#include <port.h>
 #include <utils.h>
 #include <clock_config.h>
 #ifdef __OPTIMIZE__
@@ -25,8 +24,6 @@ typedef struct ptc_pin_map{
 	unsigned adc: 1;
 	unsigned adc_channel: 4;
 } ptc_pin_map_t;
-
-enum { GPIOA, GPIOB, GPIOC, GPIOD};
 
 ptc_pin_map_t attiny_xx17_ptc_pin_map[] = {
 	{	/*ptc_channel*/0, /*port*/GPIOA, /*pin*/4, /*adc*/1, /*adc channel*/0	},

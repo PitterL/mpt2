@@ -26,7 +26,7 @@ typedef struct object_t8 {
 	u8 measallow;
 
 	/* Inspection measure mode */
-	u8 measidledef;
+	u8 meastestdef;
 
 	/* Normal measure mode */
 	u8 measactvdef;
@@ -62,7 +62,7 @@ void object_t8_data_sync(u8 rw);
 u8 object_api_t8_ref_mode(void);
 #endif
 
-void object_t8_switch_measure_mode(u8 idle);
+ssint object_t8_switch_measure_mode(u8 test);
 
 u8 object_t8_get_measure_mode(u8 *meas);
 u8 object_api_t8_measuring_self(void);

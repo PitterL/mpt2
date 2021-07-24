@@ -17,11 +17,15 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 	{ .node = {	.origin = 0, .size = 2 } },	// Button
 	{ .node = {	.origin = 2, .size = 4 } },	// Surface slider
 	#endif
-	#ifdef EVK_QT7
-	{ .node = {	.origin = 0, .size = 2 } },	// Button
+	#ifdef EVK_3217_QT7
+	{ .node = {	.origin = 0, .size = 2 },
+#ifdef OBJECT_T15_USE_STATE_CB
+		.set_button_state = button_led_state_change
+#endif
+	},	// Button
 	{ .node = {	.origin = 2, .size = 3 } },	// Surface slider
 	#endif
-	#ifdef EVK_QT8
+	#ifdef EVK_3217_QT8
 	{ .node = {	.origin = 0, .size = 5 } },	// Button
 	{ .node = {	.origin = 5, .size = 5 } },
 	#endif
@@ -29,10 +33,6 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 	{ .node = {	.origin = 0, .size = 11 } },	// Surface slider
 	{ .node = {	.origin = 11, .size = 2 } },	// Button
 	#endif
-#ifdef PROJECT_BX11
-    { .node = {	.origin = 0, .size = 3 } },
-	{ .node = {	.origin = 3, .size = 1 } },	
-#endif
 	#ifdef EVK_3217_XPLAIN
 	{ .node = {	.origin = 0, .size = 2 } },
 	#endif
@@ -45,6 +45,9 @@ qsurface_config_t surfaces_sliders_config[MXT_TOUCH_MULTI_T9_INST] = {
 	{
 		/*.resolution_bit = 8,	*/
 		/*.resolution_max = (1 << 8) -1,	*/
+#ifdef OBJECT_T9_USE_STATE_CB
+		.set_touch_state = slider_led_state_change
+#endif
 	}
 };
 #endif
@@ -53,15 +56,15 @@ qtouch_config_t tsl_qtouch_def = {
 	#ifdef EVK_QT1
 	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 4}},
 	#endif
-	#ifdef EVK_QT7
+	#ifdef EVK_3217_QT7
+	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 3}},
+	#endif
+	#ifdef EVK_3217_QT8
 	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 3}},
 	#endif
 	#ifdef EVK_WATER_SURFACE
 	.matrix_nodes = {{.origin = 0, .size = 5}, {.origin =  5, .size = 8}},
 	#endif
-#ifdef PROJECT_BX11
-	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 2}},
-#endif
 	#ifdef EVK_3217_XPLAIN
 	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 2}},
 	#endif

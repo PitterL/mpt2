@@ -104,19 +104,19 @@ extern "C" {
  */
 #define NODE_0_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		X_NONE, Y(3), 2, PRSC_DIV_SEL_2,																			\
+		X_NONE, Y(3), 2, PRSC_DIV_SEL_8,																			\
 		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 
 #define NODE_1_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		X_NONE, Y(2), 2, PRSC_DIV_SEL_2,																				\
+		X_NONE, Y(2), 2, PRSC_DIV_SEL_8,																				\
 			NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 
 #define NODE_2_PARAMS                                                                                                  \
 	{																													\
-		X_NONE, Y(2) | Y(3), 2, PRSC_DIV_SEL_2,																		\
+		X_NONE, Y(2) | Y(3), 2, PRSC_DIV_SEL_8,																		\
 		NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 
@@ -267,6 +267,16 @@ extern "C" {
    Note: the maximum value will be limited by WDTDOG setting
  */
 #define DEF_TOUCH_DRIFT_PERIOD_MS 20
+
+/* Defines overflow measage of the measurement
+ * During measurement, acquisition should be done before next measurement. If not, that means sampling interval is two fast or something wrong of the measurement
+ * Range: count that notice overflow
+	0 ~ 255
+ */
+#ifdef DEF_TOUCH_MEASUREMENT_OVERFLOW
+#define DEF_TOUCH_MEASUREMENT_OVERFLOW_THRESHOLD 2
+#define DEF_TOUCH_MEASUREMENT_OVERFLOW_FORCE_DONE (DEF_TOUCH_MEASUREMENT_OVERFLOW_THRESHOLD * 2)
+#endif
 
 /**********************************************************/
 /***************** Communication - Data Streamer ******************/

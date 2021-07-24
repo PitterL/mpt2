@@ -98,6 +98,8 @@ void object_api_t6_set_status(u8 mask);
 void object_api_t6_clr_status(u8 mask);
 u8 object_api_t6_get_status(void);
 
+void object_api_t6_set_overflow(u8 set);
+
 #define MXT_GEN_COMMAND_T6_RIDS 1
 
 #endif /* T6_H_ */

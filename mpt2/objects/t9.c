@@ -84,7 +84,9 @@ void t9_set_unsupport_area(t9_data_t *ptr)
 
 void t9_data_sync(t9_data_t *ptr, u8 rw)
 {
+#ifndef OBJECT_T15
 	const qsurface_config_t *surdef = (qsurface_config_t *)ptr->surdef;
+#endif
 	object_t9_t *mem = (object_t9_t *) ptr->common.mem;
 	/*
 	u16 xorigin = mem->xorigin, yorigin = mem->yorigin + ptr->surdef->nodes[NODE_X].origin + ptr->surdef->nodes[NODE_X].size;
@@ -97,7 +99,7 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 		{ API_SURFACE_CS_NUM_KEYS_H, &mem->ysize, sizeof(mem->ysize) },
 	};
 	*/
-
+#ifndef OBJECT_T15
 	u8 i;
 #ifdef MPTT_MATRIX_NODES
 	u8 j, count;	/*	Max nodes should less than 255, or the count may overrun */
@@ -107,12 +109,15 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 		{ API_KEY_PARAMS_THRESHOLD, &mem->tchthr, sizeof(mem->tchthr) },
 		{ API_KEY_PARAMS_HYSTERESIS, &mem->tchhyst, sizeof(mem->tchhyst) }
 	};
-	
+#endif
+
 	nibble_t  movfilter = { .value = 0 };
 	u16 amplitude = 0;
 	txx_cb_param_t params_touch[] = {
+#ifndef OBJECT_T15
 		{ API_DEF_TOUCH_DET_INT, &mem->tchdi, sizeof(mem->tchdi) },
 		{ API_DEF_ANTI_TCH_DET_INT, &mem->nexttchdi, sizeof(mem->nexttchdi) },
+#endif
 		{ API_SURFACE_CS_POS_HYST, &mem->movhysti, sizeof(mem->movhysti) },
 		//{ API_SURFACE_CS_POS_HYST, &mem->movhystn, sizeof(mem->movhystn) },
 		//* Bits 1:0 = IIR (0% / 25% / 50% / 75%), Bit 4 = Enable Median Filter (3-point) */
@@ -126,6 +131,7 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 		amplitude = mem->amphyst;
 	}
 	
+#ifndef OBJECT_T15
 	if ((mem->ctrl & MXT_T9_CTRL_ENABLE) || (rw == OP_READ)) {
 		if (surdef) {
 	#ifdef MPTT_MATRIX_NODES
@@ -161,7 +167,7 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 	#endif
 		}
 	}
-	
+#endif
 	// Touch parameters
 	object_txx_op(&ptr->common, params_touch, ARRAY_SIZE(params_touch), 0, rw);
 	
@@ -350,8 +356,14 @@ ssint object_api_t9_set_pointer_location(u8 inst, /* Slot id */u8 id, u8 status,
 		#ifdef OBJECT_T9_ORIENT
 			transfer_pos(ptr, &point.pos);
 		#endif
-			if (mem->ctrl & MXT_T9_CTRL_RPTEN)
+			if (mem->ctrl & MXT_T9_CTRL_RPTEN) {
 				t9_report_status(ptr->common.rid + id, &point, surdef->resolution_bit, ptr->common.cb);	//Each Touch finger has own ID
+#ifdef OBJECT_T9_USE_STATE_CB
+				if (surdef->set_touch_state) {
+					surdef->set_touch_state(inst, id, status, x, y, surdef->resolution_max);
+				}
+#endif
+			}
 		}
 	}
 	

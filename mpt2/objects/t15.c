@@ -164,6 +164,11 @@ ssint object_api_t15_set_button_status(/* Slot id */u8 id, u8 pressed)
 				
 					if (mem->ctrl & MXT_T15_CTRL_RPTEN) {
 						object_txx_report_msg(&ptr[i].common, &ptr[i].button, sizeof(ptr[i].button));
+#ifdef OBJECT_T15_USE_STATE_CB
+						if (btndef->set_button_state) {
+							btndef->set_button_state(i, status);
+						}
+#endif
 					}
 				}
 				break;

@@ -94,7 +94,16 @@ typedef ssint (*cb_qlib_sync_op_t)(u8 type, /*read or write */void *buf, size_t 
 typedef void (*cb_qlib_calibrate_t)(void);
 typedef bool (*cb_qlib_state_idle_t)(void);
 typedef void (*cb_qlib_suspend_t)(bool);
+
+#ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
 typedef const u8 *(*cb_get_signature_row)(u8 *);
+#endif
+#ifdef OBJECT_T15_USE_STATE_CB
+typedef void (*cb_button_state_change)(u8, u32);
+#endif
+#ifdef OBJECT_T9_USE_STATE_CB
+typedef void (*cb_touch_state_change)(u8 inst, /* Slot id */u8 id, u8 status, u16 x, u16 y, u16 max_resol);
+#endif
 
 typedef union {
 	struct {
@@ -106,6 +115,10 @@ typedef union {
 
 typedef struct qbutton_config {
 	nodes_desc_t node;
+	
+#ifdef OBJECT_T15_USE_STATE_CB
+	cb_button_state_change set_button_state;
+#endif
 } qbutton_config_t;
 
 enum {
@@ -118,6 +131,10 @@ typedef struct qsurface_config {
 	nodes_desc_t nodes[NUM_NODE_2D];
 	u8 resolution_bit;
 	u16 resolution_max;
+	
+#ifdef OBJECT_T9_USE_STATE_CB
+	cb_touch_state_change set_touch_state;
+#endif
 } qsurface_config_t;
 
 typedef struct qtouch_params {
@@ -127,9 +144,11 @@ typedef struct qtouch_params {
 	u8 max_resl;
 }qtouch_params_t;
 
+#ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
 typedef struct chip_info_cb {
 	cb_get_signature_row get_sigrow;
 } chip_info_cb_t;
+#endif
 
 typedef struct qtouch_config {
 	nodes_desc_t matrix_nodes[NUM_NODE_2D];
@@ -147,7 +166,9 @@ typedef struct qtouch_config {
 	
 	qtouch_params_t params;
 
+#ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
 	chip_info_cb_t chip_cb;
+#endif
 } qtouch_config_t;
 
 #define QTOUCH_CONFIG_VAL(_p, _n) (((qtouch_config_t *)(_p))->_n)
@@ -214,6 +235,7 @@ void tsapi_calibrate(void);
 u8 tsapi_get_chip_state(void);
 u8 tsapi_get_number_sensor_channels(void);
 u8 tsapi_get_number_key_sensors(void);
+u8 tsapi_get_number_slider_sensors(void);
 bool tsapi_sensor_state_is_suspend(uint8_t node);
 ssint tsapi_read_ref_signal_cap(u8 index, cap_sample_value_t *cval);
 ssint tsapi_read_button_state(u8 index);

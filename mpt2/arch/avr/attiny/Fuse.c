@@ -20,10 +20,9 @@ static u8 fuse_target[] = FUSES_CONTENT;
  */
 ssint fuse_check(void)
 {
-	const u8 *fv;
+	const u8 * const fv = (const u8 *)&FUSE;;
 
 	for (u8 i = 0; i < ARRAY_SIZE(fuse_target); i++) {
-		fv = (const u8 *)&FUSE;
 		if (fv[i] != fuse_target[i])
 			return -1;
 	}

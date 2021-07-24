@@ -174,9 +174,10 @@ ssint tsl_start(void)
 	ssint result;
 
 	result = mpt_api_chip_start();
-	if (result)
+	if (result) {
 		return result;    
-
+	}
+	
     touch_start();
 
 	return 0;
@@ -187,6 +188,12 @@ ssint tsl_start(void)
  */
 void tsl_pre_process(void)
 {
+#ifndef OBJECT_T37_DEBUG_LOWPOWER_INFO
+	if (tsapi_touch_state_sleep()) {
+		return;
+}
+#endif
+	
 	mpt_api_pre_process();
 }
 
@@ -227,7 +234,7 @@ void tch_update_chip_state(void)
  */
 void tsl_process(void)
 {
-#if defined(DEF_TOUCH_LOWPOWER_SOFT) && (!defined(OBJECT_T37_DEBUG_LOWPOWER_INFO))
+#ifndef OBJECT_T37_DEBUG_LOWPOWER_INFO
 	if (tsapi_touch_state_sleep()) {
 		return;
 	}
@@ -255,16 +262,17 @@ void tch_button_press_report(void)
 #ifdef TOUCH_API_SCROLLER
 void tch_slider_location_report(const qtouch_config_t *qdef)
 {
-	u8 slider_count = tsapi_read_config_byte(API_NUM_SLIDERS);
+	u8 slider_count = tsapi_get_number_slider_sensors();
 	t9_point_status_t point;
 	u8 i;
 	ssint result;
 	
 	for ( i = 0; i < slider_count; i++ ) {
-		#define SLIDER_FINGER_ID 0
+#define SLIDER_FINGER_ID 0
 		result = tsapi_read_slider_state(i, &point);
-		if (result == 0)
+		if (result == 0) {
 			mpt_api_set_pointer_location(i, SLIDER_FINGER_ID, point.status,  point.pos.x, point.pos.y);
+		}
 	}
 }
 #endif
@@ -281,8 +289,9 @@ void tch_surface_location_report(void)
 
 	for (i = 0; i < SURFACE_FINGERS; i++) {
 		result = tsapi_read_surface_state(i, &point);
-		if (result == 0)	
+		if (result == 0) {
 			mpt_api_set_pointer_location(SURFACE_INST_ID, i, point.status,  point.pos.x, point.pos.y);
+		}
 	}
 }
 #endif
@@ -298,7 +307,7 @@ void tsl_post_process(void)
 	qtouch_config_t *qdef = (qtouch_config_t *)tsl->qtdef;
 #endif
 
-#if defined(DEF_TOUCH_LOWPOWER_SOFT) && (!defined(OBJECT_T37_DEBUG_LOWPOWER_INFO))
+#ifndef OBJECT_T37_DEBUG_LOWPOWER_INFO
 	if (tsapi_touch_state_sleep()) {
 		return;
 	}
@@ -332,10 +341,11 @@ ssint tsl_sleep()
 {	
 	/* check chip status */
 	if (tsapi_get_chip_state() == 0) {
-		
-		/* execute touch processor sleep */
-		if (tsapi_touch_sleep() == 0) {
-			return 0;
+		if (mpt_api_get_selftest_op() == 0) {
+			/* execute touch processor sleep */
+			if (tsapi_touch_sleep() == 0) {
+				return 0;
+			}
 		}
 	}
 	

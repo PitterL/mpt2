@@ -21,9 +21,9 @@ ssint object_t25_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, co
 	return 0;
 }
 
-void object_t25_start(u8 unused)
+void object_t25_start(u8 loaded)
 {
-
+	object_t25_data_sync(loaded ? OP_WRITE : OP_READ);
 }
 
 void t25_set_report_status(t25_data_t *ptr, u8 result)
@@ -152,33 +152,45 @@ ssint t25_inspect_t15_sensor_data(t25_data_t *ptr, u8 channel, u16 reference, u1
 ssint inspect_surface_slider_data(t25_data_t *ptr, u8 channel, u16 reference, u16 cap, object_t25_result_t *rslt)
 {
 	const qtouch_config_t *qdef = (qtouch_config_t *)ptr->common.def;
+	const qsurface_config_t *qsur = &qdef->surface_sliders[0];
 	object_t25_t *mem = (object_t25_t *) ptr->common.mem;
-	u8 i;
+	u8 i, j, st, end;
+	bool done = false;
 	u16 baseref;
 	
-	for ( i = 0; i < qdef->num_surfaces_slider; i++) {
-		//Note: Since there is only 1 Gain in surface, the first X gain will be decided as base gain.
-		baseref = object_t9_get_surface_slider_base_ref(i, channel);	//FIXME: here need add T104 support for baseref get
-															//If Zero, this will skip	
-		if (baseref) {
-			if (mem->siglim[i].lo || mem->siglim[i].up || mem->sigrangelim[i]) {
-				if (cap < mem->siglim[i].lo || cap > mem->siglim[i].up ||
-					reference < baseref - mem->sigrangelim[i] || reference > baseref + mem->sigrangelim[i]) {
-					rslt->data.status = MXT_T25_INFO_RESULT_SIGNAL_LIMIT;
-					rslt->data.info[0] = MXT_TOUCH_MULTI_T9;
-					rslt->data.info[1] = i;
-	#ifdef OBJECT_T25_EXTENSION
-					rslt->data.info[2] = channel;
-					rslt->data.info[3] = cap & 0xff;	//LSB
-					rslt->data.info[4] = (cap >> 8);
-					rslt->data.info[5] = reference & 0xff;
-					rslt->data.info[6] = (reference >> 8);
-	#endif
-					return -2;
+	for ( i = 0; i < qdef->num_surfaces_slider && !done; i++) {
+		for (j = 0; j < NUM_NODE_2D; j++) {
+			st = qsur[i].nodes[j].origin;
+			end = qsur[i].nodes[j].origin + qsur[i].nodes[j].size;
+			if (channel >=  st && channel < end) {
+				//Note: Since there is only 1 Gain in surface, the first X gain will be decided as base gain.
+#ifdef OBJECT_T15
+				baseref = object_t15_get_button_base_ref(i);	// If t15 defined, T9 gain is invalide
+#else
+				baseref = object_t9_get_surface_slider_base_ref(i, channel);
+#endif
+																	//If Zero, this will skip	
+				if (baseref && (mem->siglim[i].lo || mem->siglim[i].up || mem->sigrangelim[i])) {
+					if (cap < mem->siglim[i].lo || cap > mem->siglim[i].up ||
+						reference < baseref - mem->sigrangelim[i] || reference > baseref + mem->sigrangelim[i]) {
+						rslt->data.status = MXT_T25_INFO_RESULT_SIGNAL_LIMIT;
+						rslt->data.info[0] = MXT_TOUCH_MULTI_T9;
+						rslt->data.info[1] = i;
+		#ifdef OBJECT_T25_EXTENSION
+						rslt->data.info[2] = channel;
+						rslt->data.info[3] = cap & 0xff;	//LSB
+						rslt->data.info[4] = (cap >> 8);
+						rslt->data.info[5] = reference & 0xff;
+						rslt->data.info[6] = (reference >> 8);
+		#endif
+						return -2;
+					}
 				}
+	
+				rslt->counter[INSPECT_SURFACE_SLIDER]++;
+				done = true;
+				break;
 			}
-			rslt->counter[INSPECT_SURFACE_SLIDER]++;
-			break;
 		}
 	}
 	
@@ -257,32 +269,35 @@ ssint t25_inspect_pinfault(t25_data_t *ptr, u8 pindwellus, u8 pinthr)
 
 void t25_inspect_init(t25_data_t *ptr, u8 testop)
 {	
-	ptr->cache.testop = testop & TEST_MASK;	
-
-#ifdef OBJECT_T8
-	if (testop & SIGNAL_LIMIT_MASK)
-		object_t8_switch_measure_mode(1);
-#endif
+	testop &= TEST_MASK;	
+	
+	if (testop & SIGNAL_LIMIT_MASK) {
+		SET_BIT(testop, TEST_SIGNAL_PENDING);
+	}
+	
+	ptr->cache.testop = testop;
 }
 
 void t25_inspect_completed(t25_data_t *ptr, u8 testop, u8 testclr)
 {
 	object_t25_t *mem = (object_t25_t *)ptr->common.mem;
 
-	if (!testop)
+	if (!testop) {
 		mem->cmd = MXT_T25_CMD_NONE;
+	}
 
 #ifdef OBJECT_T8
-	if ((!(testop & SIGNAL_LIMIT_MASK)) && (testclr & SIGNAL_LIMIT_MASK))
+	if ((!(testop & SIGNAL_LIMIT_MASK)) && (testclr & SIGNAL_LIMIT_MASK)) {
 		object_t8_switch_measure_mode(0);
+	}
 #endif
 }
 
-ssint object_api_t25_set_sensor_data(u8 channel, /*const cap_sample_value_t **/ const void * cv)
+ssint object_api_t25_selftest(u8 channel, /*const cap_sample_value_t **/ const void * cv)
 {
 	t25_data_t *ptr = &t25_data_status;
-	object_t25_result_t *tdat = &ptr->cache;
 	object_t25_t *mem = (object_t25_t *) ptr->common.mem;
+	object_t25_result_t *tdat = &ptr->cache;
 	u8 testop = ptr->cache.testop;
 	const cap_sample_value_t * const cval = (const cap_sample_value_t *)cv;
 	ssint result = 0;	/* 0: success; negative: failed; other value: not finished */
@@ -291,54 +306,69 @@ ssint object_api_t25_set_sensor_data(u8 channel, /*const cap_sample_value_t **/ 
 		return -1;
 	}
 	
-	if (!cval || !testop) {
+	if (!testop) {
 		return 0;
 	}
-
-	//Test AVDD
-	if (TEST_BIT(testop, TEST_AVDD)) {
-		result = t25_inspect_avdd(ptr);
-		if (result <= 0) {
-			CLR_BIT(testop, TEST_AVDD);
+	
+	if (!cval) {
+		//Test AVDD
+		if (TEST_BIT(testop, TEST_AVDD)) {
+			result = t25_inspect_avdd(ptr);
+			if (result <= 0) {
+				CLR_BIT(testop, TEST_AVDD);
+			}
 		}
-	}
 
-	//Test Pin Fault
-	if (result == 0 && TEST_BIT(testop, TEST_PINFAULT)) {
-#ifdef OBJECT_T25_PIN_FAULT_ENABLE
-		result = t25_inspect_pinfault(ptr, mem->pindwellus, mem->pinthr);
-#endif
-		if (result <= 0) {
-			CLR_BIT(testop, TEST_PINFAULT);
+		//Test Pin Fault
+		if (result == 0 && TEST_BIT(testop, TEST_PINFAULT)) {
+	#ifdef OBJECT_T25_PIN_FAULT_ENABLE
+			result = t25_inspect_pinfault(ptr, mem->pindwellus, mem->pinthr);
+	#endif
+			if (result <= 0) {
+				CLR_BIT(testop, TEST_PINFAULT);
+			}
 		}
-	}
-
-	// Test signal, randomly start tested sensor
-	if (result == 0 && TEST_BIT(testop, TEST_T15_SIGNAL_LIMIT)) {
-		result = t25_inspect_t15_sensor_data(ptr, channel, cval->reference, cval->cccap);
-		if (result <= 0) {
-			CLR_BIT(testop, TEST_T15_SIGNAL_LIMIT);
+		
+		if (testop & SIGNAL_LIMIT_MASK) {
+			if (object_t8_switch_measure_mode(1) != 0) {
+				CLR_BIT(testop, TEST_SIGNAL_PENDING);
+			}
+		}
+	} else {
+		if (!TEST_BIT(testop, TEST_SIGNAL_PENDING)) {
+			if (!(object_api_t6_get_status() & MXT_T6_STATUS_CAL)) {
+				// Test signal, randomly start tested sensor
+				if (result == 0 && TEST_BIT(testop, TEST_T15_SIGNAL_LIMIT)) {
+					result = t25_inspect_t15_sensor_data(ptr, channel, cval->reference, cval->cccap);
+					if (result <= 0) {
+						CLR_BIT(testop, TEST_T15_SIGNAL_LIMIT);
+					}
+				}
+	
+				if (result == 0 && TEST_BIT(testop, TEST_T9_SIGNAL_LIMIT)) {
+					result = t25_inspect_t9_sensor_data(ptr, channel, cval->reference, cval->cccap);
+					if (result <= 0) {
+						CLR_BIT(testop, TEST_T9_SIGNAL_LIMIT);
+					}
+				}
+			}
 		}
 	}
 	
-	if (result == 0 && TEST_BIT(testop, TEST_T9_SIGNAL_LIMIT)) {
-		result = t25_inspect_t9_sensor_data(ptr, channel, cval->reference, cval->cccap);
-		if (result <= 0) {
-			CLR_BIT(testop, TEST_T9_SIGNAL_LIMIT);
-		}
-	}
-
 	if (result < 0)
 		testop = 0;
 
 	if (testop != tdat->testop) {
 		if (!testop) {
-			if (result == 0)
+			if (result == 0) {
 				t25_set_report_status(ptr, MXT_T25_INFO_RESULT_PASS);
-	
-			if (mem->ctrl & MXT_T25_CTRL_RPTEN)
+			}
+			
+			if (mem->ctrl & MXT_T25_CTRL_RPTEN) {
 				t25_report_status(ptr);
+			}
 		}
+		
 		t25_inspect_completed(ptr, testop, tdat->testop ^ testop);
 		tdat->testop = testop;
 	}
@@ -370,6 +400,17 @@ ssint object_api_t25_pinfault_test(void)
 	}
 #endif
 	return 0;
+}
+
+/**
+ * \Check whether t25 in selftest
+ * @Return: return current self test operation code, Zero means not in test
+ */
+u8 object_api_t25_get_test_op(void)
+{	
+	t25_data_t *ptr = &t25_data_status;
+
+	return ptr->cache.testop;
 }
 
 #endif

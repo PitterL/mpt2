@@ -1165,4 +1165,16 @@ static inline uint64_t convert_byte_array_to_64_bit(uint8_t *data)
 #define BIT(_bit) (1 << (_bit))
 #define BIT32(_bit) ((u32)1 << (_bit))
 
+#define DECLARE_STATIC_GLOBAL_FLAG(_CATAGORY, _TYPE) \
+static volatile uint8_t _CATAGORY##_##_TYPE
+
+#define SET(_CATAGORY, _TYPE)	\
+((_CATAGORY##_##_TYPE) = 1)
+
+#define CLR(_CATAGORY, _TYPE)	\
+((_CATAGORY##_##_TYPE) = 0)
+
+#define TEST(_CATAGORY, _TYPE)	\
+((_CATAGORY##_##_TYPE) == 1)
+
 #endif /* UTILS_COMPILER_H_INCLUDED */

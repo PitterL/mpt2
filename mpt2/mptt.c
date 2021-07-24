@@ -81,7 +81,25 @@
 
 		(1.2)
 		<1> Revert the `channel switch` to touch_process() and use touch_state_sleep() to decide wether execute touch_post_process()
-				
+		
+		(1.3)
+		<1> Add t9/t15 callback hook
+		<2> Use t15 as primary gain/threshold parameter 
+		(1.4)
+		<1> T25 test scanning mode switch will issue a calibration command, signal limit test will pending after switched
+		<2> T25 Test All is splitted into the pinfault test(handled in tsl_pre_process()) and signal limit test(tsl_post_process()) to supply stable test cycle
+		<3> T25 signal limit test for T9 bug fixed and use T15 as baseref source
+		<4> T25 test command will wakeup chip for processing in short time
+		<5> T6 calibration command will wakeup chip and done in next drift cycle
+		<6> Drift decide with get_next_measurement_period() and set margin from 200ms to 40ms to save power and avoid frozen timer issue(restart timer before timeout)
+		<7> Fix the issue I2C communication will be stalled if Pinfault detected at bootup 
+		<8> Tested the sleep mode in 5*6 surface(15uA@event system system, 55uA@software sleep / 1.5mA@active)
+		(1.5)
+		<1> Use indenpent global varible for qlib_touch_state_xxx states instead of bit mask, which cause un-atomic mutex between interupt and main thread
+		<2> Add overflow counter for qtm_ptc_start_measurement_seq() timeout, which will report overflow tag in T6 message
+		<3> split touch_process() to touch_handle_measurement() and touch_handle_acquisition_process(), the later one will called first
+
+
 		Report ID Object Table Index Object Type Object Instance
 		0 = 0x00                  0           0               0
 		1 = 0x01                  3           6               0
@@ -106,7 +124,7 @@
 
 #define MPTT_FW_FAMILY_ID 0xa6
 #define MPTT_FW_VARIANT_ID 0x11
-#define MPTT_FW_VERSION 0x24
+#define MPTT_FW_VERSION 0x25
 /* use the latest byte for the build version */
 #define MPTT_FW_BUILD (PROJECT_CODE & 0xFF)
 
@@ -496,7 +514,7 @@ ssint mpt_api_chip_start(void)
 {
 	const object_callback_t *ocbs = &object_initialize_list[0];
 	u8 i;
-	ssint result = -2;
+	ssint result;
 	
 #ifdef OBJECT_T6
 #ifdef MPTT_FUSE_CHECK
@@ -518,9 +536,10 @@ ssint mpt_api_chip_start(void)
 	}
 
 #ifdef OBJECT_T25
-	result = object_api_t25_pinfault_test();
-#endif	
-	return result;
+	return object_api_t25_pinfault_test();
+#else
+	return 0;
+#endif
 }
 
 void mem_readback(u8 regid)
@@ -648,6 +667,8 @@ static ssint mpt_chip_backup(/*data_crc24_t*/ void *crc_ptr)
 			//((data_crc24_t *)crc_ptr)->value = ibreg->cfg.crc.value;
 			memcpy(crc_ptr, &ibreg->cfg.crc, sizeof(ibreg->cfg.crc));
 		}
+		
+		object_api_t6_clr_status(MXT_T6_STATUS_CFGERR);
 	}
 	
 	return result;
@@ -1173,6 +1194,11 @@ ssint mpt_api_mem_write(u16 baseaddr, u16 offset, u8 val)
  */
 void mpt_api_pre_process(void)
 {
+
+#ifdef OBJECT_T25
+	object_api_t25_selftest((u8)-1, NULL);
+#endif
+
 #ifdef OBJECT_T109
 	object_t109_param_sync();
 #endif
@@ -1198,7 +1224,7 @@ ssint mpt_api_set_sensor_data(u8 channel, /*const cap_sample_value_t * const*/ c
 #endif
 
 #ifdef OBJECT_T25
-	result = object_api_t25_set_sensor_data(channel, cv);
+	result = object_api_t25_selftest(channel, cv);
 	if (result == 0) {
 		checked = 0;
 	}
@@ -1235,5 +1261,14 @@ void mpt_api_set_chip_status(u8 mask, u8 set)
 		object_api_t6_set_status(mask);
 	else
 		object_api_t6_clr_status(mask);
+#endif
+}
+
+u8 mpt_api_get_selftest_op(void)
+{
+#ifdef OBJECT_T25
+	return object_api_t25_get_test_op();
+#else
+	return 0;
 #endif
 }
