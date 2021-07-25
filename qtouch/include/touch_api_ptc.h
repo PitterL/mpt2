@@ -36,7 +36,7 @@ extern "C" {
 #include "qtm_touch_key_0x0002_api.h"
 #include "qtm_freq_hop_0x0006_api.h"
 #ifdef OBJECT_T9
-#include "qtm_scroller_0x000b_api.h"
+#include "qtm_surface_cs_0x0021_api.h"
 #endif
 
 /*----------------------------------------------------------------------------
@@ -55,11 +55,19 @@ void     update_sensor_state(uint16_t sensor_node, uint8_t new_state);
 void     calibrate_node(uint16_t sensor_node);
 uint8_t  get_scroller_state(uint16_t sensor_node);
 uint16_t get_scroller_position(uint16_t sensor_node);
+#define HOR_POS 0u
+#define VER_POS 1u
+uint8_t get_surface_status(void);
+uint8_t get_surface_position(uint8_t ver_or_hor);
+
 /* USE_MPTT_WRAPPER */
 void     calibrate_node_post(uint8_t sensor_node);
 void     qtm_init_sensor_key_post(uint8_t sensor_node);
 #ifdef TOUCH_API_SCROLLER_H
 void	 qtm_init_scroller_module_post(void);
+#endif
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
+void	qtm_init_surface_cs_post(void);
 #endif
 
 void	touch_timer_handler(void);

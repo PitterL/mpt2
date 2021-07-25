@@ -95,6 +95,10 @@ static void qtm_init_all_sensor_keys(void);
  */
 void qtm_init_all_scroller_module(void);
 
+/*! \brief Touch initialize surface parameters for all the nodes.
+ */
+void qtm_init_all_surface_module(void);
+
 /*! \brief Touch measure complete callback function example prototype.
  */
 static void qtm_measure_complete_callback(void);
@@ -316,30 +320,29 @@ qtm_touch_key_config_t qtlib_key_configs_set1[DEF_NUM_SENSORS] = QTLIB_KEY_CONFI
 qtm_touch_key_control_t qtlib_key_set1
     = {&qtlib_key_grp_data_set1, &qtlib_key_grp_config_set1, &qtlib_key_data_set1[0], &qtlib_key_configs_set1[0]};
 
-#ifdef TOUCH_API_SCROLLER_H
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
 /**********************************************************/
-/***************** Scroller Module ********************/
+/***************** Surface 1t Module ********************/
 /**********************************************************/
 
-/* Individual and Group Data */
-qtm_scroller_data_t       qtm_scroller_data1[DEF_NUM_SCROLLERS];
-qtm_scroller_group_data_t qtm_scroller_group_data1 = {0};
+qtm_surface_cs_config_t qtm_surface_cs_config1 = {
+    /* Config: */
+    SURFACE_CS_START_KEY_H,
+    SURFACE_CS_NUM_KEYS_H,
+    SURFACE_CS_START_KEY_V,
+    SURFACE_CS_NUM_KEYS_V,
+    SURFACE_CS_RESOL_DB,
+    SURFACE_CS_POS_HYST,
+    SURFACE_CS_FILT_CFG,
+    SURFACE_CS_MIN_CONTACT,
+    &qtlib_key_data_set1[0]};
 
-/* Group Configuration */
-qtm_scroller_group_config_t qtm_scroller_group_config1 = {&qtlib_key_data_set1[0], DEF_NUM_SCROLLERS};
-
-/* scroller Configurations */
-qtm_scroller_config_t qtm_scroller_config1[DEF_NUM_SCROLLERS] = {
-
-    SCROLLER_0_PARAMS
-
-};
+/* Surface Data */
+qtm_surface_contact_data_t qtm_surface_cs_data1;
 
 /* Container */
-qtm_scroller_control_t qtm_scroller_control1
-    = {&qtm_scroller_group_data1, &qtm_scroller_group_config1, &qtm_scroller_data1[0], &qtm_scroller_config1[0]
+qtm_surface_cs_control_t qtm_surface_cs_control1 = {&qtm_surface_cs_data1, &qtm_surface_cs_config1};
 
-};
 #endif
 
 #ifndef MPTT_AUTO_PINMUX
@@ -419,9 +422,9 @@ static touch_ret_t touch_sensors_config(void)
 		qtm_init_sensor_key(&qtlib_key_set1, sensor_nodes, &ptc_qtlib_node_stat1[sensor_nodes]);
 	}
 
-#ifdef TOUCH_API_SCROLLER_H
-	/* scroller init */
-	touch_ret |= qtm_init_scroller_module(&qtm_scroller_control1);
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
+	/* surface init */
+	touch_ret |= qtm_init_surface_cs(&qtm_surface_cs_control1);
 #endif
 
 	return (touch_ret);
@@ -909,10 +912,10 @@ static void touch_handle_acquisition_process(void)
 			if (TOUCH_SUCCESS != touch_ret) {
 				qtm_error_callback(2);
 			}
-#ifdef TOUCH_API_SCROLLER_H
-			// No need check slider in sleep mode
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
+			// No need check surface in sleep mode
 			if (!(TEST(qlib_touch_state, QTLIB_STATE_SLEEP) || TEST(qlib_touch_state, QTLIB_STATE_SLEEP_WALK))) {
-				touch_ret = qtm_scroller_process(&qtm_scroller_control1);
+				touch_ret = qtm_surface_cs_process(&qtm_surface_cs_control1);
 				if (TOUCH_SUCCESS != touch_ret) {
 					qtm_error_callback(3);
 				}
@@ -1434,15 +1437,24 @@ void calibrate_node(uint16_t sensor_node)
 	qtm_init_sensor_key(&qtlib_key_set1, sensor_node, &ptc_qtlib_node_stat1[sensor_node]);
 }
 
-#ifdef TOUCH_API_SCROLLER_H
-uint8_t get_scroller_state(uint16_t sensor_node)
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
+uint8_t get_surface_status(void)
 {
-	return (qtm_scroller_control1.qtm_scroller_data[sensor_node].scroller_status);
+	return (qtm_surface_cs_control1.qtm_surface_contact_data->qt_surface_status);
 }
 
-uint16_t get_scroller_position(uint16_t sensor_node)
+uint8_t get_surface_position(uint8_t ver_or_hor)
 {
-	return (qtm_scroller_control1.qtm_scroller_data[sensor_node].position);
+	uint8_t temp_pos = 0;
+	/*
+	 *	ver_or_hor, 0 = hor, 1 = ver
+	 */
+	if (ver_or_hor == VER_POS) {
+		temp_pos = qtm_surface_cs_control1.qtm_surface_contact_data->v_position;
+	} else {
+		temp_pos = qtm_surface_cs_control1.qtm_surface_contact_data->h_position;
+	}
+	return temp_pos;
 }
 #endif
 
@@ -1481,15 +1493,15 @@ void qtm_init_all_sensor_keys(void)
 	}
 }
 
-#ifdef TOUCH_API_SCROLLER_H
-void qtm_init_scroller_module_post(void)
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
+void qtm_init_surface_cs_post(void)
 {
-	SET_BIT(qlib_measurement_state, MEASUREMENT_INIT_SLIDER_REQ);
+	SET_BIT(qlib_measurement_state, MEASUREMENT_INIT_SURFACE_REQ);
 }
 
-void qtm_init_all_scroller_module(void)
+void qtm_init_all_surface_module(void)
 {
-	qtm_init_scroller_module(&qtm_scroller_control1);
+	qtm_init_surface_cs(&qtm_surface_cs_control1);
 }
 #endif
 /*============================================================================

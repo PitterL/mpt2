@@ -189,7 +189,7 @@
             <Value>libqtm_freq_hop_t3217_0x0006.a</Value>
             <Value>libqtm_acq_runtime_t3217_0x0018.a</Value>
             <Value>libm</Value>
-            <Value>libqtm_scroller_t3217_0x000b.a</Value>
+            <Value>libqtm_surface_cs_t3217_0x0021.a</Value>
           </ListValues>
         </avrgcc.linker.libraries.Libraries>
         <avrgcc.linker.libraries.LibrarySearchPaths>
@@ -230,7 +230,7 @@
   <avrgcc.compiler.symbols.DefSymbols>
     <ListValues>
       <Value>DEBUG</Value>
-      <Value>EVK_3217_QT7</Value>
+      <Value>PROJECT_EX11</Value>
       <Value>USE_WDT</Value>
       <Value>USE_MPTT_WRAPPER</Value>
       <Value>MPTT_CCAMP_DIV100</Value>
@@ -249,20 +249,20 @@
       <Value>OBJECT_T7</Value>
       <Value>OBJECT_T8</Value>
       <Value>OBJECT_T9</Value>
-      <Value>xOBJECT_T9_ORIENT</Value>
-      <Value>OBJECT_T9_USE_STATE_CB</Value>
+      <Value>OBJECT_T9_ORIENT</Value>
+      <Value>xOBJECT_T9_USE_STATE_CB</Value>
       <Value>OBJECT_T15</Value>
-      <Value>OBJECT_T15_USE_STATE_CB</Value>
+      <Value>xOBJECT_T15_USE_STATE_CB</Value>
       <Value>xOBJECT_T18</Value>
       <Value>OBJECT_T25</Value>
       <Value>OBJECT_T25_PIN_FAULT_ENABLE</Value>
       <Value>OBJECT_T25_EXTENSION</Value>
-      <Value>OBJECT_T38</Value>
-      <Value>xOBJECT_T104</Value>
-      <Value>xOBJECT_T111</Value>
-      <Value>xOBJECT_T111_DUMMY</Value>
-      <Value>xOBJECT_T109</Value>
-      <Value>OBJECT_T126</Value>
+      <Value>xOBJECT_T38</Value>
+      <Value>OBJECT_T104</Value>
+      <Value>OBJECT_T111</Value>
+      <Value>OBJECT_T111_DUMMY</Value>
+      <Value>OBJECT_T109</Value>
+      <Value>xOBJECT_T126</Value>
       <Value>xDEBUG_FORMAT_HAWKEYE</Value>
       <Value>xDEF_TOUCH_DATA_STREAMER_ENABLE</Value>
       <Value>__DELAY_BACKWARD_COMPATIBLE__</Value>
@@ -297,7 +297,7 @@
       <Value>libqtm_freq_hop_t3217_0x0006.a</Value>
       <Value>libqtm_acq_runtime_t3217_0x0018.a</Value>
       <Value>libm</Value>
-      <Value>libqtm_scroller_t3217_0x000b.a</Value>
+      <Value>libqtm_surface_cs_t3217_0x0021.a</Value>
     </ListValues>
   </avrgcc.linker.libraries.Libraries>
   <avrgcc.linker.libraries.LibrarySearchPaths>
@@ -551,12 +551,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="include\wdt.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="led.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="led.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="main.c">
