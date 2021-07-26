@@ -104,19 +104,19 @@ extern "C" {
  */
 #define NODE_0_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		X_NONE, Y(3), 2, PRSC_DIV_SEL_8,																			\
+		X_NONE, Y(3), 2, PRSC_DIV_SEL_4,																			\
 		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 
 #define NODE_1_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		X_NONE, Y(2), 2, PRSC_DIV_SEL_8,																				\
+		X_NONE, Y(2), 2, PRSC_DIV_SEL_4,																				\
 			NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 
 #define NODE_2_PARAMS                                                                                                  \
 	{																													\
-		X_NONE, Y(2) | Y(3), 2, PRSC_DIV_SEL_8,																		\
+		X_NONE, Y(2) | Y(3), 2, PRSC_DIV_SEL_4,																		\
 		NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 

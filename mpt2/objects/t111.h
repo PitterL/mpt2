@@ -43,7 +43,8 @@ typedef struct object_t111 {
 
 typedef struct t111_data {
 	txx_data_t common;
-	/*const nodes_desc_t*/void *ns;
+	void /* const nodes_desc_t */ *ns;
+	u8 num_ns;
 } t111_data_t;
 
 #define MXT_SPT_SELFCAPCONFIG_T111_INST /*MXT_TOUCH_MULTI_T9_INST*/1
