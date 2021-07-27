@@ -312,50 +312,11 @@ qtm_touch_key_config_t qtlib_key_configs_set1[DEF_NUM_SENSORS] = QTLIB_KEY_CONFI
 qtm_touch_key_control_t qtlib_key_set1
     = {&qtlib_key_grp_data_set1, &qtlib_key_grp_config_set1, &qtlib_key_data_set1[0], &qtlib_key_configs_set1[0]};
 
-#ifndef MPTT_AUTO_PINMUX
-#error "be careful to re-configure here since there isn't enabled PTC pin auto config"
-/*static*/ void touch_ptc_pin_config(void)
+// "This is config for special pins of touch panel, be careful to not re-configure PTC pin because it's auto-configured in MPTT"
+static void touch_non_ptc_pin_config(void)
 {
-	PORTA_set_pin_pull_mode(4, PORT_PULL_OFF);
-	PORTA_pin_set_isc(4, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTA_set_pin_pull_mode(6, PORT_PULL_OFF);
-	PORTA_pin_set_isc(6, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTA_set_pin_pull_mode(7, PORT_PULL_OFF);
-	PORTA_pin_set_isc(7, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTB_set_pin_pull_mode(0, PORT_PULL_OFF);
-	PORTB_pin_set_isc(0, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTB_set_pin_pull_mode(1, PORT_PULL_OFF);
-	PORTB_pin_set_isc(1, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTB_set_pin_pull_mode(4, PORT_PULL_OFF);
-	PORTB_pin_set_isc(4, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTB_set_pin_pull_mode(5, PORT_PULL_OFF);
-	PORTB_pin_set_isc(5, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTC_set_pin_pull_mode(0, PORT_PULL_OFF);
-	PORTC_pin_set_isc(0, PORT_ISC_INPUT_DISABLE_gc);
-	
-	PORTC_set_pin_pull_mode(1, PORT_PULL_OFF);
-	PORTC_pin_set_isc(1, PORT_ISC_INPUT_DISABLE_gc);
-		
-	PORTC_set_pin_pull_mode(2, PORT_PULL_OFF);
-	PORTC_pin_set_isc(2, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTC_set_pin_pull_mode(3, PORT_PULL_OFF);
-	PORTC_pin_set_isc(3, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTC_set_pin_pull_mode(4, PORT_PULL_OFF);
-	PORTC_pin_set_isc(4, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTC_set_pin_pull_mode(5, PORT_PULL_OFF);
-	PORTC_pin_set_isc(5, PORT_ISC_INPUT_DISABLE_gc);
+	// Some None PTC Pin config here
 }
-#endif
 
 /*============================================================================
 static touch_ret_t touch_sensors_config(void)
@@ -509,6 +470,9 @@ void touch_init(void)
 	qlib_touch_state = BIT(QTLIB_STATE_TIME_TO_MEASURE);
 	
 	Timer_set_period(measurement_period_store, true); */
+	
+	/* configure the non-PTC pins for Input*/
+	touch_non_ptc_pin_config();
 	
 	/* configure the PTC pins for Input*/
 	touch_ptc_pin_config();
@@ -874,15 +838,6 @@ static void touch_handle_acquisition_process(void)
 			if (TOUCH_SUCCESS != touch_ret) {
 				qtm_error_callback(2);
 			}
-#ifdef TOUCH_API_SCROLLER_H
-			// No need check slider in sleep mode
-			if (!(TEST(qlib_touch_state, QTLIB_STATE_SLEEP) || TEST(qlib_touch_state, QTLIB_STATE_SLEEP_WALK))) {
-				touch_ret = qtm_scroller_process(&qtm_scroller_control1);
-				if (TOUCH_SUCCESS != touch_ret) {
-					qtm_error_callback(3);
-				}
-			}
-#endif
 		} else {
 			/* Acq module Eror Detected: Issue an Acq module common error code 0x80 */
 			qtm_error_callback(0);

@@ -250,14 +250,14 @@
       <Value>xOBJECT_T9_ORIENT</Value>
       <Value>xOBJECT_T9_USE_STATE_CB</Value>
       <Value>OBJECT_T15</Value>
-      <Value>xOBJECT_T15_USE_STATE_CB</Value>
+      <Value>OBJECT_T15_USE_STATE_CB</Value>
       <Value>xOBJECT_T18</Value>
       <Value>OBJECT_T25</Value>
       <Value>OBJECT_T25_PIN_FAULT_ENABLE</Value>
       <Value>OBJECT_T25_EXTENSION</Value>
       <Value>OBJECT_T38</Value>
       <Value>xOBJECT_T104</Value>
-      <Value>OBJECT_T111</Value>
+      <Value>xOBJECT_T111</Value>
       <Value>xOBJECT_T111_DUMMY</Value>
       <Value>xOBJECT_T109</Value>
       <Value>OBJECT_T126</Value>
@@ -547,6 +547,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="include\wdt.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="led.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="led.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="main.c">

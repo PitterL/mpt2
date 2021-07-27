@@ -98,7 +98,12 @@
 		<1> Use indenpent global varible for qlib_touch_state_xxx states instead of bit mask, which cause un-atomic mutex between interupt and main thread
 		<2> Add overflow counter for qtm_ptc_start_measurement_seq() timeout, which will report overflow tag in T6 message
 		<3> split touch_process() to touch_handle_measurement() and touch_handle_acquisition_process(), the later one will called first
-
+		(1.6)
+		<1> T111 controllable with parameters
+		<2> add `WK_RSV_NEG_BREACH` in T126 wakeup message
+		<3> add touch_non_ptc_pin_config() at touch_init() for non PTC pin initialize
+		<4> #define DEF_TOUCH_MEASUREMENT_OVERFLOW_FORCE_DONE 200
+		<5> add LED0 callback when button touched
 
 		Report ID Object Table Index Object Type Object Instance
 		0 = 0x00                  0           0               0
