@@ -37,7 +37,11 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 	{ .node = {	.origin = 11, .size = 2 } },	// Button
 	#endif
 	#ifdef EVK_3217_XPLAIN
-	{ .node = {	.origin = 0, .size = 2 } },
+	{ .node = {	.origin = 0, .size = 2 },
+#ifdef OBJECT_T15_USE_STATE_CB
+		.set_button_state = button_led_state_change
+#endif
+	},
 	#endif
 };
 #endif
@@ -63,7 +67,7 @@ qtouch_config_t tsl_qtouch_def = {
 	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 3}},
 	#endif
 	#ifdef EVK_3217_QT8
-	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 3}},
+	.matrix_nodes = {{.origin = 0, .size = 5}, {.origin =  5, .size = 5}},
 	#endif
 	#ifdef EVK_WATER_SURFACE
 	.matrix_nodes = {{.origin = 0, .size = 5}, {.origin =  5, .size = 8}},

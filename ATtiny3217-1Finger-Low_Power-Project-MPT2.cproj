@@ -230,7 +230,7 @@
   <avrgcc.compiler.symbols.DefSymbols>
     <ListValues>
       <Value>DEBUG</Value>
-      <Value>PROJECT_EX11</Value>
+      <Value>EVK_3217_QT8</Value>
       <Value>USE_WDT</Value>
       <Value>USE_MPTT_WRAPPER</Value>
       <Value>MPTT_CCAMP_DIV100</Value>
@@ -257,12 +257,12 @@
       <Value>OBJECT_T25</Value>
       <Value>OBJECT_T25_PIN_FAULT_ENABLE</Value>
       <Value>OBJECT_T25_EXTENSION</Value>
-      <Value>xOBJECT_T38</Value>
-      <Value>OBJECT_T104</Value>
-      <Value>OBJECT_T111</Value>
-      <Value>OBJECT_T111_DUMMY</Value>
-      <Value>OBJECT_T109</Value>
-      <Value>xOBJECT_T126</Value>
+      <Value>OBJECT_T38</Value>
+      <Value>xOBJECT_T104</Value>
+      <Value>xOBJECT_T111</Value>
+      <Value>xOBJECT_T111_DUMMY</Value>
+      <Value>xOBJECT_T109</Value>
+      <Value>OBJECT_T126</Value>
       <Value>xDEBUG_FORMAT_HAWKEYE</Value>
       <Value>xDEF_TOUCH_DATA_STREAMER_ENABLE</Value>
       <Value>__DELAY_BACKWARD_COMPATIBLE__</Value>

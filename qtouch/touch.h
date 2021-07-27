@@ -51,7 +51,7 @@ extern "C" {
 /* Defines the Type of sensor
  * Default value: NODE_MUTUAL.
  */
-#define DEF_SENSOR_TYPE NODE_SELFCAP_SHIELD
+#define DEF_SENSOR_TYPE NODE_MUTUAL /* NODE_SELFCAP_SHIELD */
 
 /* Set sensor calibration mode for charge share delay ,Prescaler or series resistor.
  * Range: CAL_AUTO_TUNE_NONE / CAL_AUTO_TUNE_RSEL / CAL_AUTO_TUNE_PRSC / CAL_AUTO_TUNE_CSD
@@ -88,14 +88,23 @@ extern "C" {
  * Default value: 1
  */
 /*
-	Y0:	PA7		Y(3)		//BTN2
-	Y1:	PA4		Y(0)		//BTN1
-	Y2:	PB0		Y(5)		//SLD0
-	Y3:	PB1		Y(4)		//SLD1
-	Y4:	PA5		Y(1)		//SLD2
+	Y0:	PC1		Y(7)		//Y0	--- In QT8 extension board: To support 3217 Xpro then need to close J3 and open
+J2 in hardware
+	Y1:	PC3		Y(9)		//Y1
+	Y2:	PC2		Y(8)		//Y2
+	Y3:	PA4		Y(0)		//Y3
+	Y4:	PA5		Y(1)		//Y4
+	
+	Y5:	PB1		Y(4)		//X0
+	Y6:	PB0		Y(5)		//X1
+	Y7:	PB4		Y(13)		//X2	--- In 3217Xprox board, that PB4 used as LED0 control in Xpro board, should be open
+	Y8:	PA6		Y(2)		//X3
+	Y9:	PA7		Y(3)		//X4	
+	
+	DS: PC0		Y(6)		//DS
 */
 
-#define DEF_NUM_CHANNELS (11)
+#define DEF_NUM_CHANNELS (10)
 /* Defines node parameter setting of mutual cap
  * {X-line, Y-line, Charge Share Delay, NODE_RSEL_PRSC(series resistor, prescaler), NODE_G(Analog Gain , Digital Gain),
  * filter level}
@@ -107,125 +116,113 @@ extern "C" {
  */
 #if (DEF_SENSOR_TYPE == NODE_SELFCAP_SHIELD)
 #define NODE_0_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		Y(2) | Y(3) | Y(4) | Y(5) | Y(6) | Y(7) | Y(8) | Y(9) | Y(10) | Y(11) | Y(12) | Y(13) , Y(0), 0, PRSC_DIV_SEL_4,       \
-		    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
-	}
+{                                                                                                                  \
+	Y(6) | Y(7) | Y(9) | Y(8) | Y(0) | Y(1) | Y(5) | Y(13) | Y(2) | Y(3), Y(4), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
+}
 #define NODE_1_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		Y(0) | Y(3) | Y(4) | Y(5) | Y(6) | Y(7) | Y(8) | Y(9) | Y(10) | Y(11) | Y(12) | Y(13), Y(2), 0, PRSC_DIV_SEL_4,       \
-		    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
-	}
+{                                                                                                                  \
+	Y(6) | Y(7) | Y(9) | Y(8) | Y(0) | Y(1) | Y(4) | Y(13) | Y(2) | Y(3), Y(5), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
+}
 #define NODE_2_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		Y(0) | Y(2) | Y(4) | Y(5) | Y(6) | Y(7) | Y(8) | Y(9) | Y(10) | Y(11) | Y(12) | Y(13), Y(3), 0, PRSC_DIV_SEL_4,       \
-		    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
-	}
+{                                                                                                                  \
+	Y(6) | Y(7) | Y(9) | Y(8) | Y(0) | Y(1) | Y(5) | Y(4) | Y(2) | Y(3), Y(13), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_16                     \
+}
 #define NODE_3_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		Y(0) | Y(2) | Y(3) | Y(4) | Y(5) | Y(6) | Y(7) | Y(8) | Y(9) | Y(10) | Y(11) | Y(13), Y(12), 0, PRSC_DIV_SEL_4,       \
-		    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
-	}
+{                                                                                                                  \
+	Y(6) | Y(7) | Y(9) | Y(8) | Y(0) | Y(1) | Y(5) | Y(4) | Y(13) | Y(3), Y(2), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
+}
 #define NODE_4_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		Y(0) | Y(2) | Y(3) | Y(4) | Y(5) | Y(6) | Y(7) | Y(8) | Y(9) | Y(10) | Y(11) | Y(12), Y(13), 0, PRSC_DIV_SEL_4,       \
-		    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
-	}
+{                                                                                                                  \
+	Y(6) | Y(7) | Y(9) | Y(8) | Y(0) | Y(1) | Y(5) | Y(4) | Y(13) | Y(2), Y(3), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
+}
 #define NODE_5_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		Y(0) | Y(2) | Y(3) | Y(5) | Y(6) | Y(7) | Y(8) | Y(9) | Y(10) | Y(11) | Y(12) | Y(13), Y(4), 0, PRSC_DIV_SEL_4,       \
-		    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
-	}
+{                                                                                                                  \
+	Y(6) | Y(9) | Y(8) | Y(0) | Y(1) | Y(5) | Y(4) | Y(13) | Y(2) | Y(3), Y(7), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
+}
 #define NODE_6_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		Y(0) | Y(2) | Y(3) | Y(4) | Y(5) | Y(7) | Y(8) | Y(9) | Y(10) | Y(11) | Y(12) | Y(13), Y(6), 0, PRSC_DIV_SEL_4,       \
-		    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
-	}
+{                                                                                                                  \
+	Y(6) | Y(7) | Y(8) | Y(0) | Y(1) | Y(5) | Y(4) | Y(13) | Y(2) | Y(3), Y(9), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
+}
 #define NODE_7_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		Y(0) | Y(2) | Y(3) | Y(4) | Y(5) | Y(6) | Y(8) | Y(9) | Y(10) | Y(11) | Y(12) | Y(13), Y(7), 0, PRSC_DIV_SEL_4,       \
-		    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
-	}
+{                                                                                                                  \
+	Y(6) | Y(7) | Y(9) | Y(0) | Y(1) | Y(5) | Y(4) | Y(13) | Y(2) | Y(3), Y(8), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
+}
 #define NODE_8_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		Y(0) | Y(2) | Y(3) | Y(4) | Y(5) | Y(6) | Y(7) | Y(9) | Y(10) | Y(11) | Y(12) | Y(13), Y(8), 0, PRSC_DIV_SEL_4,       \
-		    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
-	}
+{                                                                                                                  \
+	Y(6) | Y(7) | Y(9) | Y(8) | Y(1) | Y(5) | Y(4) | Y(13) | Y(2) | Y(3), Y(0), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
+}
 #define NODE_9_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		Y(0) | Y(2) | Y(3) | Y(4) | Y(5) | Y(6) | Y(7) | Y(8) | Y(10) | Y(11) | Y(12) | Y(13), Y(9), 0, PRSC_DIV_SEL_4,       \
-		    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
-	}
-#define NODE_10_PARAMS                                                                                                 \
-	{                                                                                                                  \
-		Y(0) | Y(2) | Y(3) | Y(4) | Y(5) | Y(6) | Y(7) | Y(8) | Y(9) | Y(11) | Y(12) | Y(13), Y(10), 0, PRSC_DIV_SEL_4,       \
-		    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
-	}
+{                                                                                                                  \
+	Y(6) | Y(7) | Y(9) | Y(8) | Y(0) | Y(5) | Y(4) | Y(13) | Y(2) | Y(3), Y(1), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
+}
 #elif (DEF_SENSOR_TYPE == NODE_MUTUAL)
-
 #define NODE_0_PARAMS                                                                                                  \
 {                                                                                                                  \
-     Y(6) | Y(7) | Y(8) | Y(9) | Y(10) , Y(0), 0, PRSC_DIV_SEL_4,       \
-    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
+	X(6) | X(7) | X(9) | X(8) | X(0) | X(1), Y(4), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
 }
 #define NODE_1_PARAMS                                                                                                  \
 {                                                                                                                  \
-     Y(6) | Y(7) | Y(8) | Y(9) | Y(10), Y(2), 0, PRSC_DIV_SEL_4,       \
-    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
+	X(6) | X(7) | X(9) | X(8) | X(0) | X(1), Y(5), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
 }
 #define NODE_2_PARAMS                                                                                                  \
 {                                                                                                                  \
-     Y(6) | Y(7) | Y(8) | Y(9) | Y(10), Y(3), 0, PRSC_DIV_SEL_4,       \
-    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
+	X(6) | X(7) | X(9) | X(8) | X(0) | X(1), Y(13), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
 }
 #define NODE_3_PARAMS                                                                                                  \
 {                                                                                                                  \
-     Y(6) | Y(7) | Y(8) | Y(9) | Y(10), Y(12), 0, PRSC_DIV_SEL_4,       \
-    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
+	X(6) | X(7) | X(9) | X(8) | X(0) | X(1), Y(2), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
 }
 #define NODE_4_PARAMS                                                                                                  \
 {                                                                                                                  \
-    Y(6) | Y(7) | Y(8) | Y(9) | Y(10), Y(13), 0, PRSC_DIV_SEL_4,       \
-    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
+	X(6) | X(7) | X(9) | X(8) | X(0) | X(1), Y(3), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
 }
 #define NODE_5_PARAMS                                                                                                  \
 {                                                                                                                  \
-     Y(6) | Y(7) | Y(8) | Y(9) | Y(10), Y(4), 0, PRSC_DIV_SEL_4,       \
-    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
+	X(6) | X(5) | X(4) | X(13) | X(2) | X(3), Y(7), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
 }
 #define NODE_6_PARAMS                                                                                                  \
 {                                                                                                                  \
-    Y(0) | Y(2) | Y(3) | Y(4) | Y(12) | Y(13), Y(6), 0, PRSC_DIV_SEL_4,       \
-    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
+	X(6) | X(5) | X(4) | X(13) | X(2) | X(3), Y(9), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
 }
 #define NODE_7_PARAMS                                                                                                  \
 {                                                                                                                  \
-    Y(0) | Y(2) | Y(3) | Y(4) | Y(12) | Y(13), Y(7), 0, PRSC_DIV_SEL_4,       \
-    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
+	X(6) | X(5) | X(4) | X(13) | X(2) | X(3), Y(8), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_16                     \
 }
 #define NODE_8_PARAMS                                                                                                  \
 {                                                                                                                  \
-    Y(0) | Y(2) | Y(3) | Y(4) | Y(12) | Y(13), Y(8), 0, PRSC_DIV_SEL_4,       \
-    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
+	X(6) | X(5) | X(4) | X(13) | X(2) | X(3), Y(0), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
 }
 #define NODE_9_PARAMS                                                                                                  \
 {                                                                                                                  \
-    Y(0) | Y(2) | Y(3) | Y(4) | Y(12) | Y(13), Y(9), 0, PRSC_DIV_SEL_4,       \
-    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
+	X(6) | X(5) | X(4) | X(13) | X(2) | X(3), Y(1), 0,                                 \
+	NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4), NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                     \
 }
-#define NODE_10_PARAMS                                                                                                 \
-{                                                                                                                  \
-    Y(0) | Y(2) | Y(3) | Y(4) | Y(12) | Y(13), Y(10), 0, PRSC_DIV_SEL_4,       \
-    NODE_GAIN(GAIN_1, GAIN_4), FILTER_LEVEL_8                                                                 \
-}
-
 #else
 #error "No defined sensor channels !"
 #endif
 
 #define PTC_SEQ_NODE_CFG1 {	\
-	NODE_0_PARAMS, NODE_1_PARAMS, NODE_2_PARAMS, NODE_3_PARAMS, NODE_4_PARAMS, NODE_5_PARAMS,	\
-	NODE_6_PARAMS, NODE_7_PARAMS, NODE_8_PARAMS, NODE_9_PARAMS, NODE_10_PARAMS	\
+	NODE_0_PARAMS, NODE_1_PARAMS, NODE_2_PARAMS, NODE_3_PARAMS, NODE_4_PARAMS, 	\
+	NODE_5_PARAMS, NODE_6_PARAMS, NODE_7_PARAMS, NODE_8_PARAMS, NODE_9_PARAMS	\
 }
 
 /**********************************************************/
@@ -251,7 +248,7 @@ extern "C" {
 }
 
 #define QTLIB_KEY_CONFIGS_SET {	\
-	KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
+	KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
 	KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
 }
 
@@ -318,7 +315,7 @@ extern "C" {
  * Start key of horizontal axis
  * Range: 0 to 65534
  */
-#define SURFACE_CS_START_KEY_H 6
+#define SURFACE_CS_START_KEY_H 5
 /* Horizontal Number of Channel <0-255>
  * Number of Channels forming horizontal axis
  * Range: 0 to 255
@@ -333,13 +330,13 @@ extern "C" {
  * Number of Channels forming vertical axis
  * Range: 0 to 255
  */
-#define SURFACE_CS_NUM_KEYS_V 6
+#define SURFACE_CS_NUM_KEYS_V 5
 /*  Position Resolution and Deadband Percentage
  *  Full scale position resolution reported for the axis and the deadband Percentage
  *  RESOL_2_BIT - RESOL_12_BIT
  *  DB_NONE - DB_15_PERCENT
  */
-#define SURFACE_CS_RESOL_DB SCR_RESOL_DEADBAND(RESOL_10_BIT, DB_15_PERCENT)
+#define SURFACE_CS_RESOL_DB SCR_RESOL_DEADBAND(RESOL_12_BIT, DB_10_PERCENT)
 /* Median filter enable and  IIR filter Config
  * Median Filter <0-1>
  * Enable or Disable Median Filter
@@ -429,7 +426,7 @@ extern "C" {
  */
 #ifdef DEF_TOUCH_MEASUREMENT_OVERFLOW
 #define DEF_TOUCH_MEASUREMENT_OVERFLOW_THRESHOLD 2
-#define DEF_TOUCH_MEASUREMENT_OVERFLOW_FORCE_DONE (DEF_TOUCH_MEASUREMENT_OVERFLOW_THRESHOLD * 2)
+#define DEF_TOUCH_MEASUREMENT_OVERFLOW_FORCE_DONE 200
 #endif
 
 /**********************************************************/

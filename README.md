@@ -19,6 +19,10 @@ The hardware based on ATtiny3217 Xplained Pro board:
 
 https://www.microchip.com/developmenttools/ProductDetails/ATTINY3217-XPRO
 
+The hardware of QT8 Xplained board:
+
+https://ww1.microchip.com/downloads/en/DeviceDoc/QT8-Xplained-Pro-User-Guide-50002813C.pdf
+
 The v25 platformn embedded T126 object to control lowpower function, please check protocol for more details:
 
 ### T6 message:
@@ -62,8 +66,7 @@ The v25 platformn embedded T126 object to control lowpower function, please chec
 
 
 ## Mark and Power comsuption measured:
-Current with the exampel of QT7 on ATTINY3217-XPRO, the example shows how to use T15/T9 call back to light LEDs
-the measurement with QT7 board, 13uA@64ms (eventsystem wakeup)
+Current with the example of QT8 on ATTINY3217-XPRO, the example shows how to use surface in lowpower states, not you could only config 1 channel as wakeup by event system sleep or max 8 channels in soft sleep. The sloft sleep response time will be [Idle scanning interval] * channel counts.
 
 ## Other tools:
 

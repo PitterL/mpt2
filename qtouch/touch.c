@@ -345,50 +345,16 @@ qtm_surface_cs_control_t qtm_surface_cs_control1 = {&qtm_surface_cs_data1, &qtm_
 
 #endif
 
-#ifndef MPTT_AUTO_PINMUX
-#error "be careful to re-configure here since there isn't enabled PTC pin auto config"
-/*static*/ void touch_ptc_pin_config(void)
+// "This is config for special pins of touch panel, be careful to not re-configure PTC pin because it's auto-configured in MPTT"
+static void touch_non_ptc_pin_config(void)
 {
-	PORTA_set_pin_pull_mode(4, PORT_PULL_OFF);
-	PORTA_pin_set_isc(4, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTA_set_pin_pull_mode(6, PORT_PULL_OFF);
-	PORTA_pin_set_isc(6, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTA_set_pin_pull_mode(7, PORT_PULL_OFF);
-	PORTA_pin_set_isc(7, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTB_set_pin_pull_mode(0, PORT_PULL_OFF);
-	PORTB_pin_set_isc(0, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTB_set_pin_pull_mode(1, PORT_PULL_OFF);
-	PORTB_pin_set_isc(1, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTB_set_pin_pull_mode(4, PORT_PULL_OFF);
-	PORTB_pin_set_isc(4, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTB_set_pin_pull_mode(5, PORT_PULL_OFF);
-	PORTB_pin_set_isc(5, PORT_ISC_INPUT_DISABLE_gc);
-
+#if (DEF_SENSOR_TYPE == NODE_MUTUAL)
+	//DS pin ground as mutual mode
 	PORTC_set_pin_pull_mode(0, PORT_PULL_OFF);
-	PORTC_pin_set_isc(0, PORT_ISC_INPUT_DISABLE_gc);
-	
-	PORTC_set_pin_pull_mode(1, PORT_PULL_OFF);
-	PORTC_pin_set_isc(1, PORT_ISC_INPUT_DISABLE_gc);
-		
-	PORTC_set_pin_pull_mode(2, PORT_PULL_OFF);
-	PORTC_pin_set_isc(2, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTC_set_pin_pull_mode(3, PORT_PULL_OFF);
-	PORTC_pin_set_isc(3, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTC_set_pin_pull_mode(4, PORT_PULL_OFF);
-	PORTC_pin_set_isc(4, PORT_ISC_INPUT_DISABLE_gc);
-
-	PORTC_set_pin_pull_mode(5, PORT_PULL_OFF);
-	PORTC_pin_set_isc(5, PORT_ISC_INPUT_DISABLE_gc);
-}
+	PORTC_set_pin_level(0, false);
+	PORTC_set_port_dir(0, PORT_DIR_OUT);
 #endif
+}
 
 /*============================================================================
 static touch_ret_t touch_sensors_config(void)
@@ -547,6 +513,9 @@ void touch_init(void)
 	qlib_touch_state = BIT(QTLIB_STATE_TIME_TO_MEASURE);
 	
 	Timer_set_period(measurement_period_store, true); */
+	
+	/* configure the non-PTC pins for Input*/
+	touch_non_ptc_pin_config();
 	
 	/* configure the PTC pins for Input*/
 	touch_ptc_pin_config();
