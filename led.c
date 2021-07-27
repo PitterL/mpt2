@@ -16,7 +16,7 @@ typedef struct GPIO_STATE_LIST {
 	bool level;
 } GPIO_STATE_LIST_T;
 
-
+#ifdef OBJECT_T15_USE_STATE_CB
 #define NUM_BUTTON_LEDS ARRAY_SIZE(button_led_gpios)
 static GPIO_STATE_LIST_T button_led_gpios[] = {
 	// Button 0
@@ -38,7 +38,6 @@ static void init_button_led(void)
 	}
 }
 
-#ifdef OBJECT_T15_USE_STATE_CB
 void button_led_state_change(uint8_t groupid, uint32_t status)
 {
 	const GPIO_STATE_LIST_T *gpio = button_led_gpios;
@@ -52,6 +51,7 @@ void button_led_state_change(uint8_t groupid, uint32_t status)
 }
 #endif
 
+#ifdef OBJECT_T9_USE_STATE_CB
 #define NUM_SLIDER_LEDS ARRAY_SIZE(slider_led_gpios)
 static GPIO_STATE_LIST_T slider_led_gpios[] = {
 	{GPIOC, 0, false},
@@ -73,7 +73,6 @@ static void init_slider_led(void)
 	}
 }
 
-#ifdef OBJECT_T9_USE_STATE_CB
 void slider_led_state_change(uint8_t groupid, uint8_t fingerid, uint8_t status, uint16_t x, uint16_t y, uint16_t max_resol)
 {
 	const GPIO_STATE_LIST_T *gpio = slider_led_gpios;
@@ -97,9 +96,15 @@ void slider_led_state_change(uint8_t groupid, uint8_t fingerid, uint8_t status, 
 }
 #endif
 
+#if defined(OBJECT_T15_USE_STATE_CB) || defined(OBJECT_T9_USE_STATE_CB)
 void leds_init(void) 
 {
+#ifdef OBJECT_T15_USE_STATE_CB
 	init_button_led();
-	init_slider_led();	
+#endif
+#ifdef OBJECT_T9_USE_STATE_CB
+	init_slider_led();
+#endif
 }
+#endif
 
