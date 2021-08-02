@@ -13,6 +13,9 @@ The Object Protocol is designed in such a way that a driver can be “future-pro
 For Generated protocol, you could refer below link.
 https://www.microchip.com/content/dam/mchp/documents/OTH/ApplicationNotes/ApplicationNotes/MXTAN0213_Interfacing_with_maXTouch_Touchscreen_Controllers_00002428A.pdf
 
+MPTT discributed protocol:
+https://github.com/PitterL/mpt2/blob/EVK_3217_Xpro/doc/MCU%20Based%20Maxtouch%20Framework%20and%20Protocol%20-%20V1.01.pdf
+
 For detailed protocol, please request the protocol file `MCU Based Maxtouch Framework and Protocol - MPTT Vxxx` for us.
 
 The hardware based on ATtiny3217 Xplained Pro board:
@@ -72,6 +75,8 @@ Maxtouch studio:
 
 https://www.microchip.com/en-us/products/touch-and-gesture/solutions-for-touchpads-and-touchscreens/maxtouch-touchscreen-controllers
 
+Chip xml load file for maxtouch studio:
+https://github.com/PitterL/mpt2/blob/EVK_3217_Xpro/doc/mptt_t25_3.xml
 
 ## Porting guide:
 https://github.com/PitterL/mpt2/blob/EVK_3217_Xpro/doc/MPTT%20architecture%20update(v25)%2020210716.pdf

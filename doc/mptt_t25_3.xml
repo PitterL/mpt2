@@ -4219,7 +4219,7 @@
                 <posx>0</posx>
                 <posy>0</posy>
                 <BitNumber>6</BitNumber>
-                <IsBitVisible>true</IsBitVisible>
+                <IsBitVisible>false</IsBitVisible>
               </ObjectFieldBitField>
               <ObjectFieldBitField>
                 <Instance>0</Instance>
@@ -4280,7 +4280,7 @@
             <DataField />
           </ObjectSubItem>
         </SubItems>
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -4309,7 +4309,7 @@
                 <posx>130</posx>
                 <posy>260</posy>
                 <BitNumber>0</BitNumber>
-                <IsBitVisible>true</IsBitVisible>
+                <IsBitVisible>false</IsBitVisible>
               </ObjectFieldBitField>
               <ObjectFieldBitField>
                 <Instance>0</Instance>
@@ -4319,25 +4319,24 @@
                 <posx>230</posx>
                 <posy>280</posy>
                 <BitNumber>1</BitNumber>
-                <IsBitVisible>true</IsBitVisible>
+                <IsBitVisible>false</IsBitVisible>
               </ObjectFieldBitField>
               <ObjectFieldBitField>
                 <Instance>0</Instance>
                 <Name>POWMONMODE</Name>
                 <Description>Power Monitoring Mode </Description>
-                <ToolTip>0 (default) - Sampling mode
-1 - Continous mode</ToolTip>
+                <ToolTip>0 (default) - Sampling mode1 - Continous mode</ToolTip>
                 <posx>480</posx>
                 <posy>80</posy>
                 <BitNumber>2</BitNumber>
-                <IsBitVisible>true</IsBitVisible>
+                <IsBitVisible>false</IsBitVisible>
               </ObjectFieldBitField>
             </BitList>
             <DataField />
             <FieldWidth>200</FieldWidth>
           </ObjectSubItem>
         </SubItems>
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -4355,7 +4354,7 @@
         <posy>50</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -4373,7 +4372,7 @@
         <posy>75</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -4505,8 +4504,8 @@
       <ObjectField>
         <Instance>0</Instance>
         <Name>CHRGTIME</Name>
-        <Description>Charge-transfer dwell time (x41.67)ns</Description>
-        <ToolTip>CHRGTIME</ToolTip>
+        <Description>Charge-transfer dwell time CSD counts</Description>
+        <ToolTip>Charge CSD</ToolTip>
         <posx>0</posx>
         <posy>10</posy>
         <Size>1</Size>
@@ -4522,14 +4521,14 @@
       </ObjectField>
       <ObjectField>
         <Instance>0</Instance>
-        <Name>RESERVED[1]</Name>
-        <Description>ATCHDRIFT</Description>
-        <ToolTip>ATCHDRIFT compensation period</ToolTip>
-        <posx>550</posx>
-        <posy>0</posy>
+        <Name>ATCHDRIFT</Name>
+        <Description>Anti-touch drift (x200)ms</Description>
+        <ToolTip>ATCHDRIFT compensation period  (in 200ms increments, Typical 20 , 10 = 2S )</ToolTip>
+        <posx>0</posx>
+        <posy>325</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>false</IsFieldVisible>
+        <IsFieldVisible>true</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -4690,7 +4689,7 @@
         <posy>275</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -4703,7 +4702,13 @@
         <Instance>0</Instance>
         <Name>ATCHCALSTHR</Name>
         <Description>Anti-touch calibration suspend threshold</Description>
-        <ToolTip>ATCHCALSTHR amount of touch delta required to block an antitouch recal . typical 0</ToolTip>
+        <ToolTip>ATCHCALSTHR amount of touch delta required to block an antitouch recal. Typical: 
+		RECAL_100 = 0, 
+		RECAL_50, 
+		RECAL_25, 
+		RECAL_12_5, 
+		RECAL_6_25
+		</ToolTip>
         <posx>0</posx>
         <posy>300</posy>
         <Size>1</Size>
@@ -4726,7 +4731,7 @@
         <posy>325</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -4744,7 +4749,7 @@
         <posy>350</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -4764,7 +4769,7 @@
         <Size>1</Size>
         <SubItems>
           <ObjectSubItem>
-            <Description>Allow measurement</Description>
+            <Description>Current measurement</Description>
             <BitList>
               <ObjectFieldBitField>
                 <Instance>0</Instance>
@@ -4779,7 +4784,7 @@
               <ObjectFieldBitField>
                 <Instance>0</Instance>
                 <Name>__CFG__Bit__1</Name>
-                <Description>Self Cap Touch</Description>
+                <Description>Self Cap Touch (DS)</Description>
                 <ToolTip>SELFTCH</ToolTip>
                 <posx>0</posx>
                 <posy>0</posy>
@@ -4799,7 +4804,7 @@
               <ObjectFieldBitField>
                 <Instance>0</Instance>
                 <Name>__CFG__Bit__3</Name>
-                <Description>Self Cap Prox</Description>
+                <Description>Self Cap Prox (No DS)</Description>
                 <ToolTip>SELFPROX</ToolTip>
                 <posx>0</posx>
                 <posy>0</posy>
@@ -4839,7 +4844,7 @@
         <Size>1</Size>
         <SubItems>
           <ObjectSubItem>
-            <Description>Measurement Idle Default</Description>
+            <Description>Measurement in SelfTest</Description>
             <BitList>
               <ObjectFieldBitField>
                 <Instance>0</Instance>
@@ -4889,7 +4894,7 @@
                 <posx>0</posx>
                 <posy>0</posy>
                 <BitNumber>4</BitNumber>
-                <IsBitVisible>true</IsBitVisible>
+                <IsBitVisible>false</IsBitVisible>
               </ObjectFieldBitField>
             </BitList>
             <DataField />
@@ -4930,7 +4935,7 @@
         <Size>1</Size>
         <SubItems>
           <ObjectSubItem>
-            <Description>Measurement Active Default</Description>
+            <Description>Measurement After Selftest</Description>
             <BitList>
               <ObjectFieldBitField>
                 <Instance>0</Instance>
@@ -4972,7 +4977,7 @@
                 <posy>0</posy>
                 <AccessLevel>Internal</AccessLevel>
                 <BitNumber>3</BitNumber>
-                <IsBitVisible>false</IsBitVisible>
+                <IsBitVisible>true</IsBitVisible>
               </ObjectFieldBitField>
               <ObjectFieldBitField>
                 <Instance>0</Instance>
@@ -5018,12 +5023,14 @@
         <Instance>0</Instance>
         <Name>RESERVED[13]</Name>
         <Description>Reference mode</Description>
-        <ToolTip>REFMODE, 1 or 2 sets of references</ToolTip>
+        <ToolTip>REFMODE - the debug diagnostic data output format:
+0 (delta/ref/cap)
+1 (ref/cap/cap)</ToolTip>
         <posx>0</posx>
         <posy>375</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>false</IsFieldVisible>
+        <IsFieldVisible>true</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -5051,7 +5058,7 @@
                 <posx>0</posx>
                 <posy>0</posy>
                 <BitNumber>0</BitNumber>
-                <IsBitVisible>true</IsBitVisible>
+                <IsBitVisible>false</IsBitVisible>
               </ObjectFieldBitField>
               <ObjectFieldBitField>
                 <Instance>0</Instance>
@@ -5061,7 +5068,7 @@
                 <posx>0</posx>
                 <posy>0</posy>
                 <BitNumber>1</BitNumber>
-                <IsBitVisible>true</IsBitVisible>
+                <IsBitVisible>false</IsBitVisible>
               </ObjectFieldBitField>
               <ObjectFieldBitField>
                 <Instance>0</Instance>
@@ -5071,7 +5078,7 @@
                 <posx>0</posx>
                 <posy>0</posy>
                 <BitNumber>2</BitNumber>
-                <IsBitVisible>true</IsBitVisible>
+                <IsBitVisible>false</IsBitVisible>
               </ObjectFieldBitField>
               <ObjectFieldBitField>
                 <Instance>0</Instance>
@@ -5101,6 +5108,378 @@
                 <posx>0</posx>
                 <posy>0</posy>
                 <BitNumber>7</BitNumber>
+                <IsBitVisible>false</IsBitVisible>
+              </ObjectFieldBitField>
+            </BitList>
+            <DataField />
+          </ObjectSubItem>
+        </SubItems>
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+    </Fieldlist>
+    <UIFieldList />
+  </T_Object>
+ <T_Object ObjectID="T9" Number="9" DesignHeight="600" DesignWidth="800">
+    <ObjectName>TOUCH_MULTITOUCHSCREEN_T9</ObjectName>
+    <Description>Multiple Touch Touchscreen T9</Description>
+    <Fieldlist>
+      <ObjectField>
+        <Name>CTRL</Name>
+        <Description>CTRL</Description>
+        <ToolTip> ACENABLE LCENABLE Main configuration field  </ToolTip>
+        <posx>15</posx>
+        <posy>20</posy>
+        <Size>1</Size>
+        <SubItems>
+          <ObjectSubItem>
+            <Description>Control</Description>
+            <BitList>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__0</Name>
+                <Description>Enable</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>0</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__1</Name>
+                <Description>Report Enable</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>1</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__2</Name>
+                <Description>Disable amplitude</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>2</BitNumber>
+                <IsBitVisible>false</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__3</Name>
+                <Description>Disable vector</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>3</BitNumber>
+                <IsBitVisible>false</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__4</Name>
+                <Description>Disable movement</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>4</BitNumber>
+                <IsBitVisible>false</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__5</Name>
+                <Description>Disable release</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>5</BitNumber>
+                <IsBitVisible>false</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__6</Name>
+                <Description>Disable press</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>6</BitNumber>
+                <IsBitVisible>false</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__7</Name>
+                <Description>Scan enable</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>7</BitNumber>
+                <IsBitVisible>false</IsBitVisible>
+              </ObjectFieldBitField>
+            </BitList>
+            <DataField />
+          </ObjectSubItem>
+        </SubItems>
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>XORIGIN</Name>
+        <Description>X origin</Description>
+        <ToolTip> LCMASK ACMASK Object x start position on matrix  </ToolTip>
+        <posx>200</posx>
+        <posy>30</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>YORIGIN</Name>
+        <Description>Y origin</Description>
+        <ToolTip> LCMASK ACMASK Object y start position on matrix  </ToolTip>
+        <posx>325</posx>
+        <posy>30</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>XSIZE</Name>
+        <Description>X size</Description>
+        <ToolTip> LCMASK ACMASK Object x size (i.e. width)         </ToolTip>
+        <posx>200</posx>
+        <posy>55</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>YSIZE</Name>
+        <Description>Y size</Description>
+        <ToolTip> LCMASK ACMASK Object y size (i.e. height)        </ToolTip>
+        <posx>325</posx>
+        <posy>55</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>AKSCFG</Name>
+        <Description>AKSCFG</Description>
+        <ToolTip> Adjacent key suppression config     </ToolTip>
+        <posx>16</posx>
+        <posy>402</posy>
+        <Size>1</Size>
+        <SubItems>
+          <ObjectSubItem>
+            <Description>AKS Group</Description>
+            <BitList>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__0</Name>
+                <Description>1</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>0</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__1</Name>
+                <Description>2</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>1</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__2</Name>
+                <Description>3</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>2</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__3</Name>
+                <Description>4</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>3</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__4</Name>
+                <Description>5</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>4</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__5</Name>
+                <Description>6</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>5</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__6</Name>
+                <Description>7</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>6</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__7</Name>
+                <Description>8</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>7</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+            </BitList>
+            <DataField />
+          </ObjectSubItem>
+        </SubItems>
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>BLEN</Name>
+        <Description>BLEN</Description>
+        <ToolTip> ACMASK Burst length for all object channels</ToolTip>
+        <posx>14</posx>
+        <posy>244</posy>
+        <Size>1</Size>
+        <SubItems>
+          <ObjectSubItem>
+            <Description>Gain</Description>
+            <BitList />
+            <DataField>
+              <ObjectFieldDataField>
+                <Name>__CFG__Field__1</Name>
+                <Description>Gain</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <StartBit>4</StartBit>
+                <EndBit>7</EndBit>
+                <FieldValue>
+                  <FieldType>Range</FieldType>
+                  <ValueMax>15</ValueMax>
+                  <ValueMin>0</ValueMin>
+                  <OptionList />
+                </FieldValue>
+                <IsFieldVisible>true</IsFieldVisible>
+              </ObjectFieldDataField>
+            </DataField>
+          </ObjectSubItem>
+        </SubItems>
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>TCHTHR</Name>
+        <Description>Touch Threshold</Description>
+        <ToolTip> LCMASK RCMASK Threshold for all object channels, tchhyst is applied to this </ToolTip>
+        <posx>20</posx>
+        <posy>300</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>TCHDI</Name>
+        <Description>Touch detect integration</Description>
+        <ToolTip> Detect integration config           </ToolTip>
+        <posx>20</posx>
+        <posy>350</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>ORIENT</Name>
+        <Description>ORIENT</Description>
+        <ToolTip>!&lt; LCMASK Controls flipping and rotating of touchscreen</ToolTip>
+        <posx>288</posx>
+        <posy>328</posy>
+        <Size>1</Size>
+        <SubItems>
+          <ObjectSubItem>
+            <Description>Orientation</Description>
+            <BitList>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__0</Name>
+                <Description>Switch X and Y</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>0</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__1</Name>
+                <Description>Invert X</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>1</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__2</Name>
+                <Description>Invert Y</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>2</BitNumber>
                 <IsBitVisible>true</IsBitVisible>
               </ObjectFieldBitField>
             </BitList>
@@ -5116,21 +5495,814 @@
           <OptionList />
         </FieldValue>
       </ObjectField>
+      <ObjectField>
+        <Name>MRGTIMEOUT</Name>
+        <Description>Merge Timeout</Description>
+        <ToolTip>!&lt; Timeout on how long a touch might ever stay</ToolTip>
+        <posx>210</posx>
+        <posy>190</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>MOVHYSTI</Name>
+        <Description>Movement hysteresis initial</Description>
+        <ToolTip> Movement hysteresis setting used after touchdown </ToolTip>
+        <posx>210</posx>
+        <posy>245</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>MOVHYSTN</Name>
+        <Description>Movement hysteresis next</Description>
+        <ToolTip> Movement hysteresis setting used once dragging   </ToolTip>
+        <posx>210</posx>
+        <posy>270</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>MOVFILTER</Name>
+        <Description>MOVFILTER</Description>
+        <ToolTip> Position filter setting controlling the rate of  </ToolTip>
+        <posx>338</posx>
+        <posy>529</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>NUMTOUCH</Name>
+        <Description>Number of reported touches</Description>
+        <ToolTip>!&lt; The number of touches that the screen will attempt</ToolTip>
+        <posx>480</posx>
+        <posy>335</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>MRGHYST</Name>
+        <Description>Merge hysteresis</Description>
+        <ToolTip>!&lt; The hysteresis applied on top of the merge threshold</ToolTip>
+        <posx>210</posx>
+        <posy>140</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>MRGTHR</Name>
+        <Description>Merge threshold</Description>
+        <ToolTip>!&lt; The threshold for the point when two peaks are</ToolTip>
+        <posx>210</posx>
+        <posy>165</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>AMPHYST</Name>
+        <Description>Amplitude hysteresis </Description>
+        <ToolTip> Amplitude hysteresis for message generation </ToolTip>
+        <posx>210</posx>
+        <posy>300</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>XRANGE</Name>
+        <Description>X resolution</Description>
+        <ToolTip> LCMASK </ToolTip>
+        <posx>480</posx>
+        <posy>360</posy>
+        <Size>2</Size>
+        <SubItems />
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>65535</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>YRANGE</Name>
+        <Description>Y resolution</Description>
+        <ToolTip> LCMASK </ToolTip>
+        <posx>480</posx>
+        <posy>385</posy>
+        <Size>2</Size>
+        <SubItems />
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>65535</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>XLOCLIP</Name>
+        <Description>x low clip region width</Description>
+        <ToolTip> LCMASK </ToolTip>
+        <posx>480</posx>
+        <posy>440</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>XHICLIP</Name>
+        <Description>x high clip region width</Description>
+        <ToolTip> LCMASK </ToolTip>
+        <posx>480</posx>
+        <posy>465</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>YLOCLIP</Name>
+        <Description>y low clip region width</Description>
+        <ToolTip> LCMASK </ToolTip>
+        <posx>480</posx>
+        <posy>490</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>YHICLIP</Name>
+        <Description>y high clip region width</Description>
+        <ToolTip> LCMASK </ToolTip>
+        <posx>480</posx>
+        <posy>515</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>XEDGECTRL</Name>
+        <Description>XEDGECTRL</Description>
+        <ToolTip> LCMASK </ToolTip>
+        <posx>470</posx>
+        <posy>135</posy>
+        <Size>1</Size>
+        <SubItems>
+          <ObjectSubItem>
+            <Description>X edge control</Description>
+            <BitList>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__6</Name>
+                <Description>Disable position locking</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>6</BitNumber>
+                <IsBitVisible>false</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__7</Name>
+                <Description>Extend starting offset</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>7</BitNumber>
+                <IsBitVisible>false</IsBitVisible>
+              </ObjectFieldBitField>
+            </BitList>
+            <DataField>
+              <ObjectFieldDataField>
+                <Name>__CFG__Field__0</Name>
+                <Description>correction gradient</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <StartBit>0</StartBit>
+                <EndBit>5</EndBit>
+                <FieldValue>
+                  <FieldType>Range</FieldType>
+                  <ValueMax>63</ValueMax>
+                  <ValueMin>0</ValueMin>
+                  <OptionList />
+                </FieldValue>
+                <IsFieldVisible>false</IsFieldVisible>
+              </ObjectFieldDataField>
+            </DataField>
+          </ObjectSubItem>
+        </SubItems>
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>XEDGEDIST</Name>
+        <Description>X edge correction distance</Description>
+        <ToolTip> LCMASK </ToolTip>
+        <posx>480</posx>
+        <posy>227</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>YEDGECTRL</Name>
+        <Description>YEDGECTRL</Description>
+        <ToolTip> LCMASK </ToolTip>
+        <posx>470</posx>
+        <posy>250</posy>
+        <Size>1</Size>
+        <SubItems>
+          <ObjectSubItem>
+            <Description>Y edge control</Description>
+            <BitList>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__6</Name>
+                <Description>Enable release update</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>6</BitNumber>
+                <IsBitVisible>false</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__7</Name>
+                <Description>Extend starting offset</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>7</BitNumber>
+                <IsBitVisible>false</IsBitVisible>
+              </ObjectFieldBitField>
+            </BitList>
+            <DataField>
+              <ObjectFieldDataField>
+                <Name>__CFG__Field__0</Name>
+                <Description>correction gradient</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <StartBit>0</StartBit>
+                <EndBit>5</EndBit>
+                <FieldValue>
+                  <FieldType>Range</FieldType>
+                  <ValueMax>63</ValueMax>
+                  <ValueMin>0</ValueMin>
+                  <OptionList />
+                </FieldValue>
+                <IsFieldVisible>false</IsFieldVisible>
+              </ObjectFieldDataField>
+            </DataField>
+          </ObjectSubItem>
+        </SubItems>
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>YEDGEDIST</Name>
+        <Description>Y edge correction distance</Description>
+        <ToolTip> LCMASK </ToolTip>
+        <posx>480</posx>
+        <posy>342</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>JUMPLIMIT</Name>
+        <Description>Maximum touch movement</Description>
+        <posx>210</posx>
+        <posy>215</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>TCHHYST</Name>
+        <Description>Touch hysteresis</Description>
+        <ToolTip> LCMASK RCMASK detection hysteresis setting </ToolTip>
+        <posx>20</posx>
+        <posy>325</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>XPITCH</Name>
+        <Description>X pitch</Description>
+        <ToolTip> LCMASK </ToolTip>
+        <posx>200</posx>
+        <posy>80</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>YPITCH</Name>
+        <Description>Y pitch</Description>
+        <ToolTip> LCMASK </ToolTip>
+        <posx>325</posx>
+        <posy>80</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>NEXTTCHDI</Name>
+        <Description>Anti Touch detect integration</Description>
+        <ToolTip> The number of cycles to add to the Anti-DI process for all</ToolTip>
+        <posx>20</posx>
+        <posy>375</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>CFG</Name>
+        <Description>CFG</Description>
+        <posx>15</posx>
+        <posy>183</posy>
+        <Size>1</Size>
+        <SubItems>
+          <ObjectSubItem>
+            <Description>Extra configuration</Description>
+            <BitList>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__0</Name>
+                <Description>Enhanced vector caculation</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>0</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__1</Name>
+                <Description>report each cycle</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>1</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+            </BitList>
+            <DataField />
+          </ObjectSubItem>
+        </SubItems>
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>MOVFILTER[2]</Name>
+        <Description>MOVFILTER2</Description>
+        <ToolTip> LCMASK </ToolTip>
+        <posx>470</posx>
+        <posy>20</posy>
+        <Size>1</Size>
+        <SubItems>
+          <ObjectSubItem>
+            <Description>Movement filter</Description>
+            <BitList>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__6</Name>
+                <Description>Med off</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>6</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__7</Name>
+                <Description>Disable</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>7</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+            </BitList>
+            <DataField>
+              <ObjectFieldDataField>
+                <Name>__CFG__Field__0</Name>
+                <Description>Speed Resp</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <StartBit>0</StartBit>
+                <EndBit>3</EndBit>
+                <FieldValue>
+                  <FieldType>Range</FieldType>
+                  <ValueMax>15</ValueMax>
+                  <ValueMin>0</ValueMin>
+                  <OptionList />
+                </FieldValue>
+                <IsFieldVisible>true</IsFieldVisible>
+              </ObjectFieldDataField>
+            </DataField>
+          </ObjectSubItem>
+        </SubItems>
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>MOVSMOOTH</Name>
+        <Description>filter limit</Description>
+        <ToolTip> LCMASK </ToolTip>
+        <posx>480</posx>
+        <posy>112</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>MOVPRED</Name>
+        <Description>MOVPRED</Description>
+        <ToolTip> LCMASK </ToolTip>
+        <posx>241</posx>
+        <posy>452</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>TRACKTHRSF</Name>
+        <Description>TRACKTHRSF</Description>
+        <ToolTip> LCMASK RCMASK </ToolTip>
+        <posx>346</posx>
+        <posy>547</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>NOISETHRSF</Name>
+        <Description>NOISETHRSF</Description>
+        <ToolTip> RCMASK </ToolTip>
+        <posx>168</posx>
+        <posy>558</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>DXGAIN</Name>
+        <Description>DXGAIN</Description>
+        <ToolTip> LCMASK ACMASK - alternate setting for dualx </ToolTip>
+        <posx>264</posx>
+        <posy>523</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>DXTCHTHR</Name>
+        <Description>DXTCHTHR</Description>
+        <ToolTip> LCMASK RCMASK - alternate setting for dualx </ToolTip>
+        <posx>292</posx>
+        <posy>501</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>DXXEDGEGRAD</Name>
+        <Description>DXXEDGEGRAD</Description>
+        <ToolTip> LCMASK - alternate setting for dualx </ToolTip>
+        <posx>157</posx>
+        <posy>533</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>DXXEDGEDIST</Name>
+        <Description>DXXEDGEDIST</Description>
+        <ToolTip> LCMASK - alternate setting for dualx </ToolTip>
+        <posx>158</posx>
+        <posy>504</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>MRGTHRADJSTR</Name>
+        <Description>MRGTHRADJSTR</Description>
+        <ToolTip> LCMASK </ToolTip>
+        <posx>240</posx>
+        <posy>484</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>CUTOFFTHR</Name>
+        <Description>CUTOFFTHR</Description>
+        <posx>316</posx>
+        <posy>538</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
     </Fieldlist>
     <UIFieldList />
-  </T_Object>
-  <T_Object ObjectID="T9" Number="9" DesignHeight="500" DesignWidth="520">
-    <ObjectName>Unknown__T9</ObjectName>
-    <Description>Unknown__T9</Description>
+  </T_Object> 
+    <T_Object ObjectID="T15" Number="15" DesignHeight="600" DesignWidth="720">
+    <ObjectName>TOUCH_KEYARRAY_T15</ObjectName>
+    <Description>Key Array T15</Description>
     <Fieldlist>
       <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 0</Name>
-        <Description>Byte 0</Description>
-        <posx>0</posx>
-        <posy>30</posy>
+        <Name>CTRL</Name>
+        <Description>Control</Description>
+        <ToolTip>CTRL:  Main configuration field</ToolTip>
+        <posx>200</posx>
+        <posy>0</posy>
         <Size>1</Size>
-        <SubItems />
+        <SubItems>
+          <ObjectSubItem>
+            <Description>Control</Description>
+            <BitList>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__0</Name>
+                <Description>Enable</Description>
+                <ToolTip>ENABLE</ToolTip>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>0</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__1</Name>
+                <Description>Report enable</Description>
+                <ToolTip>RPTENABLE</ToolTip>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>1</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__2</Name>
+                <Description>Enable adaptive threshold adjustment</Description>
+                <ToolTip>ADATTHREN</ToolTip>
+                <posx>110</posx>
+                <posy>60</posy>
+                <BitNumber>2</BitNumber>
+                <IsBitVisible>false</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__3</Name>
+                <Description>Touchscreen Contact Suppression algorithm enabled</Description>
+                <ToolTip>TSCONTSUP</ToolTip>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>3</BitNumber>
+                <IsBitVisible>false</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__4</Name>
+                <Description>Ignores Glove Mode.</Description>
+                <ToolTip>IGNGLOVEMODE</ToolTip>
+                <posx>0</posx>
+                <posy>140</posy>
+                <BitNumber>4</BitNumber>
+                <IsBitVisible>false</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__7</Name>
+                <Description>Internal AKS enable</Description>
+                <ToolTip>INTAKSEN</ToolTip>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>7</BitNumber>
+                <IsBitVisible>false</IsBitVisible>
+              </ObjectFieldBitField>
+            </BitList>
+            <DataField />
+          </ObjectSubItem>
+        </SubItems>
         <IsFieldVisible>true</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
@@ -5141,14 +6313,14 @@
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 1</Name>
-        <Description>Byte 1</Description>
-        <posx>0</posx>
-        <posy>60</posy>
+        <Name>XORIGIN</Name>
+        <Description>X Origin</Description>
+        <ToolTip>XORIGIN</ToolTip>
+        <posx>200</posx>
+        <posy>150</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -5158,44 +6330,10 @@
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 2</Name>
-        <Description>Byte 2</Description>
-        <posx>0</posx>
-        <posy>90</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 3</Name>
-        <Description>Byte 3</Description>
-        <posx>0</posx>
-        <posy>120</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 4</Name>
-        <Description>Byte 4</Description>
-        <posx>0</posx>
+        <Name>YORIGIN</Name>
+        <Description>Y Origin</Description>
+        <ToolTip>YORIGIN</ToolTip>
+        <posx>325</posx>
         <posy>150</posy>
         <Size>1</Size>
         <SubItems />
@@ -5209,11 +6347,28 @@
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 5</Name>
-        <Description>Byte 5</Description>
-        <posx>0</posx>
-        <posy>180</posy>
+        <Name>XSIZE</Name>
+        <Description>X Size</Description>
+        <ToolTip>XSIZE: Object X size (i.e. width)</ToolTip>
+        <posx>200</posx>
+        <posy>175</posy>
+        <Size>1</Size>
+        <SubItems />
+        <IsFieldVisible>false</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>YSIZE</Name>
+        <Description>Y Size</Description>
+        <ToolTip>YSIZE: Object Y size (i.e. height)</ToolTip>
+        <posx>325</posx>
+        <posy>175</posy>
         <Size>1</Size>
         <SubItems />
         <IsFieldVisible>true</IsFieldVisible>
@@ -5226,11 +6381,98 @@
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 6</Name>
-        <Description>Byte 6</Description>
-        <posx>0</posx>
-        <posy>210</posy>
+        <Name>AKSCFG</Name>
+        <ToolTip>AKSCFG: Adjacent key suppression config</ToolTip>
+        <posx>200</posx>
+        <posy>250</posy>
+        <Size>1</Size>
+        <SubItems>
+          <ObjectSubItem>
+            <Description>AKS Group</Description>
+            <BitList>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__0</Name>
+                <Description>1</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>0</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__1</Name>
+                <Description>2</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>1</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__2</Name>
+                <Description>3</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>2</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__3</Name>
+                <Description>4</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>3</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__4</Name>
+                <Description>5</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>4</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__5</Name>
+                <Description>6</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>5</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__6</Name>
+                <Description>7</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>6</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__7</Name>
+                <Description>8</Description>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>7</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+            </BitList>
+            <DataField />
+          </ObjectSubItem>
+        </SubItems>
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>BLEN</Name>
+        <Description>Gain</Description>
+        <ToolTip>BLEN, High 4bits Anolog Gain, low-4bits Digital Gain: GAIN_1=0, GAIN_2, GAIN_4, GAIN_8, GAIN_16, GAIN_32 </ToolTip>
+        <posx>322</posx>
+        <posy>252</posy>
         <Size>1</Size>
         <SubItems />
         <IsFieldVisible>true</IsFieldVisible>
@@ -5243,11 +6485,11 @@
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 7</Name>
-        <Description>Byte 7</Description>
-        <posx>0</posx>
-        <posy>240</posy>
+        <Name>TCHTHR</Name>
+        <Description>Touch threshold</Description>
+        <ToolTip>TCHTHR Threshold for all object channels</ToolTip>
+        <posx>322</posx>
+        <posy>278</posy>
         <Size>1</Size>
         <SubItems />
         <IsFieldVisible>true</IsFieldVisible>
@@ -5260,11 +6502,61 @@
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 8</Name>
-        <Description>Byte 8</Description>
-        <posx>0</posx>
-        <posy>270</posy>
+        <Name>TCHDI</Name>
+        <Description>Touch detect integration</Description>
+        <ToolTip>TCHDI  Detect integration config</ToolTip>
+        <posx>322</posx>
+        <posy>302</posy>
+        <Size>1</Size>
+        <SubItems>
+          <ObjectSubItem>
+            <Description>ObjectSubItem</Description>
+            <BitList>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__7</Name>
+                <Description>Disables Detect Integration Touchdown.</Description>
+                <ToolTip>DISTCHDIDOWN:</ToolTip>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>7</BitNumber>
+                <IsBitVisible>false</IsBitVisible>
+              </ObjectFieldBitField>
+            </BitList>
+            <DataField>
+              <ObjectFieldDataField>
+                <Name>__CFG__Field__0</Name>
+                <Description>Specifies the base number of DI cycles.</Description>
+                <ToolTip>TCHDI</ToolTip>
+                <posx>0</posx>
+                <posy>0</posy>
+                <StartBit>0</StartBit>
+                <EndBit>5</EndBit>
+                <FieldValue>
+                  <FieldType>Range</FieldType>
+                  <ValueMax>63</ValueMax>
+                  <ValueMin>0</ValueMin>
+                  <OptionList />
+                </FieldValue>
+                <IsFieldVisible>true</IsFieldVisible>
+              </ObjectFieldDataField>
+            </DataField>
+          </ObjectSubItem>
+        </SubItems>
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>255</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>TCHHYST</Name>
+        <Description>Touch hysteresis</Description>
+        <ToolTip>TCHHYST</ToolTip>
+        <posx>322</posx>
+        <posy>384</posy>
         <Size>1</Size>
         <SubItems />
         <IsFieldVisible>true</IsFieldVisible>
@@ -5277,439 +6569,49 @@
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 9</Name>
-        <Description>Byte 9</Description>
-        <posx>0</posx>
-        <posy>300</posy>
+        <Name>CFG</Name>
+        <Description>debug configuration</Description>
+        <ToolTip>CFG</ToolTip>
+        <posx>320</posx>
+        <posy>410</posy>
         <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 10</Name>
-        <Description>Byte 10</Description>
-        <posx>0</posx>
-        <posy>330</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 11</Name>
-        <Description>Byte 11</Description>
-        <posx>0</posx>
-        <posy>360</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 12</Name>
-        <Description>Byte 12</Description>
-        <posx>0</posx>
-        <posy>390</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 13</Name>
-        <Description>Byte 13</Description>
-        <posx>0</posx>
-        <posy>420</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 14</Name>
-        <Description>Byte 14</Description>
-        <posx>0</posx>
-        <posy>450</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 15</Name>
-        <Description>Byte 15</Description>
-        <posx>120</posx>
-        <posy>30</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 16</Name>
-        <Description>Byte 16</Description>
-        <posx>120</posx>
-        <posy>60</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 17</Name>
-        <Description>Byte 17</Description>
-        <posx>120</posx>
-        <posy>90</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 18</Name>
-        <Description>Byte 18</Description>
-        <posx>120</posx>
-        <posy>120</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 19</Name>
-        <Description>Byte 19</Description>
-        <posx>120</posx>
-        <posy>150</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 20</Name>
-        <Description>Byte 20</Description>
-        <posx>120</posx>
-        <posy>180</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 21</Name>
-        <Description>Byte 21</Description>
-        <posx>120</posx>
-        <posy>210</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 22</Name>
-        <Description>Byte 22</Description>
-        <posx>120</posx>
-        <posy>240</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 23</Name>
-        <Description>Byte 23</Description>
-        <posx>120</posx>
-        <posy>270</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 24</Name>
-        <Description>Byte 24</Description>
-        <posx>120</posx>
-        <posy>300</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 25</Name>
-        <Description>Byte 25</Description>
-        <posx>120</posx>
-        <posy>330</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 26</Name>
-        <Description>Byte 26</Description>
-        <posx>120</posx>
-        <posy>360</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 27</Name>
-        <Description>Byte 27</Description>
-        <posx>120</posx>
-        <posy>390</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 28</Name>
-        <Description>Byte 28</Description>
-        <posx>120</posx>
-        <posy>420</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 29</Name>
-        <Description>Byte 29</Description>
-        <posx>120</posx>
-        <posy>450</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 30</Name>
-        <Description>Byte 30</Description>
-        <posx>240</posx>
-        <posy>30</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 31</Name>
-        <Description>Byte 31</Description>
-        <posx>240</posx>
-        <posy>60</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 32</Name>
-        <Description>Byte 32</Description>
-        <posx>240</posx>
-        <posy>90</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 33</Name>
-        <Description>Byte 33</Description>
-        <posx>240</posx>
-        <posy>120</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 34</Name>
-        <Description>Byte 34</Description>
-        <posx>240</posx>
-        <posy>150</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <SubItems>
+          <ObjectSubItem>
+            <Description>Key deltas output mode</Description>
+            <BitList>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__0</Name>
+                <Description>Debug Deltas enable via the T6  Debug interface.</Description>
+                <ToolTip>DBGDELTASEN</ToolTip>
+                <posx>345</posx>
+                <posy>401</posy>
+                <BitNumber>0</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__1</Name>
+                <Description>Debug References enable via T6 debug interface.</Description>
+                <ToolTip>DBGREFSEN</ToolTip>
+                <posx>0</posx>
+                <posy>0</posy>
+                <BitNumber>1</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+              <ObjectFieldBitField>
+                <Name>__CFG__Bit__2</Name>
+                <Description>Debug Signals enable via T6 debug interface.</Description>
+                <ToolTip>DBGSIGSEN</ToolTip>
+                <posx>0</posx>
+                <posy>0</posy>
+                <AccessLevel>Internal</AccessLevel>
+                <BitNumber>2</BitNumber>
+                <IsBitVisible>true</IsBitVisible>
+              </ObjectFieldBitField>
+            </BitList>
+            <DataField />
+          </ObjectSubItem>
+        </SubItems>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -5719,208 +6621,30 @@
         </FieldValue>
       </ObjectField>
     </Fieldlist>
-    <UIFieldList />
+    <UIFieldList>
+      <UIField>
+        <Name>Physical Configuration</Name>
+        <posx>200</posx>
+        <posy>125</posy>
+        <FieldWidth>260</FieldWidth>
+        <FieldHeight>85</FieldHeight>
+        <ElementType>GroupBox</ElementType>
+      </UIField>
+      <UIField>
+        <Name>Detection Configuration</Name>
+        <posx>200</posx>
+        <posy>225</posy>
+        <FieldWidth>450</FieldWidth>
+        <FieldHeight>278</FieldHeight>
+        <ElementType>GroupBox</ElementType>
+      </UIField>
+    </UIFieldList>
   </T_Object>
-  <T_Object ObjectID="T15" Number="15" DesignHeight="500" DesignWidth="520">
-    <ObjectName>Unknown__T15</ObjectName>
-    <Description>Unknown__T15</Description>
-    <Fieldlist>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 0</Name>
-        <Description>Byte 0</Description>
-        <posx>0</posx>
-        <posy>30</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 1</Name>
-        <Description>Byte 1</Description>
-        <posx>0</posx>
-        <posy>60</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 2</Name>
-        <Description>Byte 2</Description>
-        <posx>0</posx>
-        <posy>90</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 3</Name>
-        <Description>Byte 3</Description>
-        <posx>0</posx>
-        <posy>120</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 4</Name>
-        <Description>Byte 4</Description>
-        <posx>0</posx>
-        <posy>150</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 5</Name>
-        <Description>Byte 5</Description>
-        <posx>0</posx>
-        <posy>180</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 6</Name>
-        <Description>Byte 6</Description>
-        <posx>0</posx>
-        <posy>210</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 7</Name>
-        <Description>Byte 7</Description>
-        <posx>0</posx>
-        <posy>240</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 8</Name>
-        <Description>Byte 8</Description>
-        <posx>0</posx>
-        <posy>270</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 9</Name>
-        <Description>Byte 9</Description>
-        <posx>0</posx>
-        <posy>300</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>Byte 10</Name>
-        <Description>Byte 10</Description>
-        <posx>0</posx>
-        <posy>330</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-    </Fieldlist>
-    <UIFieldList />
-  </T_Object>
-  <T_Object ObjectID="T25" Number="25" DesignHeight="601" DesignWidth="1102">
+ <T_Object ObjectID="T25" Number="25" DesignHeight="450" DesignWidth="750">
     <ObjectName>SPT_SELFTEST_T25</ObjectName>
     <Description>Self Test T25</Description>
     <Fieldlist>
       <ObjectField>
-        <Instance>0</Instance>
         <Name>CTRL</Name>
         <Description>Control</Description>
         <posx>0</posx>
@@ -5931,7 +6655,6 @@
             <Description>Control</Description>
             <BitList>
               <ObjectFieldBitField>
-                <Instance>0</Instance>
                 <Name>__CFG__Bit__0</Name>
                 <Description>Enable</Description>
                 <ToolTip>ENABLE</ToolTip>
@@ -5941,7 +6664,6 @@
                 <IsBitVisible>true</IsBitVisible>
               </ObjectFieldBitField>
               <ObjectFieldBitField>
-                <Instance>0</Instance>
                 <Name>__CFG__Bit__1</Name>
                 <Description>Report Enable</Description>
                 <ToolTip>RPTEN</ToolTip>
@@ -5951,32 +6673,20 @@
                 <IsBitVisible>true</IsBitVisible>
               </ObjectFieldBitField>
               <ObjectFieldBitField>
-                <Instance>0</Instance>
-                <Name>EXTJIGTSTEN</Name>
-                <Description>EXTJIGTSTEN</Description>
+                <Name>EXTTSTJIGEN</Name>
+                <Description>EXTTSTJIGEN</Description>
                 <posx>0</posx>
                 <posy>0</posy>
                 <BitNumber>2</BitNumber>
                 <IsBitVisible>false</IsBitVisible>
               </ObjectFieldBitField>
               <ObjectFieldBitField>
-                <Instance>0</Instance>
                 <Name>DISPERTSTDET</Name>
-                <Description>Disables periodic tests in Detect</Description>
-                <ToolTip>DISPERTSTDET</ToolTip>
+                <Description>DISPERTSTDET</Description>
                 <posx>0</posx>
                 <posy>0</posy>
                 <BitNumber>5</BitNumber>
-                <IsBitVisible>true</IsBitVisible>
-              </ObjectFieldBitField>
-              <ObjectFieldBitField>
-                <Instance>0</Instance>
-                <Name>IGNINITPFTST</Name>
-                <Description>Ignore Initial Pin Fault Test Result.</Description>
-                <posx>470</posx>
-                <posy>290</posy>
-                <BitNumber>6</BitNumber>
-                <IsBitVisible>true</IsBitVisible>
+                <IsBitVisible>false</IsBitVisible>
               </ObjectFieldBitField>
             </BitList>
             <DataField />
@@ -5986,12 +6696,10 @@
             <BitList />
             <DataField>
               <ObjectFieldDataField>
-                <Instance>0</Instance>
                 <Name>PERTSTMODE</Name>
-                <Description>Periodic test mode</Description>
-                <ToolTip>PERTSTMODE</ToolTip>
-                <posx>21</posx>
-                <posy>114</posy>
+                <Description>PERTSTMODE</Description>
+                <posx>28</posx>
+                <posy>101</posy>
                 <StartBit>3</StartBit>
                 <EndBit>4</EndBit>
                 <FieldValue>
@@ -6020,9 +6728,9 @@
                       <Value>3</Value>
                     </Options>
                     <SelectedOption>
-                      <OptionName>Option 3</OptionName>
-                      <OptionDescription>Periodic Test report on Fail and OK</OptionDescription>
-                      <Value>3</Value>
+                      <OptionName>Option 0</OptionName>
+                      <OptionDescription>Power Test report on Fail</OptionDescription>
+                      <Value>0</Value>
                     </SelectedOption>
                   </OptionList>
                 </FieldValue>
@@ -6041,12 +6749,11 @@
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
         <Name>CMD</Name>
-        <Description>Test Commands</Description>
+        <Description>Command</Description>
         <ToolTip>CMD</ToolTip>
-        <posx>0</posx>
-        <posy>240</posy>
+        <posx>6</posx>
+        <posy>248</posy>
         <Size>1</Size>
         <SubItems />
         <IsFieldVisible>true</IsFieldVisible>
@@ -6072,6 +6779,11 @@
               <Value>18</Value>
             </Options>
             <Options>
+              <OptionName>Option 20</OptionName>
+              <OptionDescription>Open pin fault test</OptionDescription>
+              <Value>20</Value>
+            </Options>
+            <Options>
               <OptionName>Option 23</OptionName>
               <OptionDescription>Signal limit test</OptionDescription>
               <Value>23</Value>
@@ -6090,13 +6802,11 @@
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
         <Name>UPSIGLIM(0)</Name>
-        <Description>Upper Signal limit[0], Please see protocol guide for measurement mode explanation</Description>
-        <ToolTip>UPSIGLIM[0]
-</ToolTip>
-        <posx>250</posx>
-        <posy>20</posy>
+        <Description>Upper Signal Limit Touch(0)</Description>
+        <ToolTip>UPSIGLIM(0)</ToolTip>
+        <posx>244</posx>
+        <posy>16</posy>
         <Size>2</Size>
         <SubItems />
         <IsFieldVisible>true</IsFieldVisible>
@@ -6109,12 +6819,11 @@
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
         <Name>LOSIGLIM(0)</Name>
-        <Description>Lower Signal limit[0], Please see protocol guide for measurement mode explanation</Description>
-        <ToolTip>LOSIGLIM[0]</ToolTip>
-        <posx>250</posx>
-        <posy>50</posy>
+        <Description>Lower Signal Limit Touch(0)</Description>
+        <ToolTip>LOSIGLIM(0)</ToolTip>
+        <posx>244</posx>
+        <posy>42</posy>
         <Size>2</Size>
         <SubItems />
         <IsFieldVisible>true</IsFieldVisible>
@@ -6127,12 +6836,79 @@
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
+        <Name>UPSIGLIM(1)</Name>
+        <Description>Upper Signal Limit Key(0)</Description>
+        <ToolTip>UPSIGLIM(1)</ToolTip>
+        <posx>244</posx>
+        <posy>88</posy>
+        <Size>2</Size>
+        <SubItems />
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>65535</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>LOSIGLIM(1)</Name>
+        <Description>Lower Signal Limit Key(0)</Description>
+        <ToolTip>LOSIGLIM(1)</ToolTip>
+        <posx>244</posx>
+        <posy>114</posy>
+        <Size>2</Size>
+        <SubItems />
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>65535</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>UPSIGLIM(2)</Name>
+        <Description>Upper Signal Limit Key(1)</Description>
+        <ToolTip>UPSIGLIM(2)</ToolTip>
+        <posx>244</posx>
+        <posy>140</posy>
+        <Size>2</Size>
+        <SubItems />
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>65535</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>LOSIGLIM(2)</Name>
+        <Description>Lower Signal Limit Key(1)</Description>
+        <ToolTip>LOSIGLIM(2)</ToolTip>
+        <posx>244</posx>
+        <posy>166</posy>
+        <Size>2</Size>
+        <SubItems />
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>65535</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
         <Name>PINDWELLUS</Name>
         <Description>Pin fault test dwell time (us)</Description>
         <ToolTip>PINDWELLUS Allow enough time for X lines to slew to the correct level before test</ToolTip>
-        <posx>8</posx>
-        <posy>358</posy>
+        <posx>244</posx>
+        <posy>236</posy>
         <Size>1</Size>
         <SubItems />
         <IsFieldVisible>true</IsFieldVisible>
@@ -6145,16 +6921,11 @@
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
         <Name>SIGRANGELIM(0)</Name>
-        <Description>Signal Range Limit Touch[0], Please see protocol guide for measurement mode explanation
-</Description>
-        <ToolTip>SIGRANGELIM[0]
-Upper Signal limit[0] for SE MUT, SE MUT + SC, P2P MUT modes, P2P signal range for P2P MUT + SC mode
-
-and SCT enabled: Self Cap signal range[0]</ToolTip>
-        <posx>250</posx>
-        <posy>78</posy>
+        <Description>Signal Range Limit Touch (0)</Description>
+        <ToolTip>SIGRANGELIM(0)</ToolTip>
+        <posx>470</posx>
+        <posy>42</posy>
         <Size>2</Size>
         <SubItems />
         <IsFieldVisible>true</IsFieldVisible>
@@ -6167,15 +6938,48 @@ and SCT enabled: Self Cap signal range[0]</ToolTip>
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
+        <Name>SIGRANGELIM(1)</Name>
+        <Description>Signal Range Limit Key (0)</Description>
+        <ToolTip>SIGRANGELIM(1)</ToolTip>
+        <posx>470</posx>
+        <posy>114</posy>
+        <Size>2</Size>
+        <SubItems />
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>65535</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
+        <Name>SIGRANGELIM(2)</Name>
+        <Description>Signal Range Limit Key (1)</Description>
+        <ToolTip>SIGRANGELIM(2)</ToolTip>
+        <posx>470</posx>
+        <posy>166</posy>
+        <Size>2</Size>
+        <SubItems />
+        <IsFieldVisible>true</IsFieldVisible>
+        <IsReadOnly>false</IsReadOnly>
+        <FieldValue>
+          <FieldType>Range</FieldType>
+          <ValueMax>65535</ValueMax>
+          <ValueMin>0</ValueMin>
+          <OptionList />
+        </FieldValue>
+      </ObjectField>
+      <ObjectField>
         <Name>PINTHR</Name>
         <Description>Pin fault test threshold</Description>
         <ToolTip>PINTHR Specifies the pin threshold used to detect shorts.</ToolTip>
-        <posx>8</posx>
-        <posy>378</posy>
+        <posx>244</posx>
+        <posy>264</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -6185,15 +6989,14 @@ and SCT enabled: Self Cap signal range[0]</ToolTip>
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
         <Name>PERTSTINTERVAL</Name>
         <Description>Periodic test interval (x 100 ms)</Description>
-        <ToolTip>- The interval between the periodic tests, specified in units of 100ms. A value of 0 in this field sets a default value of 2 to give a 200ms interval</ToolTip>
+        <ToolTip>- The interval between the periodic tests, specified in units of 100ms. A value of 0 in this field sets a default value of 2 to give a 200ms interval   </ToolTip>
         <posx>244</posx>
-        <posy>436</posy>
+        <posy>386</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -6203,17 +7006,16 @@ and SCT enabled: Self Cap signal range[0]</ToolTip>
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
         <Name>PERTSTHOLDOFF</Name>
         <Description>Periodic test hold off time (ms)</Description>
         <ToolTip>- Specifies how long a periodic test can be delayed by a higher priority operation, these are, typically, Detect Integration or calibration.  The hold off delay is specified in ms. 
 
 A setting of 0 means no hold off delay while a value of 255 mans indefinite hold off.</ToolTip>
         <posx>244</posx>
-        <posy>462</posy>
+        <posy>410</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -6223,15 +7025,14 @@ A setting of 0 means no hold off delay while a value of 255 mans indefinite hold
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
         <Name>PERTSTRPTFACTOR</Name>
         <Description>Periodic test report factor</Description>
         <ToolTip>- Helps determine how often the result of the periodic test is reported. This is specified as a multiple of the periodic test interval (PERTSTINTERVAL). So a report occurs every Periodic Test Interval (PERTSTINTERVAL) x Periodic Test Report Factor (PERTSTRPTFACTOR). A setting of 1 will result in a report every periodic test interval (PERTSTINTERVAL).</ToolTip>
-        <posx>484</posx>
-        <posy>436</posy>
+        <posx>470</posx>
+        <posy>386</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -6241,17 +7042,17 @@ A setting of 0 means no hold off delay while a value of 255 mans indefinite hold
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
         <Name>PERTSTRPTWIDTH</Name>
         <Description>Periodic Test Report Pulse width</Description>
-        <ToolTip>- Specifies the periodic test report GPIO pulse width. The pulse width is specified in units of 1/256 or the periodic test report interval whichh is defined as Periodic Test Interval (PERTSTINTERVAL) x Periodic Test Report Factor (PERTSTRPTFACTOR). A valueof 0 is inerpreted as 256 which results in a steady state.
+        <ToolTip> - Specifies the periodic test report GPIO pulse width. The pulse width is specified in units of 1/256 or the periodic test report interval whichh is defined as Periodic Test Interval (PERTSTINTERVAL) x Periodic Test Report Factor (PERTSTRPTFACTOR). A valueof 0 is inerpreted as 256 which results in a steady state.
 
-NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T19 TRIGGER[] fields)</ToolTip>
-        <posx>484</posx>
-        <posy>462</posy>
+NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T19 TRIGGER[] fields)
+</ToolTip>
+        <posx>470</posx>
+        <posy>410</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -6261,110 +7062,39 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         </FieldValue>
       </ObjectField>
       <ObjectField>
-        <Instance>0</Instance>
         <Name>PERTSTCFG</Name>
         <Description>PERTSTCFG</Description>
-        <posx>242</posx>
-        <posy>362</posy>
+        <posx>260</posx>
+        <posy>306</posy>
         <Size>1</Size>
         <SubItems>
           <ObjectSubItem>
             <Description>Periodic Test Enable</Description>
             <BitList>
               <ObjectFieldBitField>
-                <Instance>0</Instance>
                 <Name>PWRTSTEN</Name>
                 <Description>Enable Periodic Power test</Description>
                 <ToolTip>- Enables periodic power testing if selected , otherwise disabled</ToolTip>
-                <posx>0</posx>
-                <posy>0</posy>
+                <posx>410</posx>
+                <posy>330</posy>
                 <BitNumber>0</BitNumber>
-                <IsBitVisible>true</IsBitVisible>
+                <IsBitVisible>false</IsBitVisible>
               </ObjectFieldBitField>
               <ObjectFieldBitField>
-                <Instance>0</Instance>
                 <Name>SIGLIMTSTEN</Name>
                 <Description>Enable Periodic Signal Limit tests</Description>
                 <ToolTip> - Enables periodic signal limit testing if selected. Otherwise disabled
 </ToolTip>
-                <posx>0</posx>
-                <posy>0</posy>
+                <posx>286</posx>
+                <posy>348</posy>
                 <BitNumber>1</BitNumber>
-                <IsBitVisible>true</IsBitVisible>
+                <IsBitVisible>false</IsBitVisible>
               </ObjectFieldBitField>
             </BitList>
             <DataField />
           </ObjectSubItem>
         </SubItems>
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>SEMEASEN</Name>
-        <Description>SEMEASEN</Description>
-        <posx>504</posx>
-        <posy>118</posy>
-        <Size>1</Size>
-        <SubItems>
-          <ObjectSubItem>
-            <Description>ObjectSubItem</Description>
-            <ShowBorder>false</ShowBorder>
-            <BitList>
-              <ObjectFieldBitField>
-                <Instance>0</Instance>
-                <Name>SEMEASEN</Name>
-                <Description>Single Ended Measurement Enable (0)</Description>
-                <posx>754</posx>
-                <posy>130</posy>
-                <BitNumber>0</BitNumber>
-                <IsBitVisible>true</IsBitVisible>
-              </ObjectFieldBitField>
-            </BitList>
-            <DataField />
-          </ObjectSubItem>
-        </SubItems>
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>SEGAIN </Name>
-        <Description>Single Ended Mutual Measurement Gain</Description>
-        <posx>504</posx>
-        <posy>144</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
-        <IsReadOnly>false</IsReadOnly>
-        <FieldValue>
-          <FieldType>Range</FieldType>
-          <ValueMax>255</ValueMax>
-          <ValueMin>0</ValueMin>
-          <OptionList />
-        </FieldValue>
-      </ObjectField>
-      <ObjectField>
-        <Instance>0</Instance>
-        <Name>SEDXGAIN</Name>
-        <Description>Single Ended Dual-X Mutual Measurement Gain</Description>
-        <posx>504</posx>
-        <posy>172</posy>
-        <Size>1</Size>
-        <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -6376,39 +7106,28 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
     </Fieldlist>
     <UIFieldList>
       <UIField>
-        <Instance>0</Instance>
         <Name>Periodic Tests</Name>
-        <posx>234</posx>
-        <posy>342</posy>
-        <FieldWidth>640</FieldWidth>
-        <FieldHeight>162</FieldHeight>
+        <posx>235</posx>
+        <posy>290</posy>
+        <FieldWidth>482</FieldWidth>
+        <FieldHeight>158</FieldHeight>
         <ElementType>GroupBox</ElementType>
+		<IsFieldVisible>false</IsFieldVisible>
       </UIField>
       <UIField>
-        <Instance>0</Instance>
         <Name>Signal Limits</Name>
-        <posx>234</posx>
+        <posx>246</posx>
         <posy>0</posy>
-        <FieldWidth>639</FieldWidth>
-        <FieldHeight>218</FieldHeight>
+        <FieldWidth>462</FieldWidth>
+        <FieldHeight>210</FieldHeight>
         <ElementType>GroupBox</ElementType>
       </UIField>
       <UIField>
-        <Instance>0</Instance>
         <Name>Pin Fault</Name>
-        <posx>0</posx>
-        <posy>340</posy>
-        <FieldWidth>229</FieldWidth>
-        <FieldHeight>70</FieldHeight>
-        <ElementType>GroupBox</ElementType>
-      </UIField>
-      <UIField>
-        <Instance>0</Instance>
-        <Name>Additional Single Ended Mutual signal limit test</Name>
-        <posx>498</posx>
-        <posy>104</posy>
-        <FieldWidth>334</FieldWidth>
-        <FieldHeight>101</FieldHeight>
+        <posx>246</posx>
+        <posy>212</posy>
+        <FieldWidth>462</FieldWidth>
+        <FieldHeight>80</FieldHeight>
         <ElementType>GroupBox</ElementType>
       </UIField>
     </UIFieldList>
@@ -6506,7 +7225,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
             <FieldWidth>205</FieldWidth>
           </ObjectSubItem>
         </SubItems>
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -6593,7 +7312,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
             <FieldWidth>320</FieldWidth>
           </ObjectSubItem>
         </SubItems>
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -6606,7 +7325,17 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <Instance>0</Instance>
         <Name>INTTIME</Name>
         <Description>Integrate Time (cycles)</Description>
-        <ToolTip>INTTIME  (in system clock 24Mhz clock cycles)</ToolTip>
+        <ToolTip> In system clock prescale: 
+	PRSC_DIV_SEL_1 = 0(old),
+	PRSC_DIV_SEL_2 = 0(new),
+	PRSC_DIV_SEL_4,
+	PRSC_DIV_SEL_8,
+	PRSC_DIV_SEL_16,
+	PRSC_DIV_SEL_32,
+	PRSC_DIV_SEL_64,
+	PRSC_DIV_SEL_128,
+	PRSC_DIV_SEL_256
+	</ToolTip>
         <posx>25</posx>
         <posy>275</posy>
         <Size>1</Size>
@@ -6624,7 +7353,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <Instance>0</Instance>
         <Name>DELAYTIME</Name>
         <Description>Delay Time (cycles)</Description>
-        <ToolTip>DELAYTIME (in system clock 24Mhz clock cycles)</ToolTip>
+        <ToolTip>Charge Share Delay</ToolTip>
         <posx>25</posx>
         <posy>300</posy>
         <Size>1</Size>
@@ -6647,7 +7376,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <posy>325</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -6659,10 +7388,18 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
       <ObjectField>
         <Instance>0</Instance>
         <Name>ACTVSYNCSPERL</Name>
-        <Description>Active Syncs Per Line (groups)</Description>
-        <ToolTip>ACTVSYNCSPERL</ToolTip>
+        <Description>Active Syncs Per cycle (groups)</Description>
+        <ToolTip>ACTVSYNCSPERL: 
+	FILTER_LEVEL_1 = 0,
+	FILTER_LEVEL_2,
+	FILTER_LEVEL_4,
+	FILTER_LEVEL_8,
+	FILTER_LEVEL_16,
+	FILTER_LEVEL_32,
+	FILTER_LEVEL_64
+	</ToolTip>
         <posx>25</posx>
-        <posy>350</posy>
+        <posy>325</posy>
         <Size>1</Size>
         <SubItems />
         <IsFieldVisible>true</IsFieldVisible>
@@ -6741,7 +7478,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <VisibilityConstraint>I==0</VisibilityConstraint>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -6828,7 +7565,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
           </ObjectSubItem>
         </SubItems>
         <IsFieldVisible>false</IsFieldVisible>
-        <IsFieldReserved>true</IsFieldReserved>
+        <IsFieldReserved>false</IsFieldReserved>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -6983,47 +7720,37 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
                   <OptionList>
                     <Options>
                       <OptionName>Option 0</OptionName>
-                      <OptionDescription>50 Ohms (default)</OptionDescription>
+                      <OptionDescription>0 Ohms (default)</OptionDescription>
                       <Value>0</Value>
                     </Options>
                     <Options>
                       <OptionName>Option 1</OptionName>
-                      <OptionDescription>71 Ohms</OptionDescription>
+                      <OptionDescription>20K Ohms</OptionDescription>
                       <Value>1</Value>
                     </Options>
                     <Options>
                       <OptionName>Option 2</OptionName>
-                      <OptionDescription>117 Ohms</OptionDescription>
+                      <OptionDescription>50K Ohms</OptionDescription>
                       <Value>2</Value>
                     </Options>
                     <Options>
                       <OptionName>Option 3</OptionName>
-                      <OptionDescription>180 Ohms</OptionDescription>
+                      <OptionDescription>70K Ohms</OptionDescription>
                       <Value>3</Value>
                     </Options>
                     <Options>
                       <OptionName>Option 4</OptionName>
-                      <OptionDescription>276 Ohms</OptionDescription>
+                      <OptionDescription>100K Ohms</OptionDescription>
                       <Value>4</Value>
                     </Options>
                     <Options>
                       <OptionName>Option 5</OptionName>
-                      <OptionDescription>424 Ohms</OptionDescription>
+                      <OptionDescription>200K Ohms</OptionDescription>
                       <Value>5</Value>
-                    </Options>
-                    <Options>
-                      <OptionName>Option 6</OptionName>
-                      <OptionDescription>651 Ohms</OptionDescription>
-                      <Value>6</Value>
-                    </Options>
-                    <Options>
-                      <OptionName>Option 7</OptionName>
-                      <OptionDescription>1 kOhms</OptionDescription>
-                      <Value>7</Value>
                     </Options>
                     <SelectedOption>
                       <OptionName>Option 0</OptionName>
-                      <OptionDescription>50 Ohms (default)</OptionDescription>
+                      <OptionDescription>0 Ohms (default)</OptionDescription>
                       <Value>0</Value>
                     </SelectedOption>
                     <ValueListShowType>ComboBox</ValueListShowType>
@@ -7047,47 +7774,37 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
                   <OptionList>
                     <Options>
                       <OptionName>Option 0</OptionName>
-                      <OptionDescription>50 Ohms (default)</OptionDescription>
+                      <OptionDescription>0 Ohms (default)</OptionDescription>
                       <Value>0</Value>
                     </Options>
                     <Options>
                       <OptionName>Option 1</OptionName>
-                      <OptionDescription>71 Ohms</OptionDescription>
+                      <OptionDescription>20K Ohms</OptionDescription>
                       <Value>1</Value>
                     </Options>
                     <Options>
                       <OptionName>Option 2</OptionName>
-                      <OptionDescription>117 Ohms</OptionDescription>
+                      <OptionDescription>50K Ohms</OptionDescription>
                       <Value>2</Value>
                     </Options>
                     <Options>
                       <OptionName>Option 3</OptionName>
-                      <OptionDescription>180 Ohms</OptionDescription>
+                      <OptionDescription>70K Ohms</OptionDescription>
                       <Value>3</Value>
                     </Options>
                     <Options>
                       <OptionName>Option 4</OptionName>
-                      <OptionDescription>276 Ohms</OptionDescription>
+                      <OptionDescription>100K Ohms</OptionDescription>
                       <Value>4</Value>
                     </Options>
                     <Options>
                       <OptionName>Option 5</OptionName>
-                      <OptionDescription>424 Ohms</OptionDescription>
+                      <OptionDescription>200K Ohms</OptionDescription>
                       <Value>5</Value>
-                    </Options>
-                    <Options>
-                      <OptionName>Option 6</OptionName>
-                      <OptionDescription>651 Ohms</OptionDescription>
-                      <Value>6</Value>
-                    </Options>
-                    <Options>
-                      <OptionName>Option 7</OptionName>
-                      <OptionDescription>1 kOhms</OptionDescription>
-                      <Value>7</Value>
                     </Options>
                     <SelectedOption>
                       <OptionName>Option 0</OptionName>
-                      <OptionDescription>50 Ohms (default)</OptionDescription>
+                      <OptionDescription>0 Ohms (default)</OptionDescription>
                       <Value>0</Value>
                     </SelectedOption>
                     <ValueListShowType>ComboBox</ValueListShowType>
@@ -7178,7 +7895,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <VisibilityConstraint>I==0</VisibilityConstraint>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -7272,7 +7989,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
             </DataField>
           </ObjectSubItem>
         </SubItems>
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -7291,7 +8008,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <VisibilityConstraint>I==0</VisibilityConstraint>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -7310,7 +8027,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <VisibilityConstraint>I==0</VisibilityConstraint>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -7328,7 +8045,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <posy>375</posy>
         <Size>2</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -7346,7 +8063,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <posy>400</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -7365,7 +8082,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <VisibilityConstraint>I==0</VisibilityConstraint>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -7385,7 +8102,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <VisibilityConstraint>I==0</VisibilityConstraint>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -7404,7 +8121,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <VisibilityConstraint>I==0</VisibilityConstraint>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -7423,7 +8140,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <VisibilityConstraint>I==0</VisibilityConstraint>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -7442,7 +8159,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <VisibilityConstraint>I==0</VisibilityConstraint>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -7461,7 +8178,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <VisibilityConstraint>I==0</VisibilityConstraint>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -7489,10 +8206,11 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <FieldWidth>291</FieldWidth>
         <FieldHeight>390</FieldHeight>
         <ElementType>GroupBox</ElementType>
+		<IsFieldVisible>false</IsFieldVisible>
       </UIField>
     </UIFieldList>
   </T_Object>
-  <T_Object ObjectID="T126" Number="126" DesignHeight="450" DesignWidth="600">
+  <T_Object ObjectID="T126" Number="126" DesignHeight="450" DesignWidth="700">
     <ObjectName>SPT_SELFCAPIDLECONFIG_T126</ObjectName>
     <Description>Low Power Idle Configuration T126</Description>
     <Fieldlist>
@@ -7523,7 +8241,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
               <ObjectFieldBitField>
                 <Instance>0</Instance>
                 <Name>RPTEN</Name>
-                <Description>Report enable</Description>
+                <Description>Report enable for Wakeup event</Description>
                 <ToolTip>RPTEN</ToolTip>
                 <posx>0</posx>
                 <posy>0</posy>
@@ -7538,12 +8256,12 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
                 <posx>0</posx>
                 <posy>0</posy>
                 <BitNumber>2</BitNumber>
-                <IsBitVisible>true</IsBitVisible>
+                <IsBitVisible>false</IsBitVisible>
               </ObjectFieldBitField>
               <ObjectFieldBitField>
                 <Instance>0</Instance>
                 <Name>RPTTCHEN</Name>
-                <Description>Report messages on wake up</Description>
+                <Description>Enable Wakeup-Key message in low power mode</Description>
                 <ToolTip>RPTTCHEN</ToolTip>
                 <posx>0</posx>
                 <posy>0</posy>
@@ -7553,7 +8271,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
               <ObjectFieldBitField>
                 <Instance>0</Instance>
                 <Name>AUTOEN</Name>
-                <Description>Autonomous mode for low power scans</Description>
+                <Description>Enable Other-Keys message in low power mode</Description>
                 <ToolTip>AUTOEN</ToolTip>
                 <posx>0</posx>
                 <posy>0</posy>
@@ -7584,7 +8302,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
               <ObjectFieldBitField>
                 <Instance>0</Instance>
                 <Name>DBGEN</Name>
-                <Description>Debug output enable</Description>
+                <Description>Enable Wakeup-Key message in active mode </Description>
                 <ToolTip>DBGEN</ToolTip>
                 <posx>267</posx>
                 <posy>255</posy>
@@ -7609,8 +8327,8 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <Name>Node</Name>
         <Description>Low Power Channel</Description>
         <ToolTip>Which channel will be indicated as low power scanning</ToolTip>
-        <posx>10</posx>
-        <posy>170</posy>
+        <posx>350</posx>
+        <posy>15</posy>
         <Size>1</Size>
         <SubItems />
         <IsFieldVisible>true</IsFieldVisible>
@@ -7632,7 +8350,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <posy>15</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -7646,7 +8364,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <Name>THRESHOLD</Name>
         <Description>Touch threshold for low power measurements</Description>
         <ToolTip>THRESHOLD Touch threshold</ToolTip>
-        <posx>273</posx>
+        <posx>350</posx>
         <posy>40</posy>
         <Size>1</Size>
         <SubItems />
@@ -7668,7 +8386,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <posy>65</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -7680,10 +8398,10 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
       <ObjectField>
         <Instance>0</Instance>
         <Name>DRIFTCOEF</Name>
-        <Description>Drift filter coefficient</Description>
+        <Description>Drift filter interval (200ms)</Description>
         <ToolTip>DRIFTCOEF</ToolTip>
-        <posx>273</posx>
-        <posy>90</posy>
+        <posx>350</posx>
+        <posy>65</posy>
         <Size>1</Size>
         <SubItems />
         <IsFieldVisible>true</IsFieldVisible>
@@ -7705,7 +8423,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <posy>115</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
@@ -7723,7 +8441,7 @@ NOTE;- The GPIO configuration T19 trigger control must be configured (refer to T
         <posy>140</posy>
         <Size>1</Size>
         <SubItems />
-        <IsFieldVisible>true</IsFieldVisible>
+        <IsFieldVisible>false</IsFieldVisible>
         <IsReadOnly>false</IsReadOnly>
         <FieldValue>
           <FieldType>Range</FieldType>
