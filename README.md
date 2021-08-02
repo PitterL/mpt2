@@ -19,6 +19,10 @@ The hardware based on ATtiny3217 Xplained Pro board:
 
 https://www.microchip.com/developmenttools/ProductDetails/ATTINY3217-XPRO
 
+The hardware of QT7 Xpro board:
+
+https://www.microchip.com/developmenttools/ProductDetails/ATQT7-XPRO
+
 The v25 platformn embedded T126 object to control lowpower function, please check protocol for more details:
 
 ### T6 message:
