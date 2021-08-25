@@ -100,7 +100,7 @@ void I2C_0_init()
 
 	TWI0.SCTRLA = 1 << TWI_APIEN_bp    /* Address/Stop Interrupt Enable: enabled */
 	              | 1 << TWI_DIEN_bp   /* Data Interrupt Enable: enabled */
-	              | 1 << TWI_ENABLE_bp /* Enable TWI Slave: enabled */
+	              /* | 1 << TWI_ENABLE_bp Enable TWI Slave: enabled */
 	              | 1 << TWI_PIEN_bp   /* Stop Interrupt Enable: enabled */
 	              | 0 << TWI_PMEN_bp   /* Promiscuous Mode Enable: disabled */
 	              | 0 << TWI_SMEN_bp;  /* Smart Mode Enable: disabled */
