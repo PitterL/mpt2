@@ -104,6 +104,13 @@
 		<3> add touch_non_ptc_pin_config() at touch_init() for non PTC pin initialize
 		<4> #define DEF_TOUCH_MEASUREMENT_OVERFLOW_FORCE_DONE 200
 		<5> add LED0 callback when button touched
+		(1.7)
+		<1> Add Fuse output in `MXT_DIAGNOSTIC_DEVICE_INFO` at page 1
+		<2> Set Pin Fault and AVDD test looped check if POR found failure, it could recovery when symptom gone 
+		<3> Disable I2C controller at init() stage, enable is at open()
+		(1.8)
+		<1> Fixed the issue that Fuse output in 1.7(output target Fuse data before, and output current Fuse data now)
+		<2> Fixed issue that Page Index in T37 debug data incorrect
 
 		Report ID Object Table Index Object Type Object Instance
 		0 = 0x00                  0           0               0
@@ -511,23 +518,17 @@ ssint mpt_api_chip_init(const void *tsl_ptr)
 }
 
 /**
- * \brief MPTT framework enable, 
-	includes load config, enable each object and pin fault test
- * @Return: Zero means normal, other value means something error detected
+ * \brief MPTT framework start, 
+	load config and start the object
+ * @Return: None
  */
-ssint mpt_api_chip_start(void)
+void mpt_api_chip_start(void)
 {
 	const object_callback_t *ocbs = &object_initialize_list[0];
 	u8 i;
 	ssint result;
 	
 #ifdef OBJECT_T6
-#ifdef MPTT_FUSE_CHECK
-	if (tsapi_fuse_check()) {
-		object_api_t6_set_status(MXT_T6_STATUS_SIGERR);
-	}
-#endif
-
 	result = mpt_chip_load_config();
 	if (result) {
 		object_api_t6_set_status(MXT_T6_STATUS_CFGERR);
@@ -539,12 +540,24 @@ ssint mpt_api_chip_start(void)
 		if (ocbs[i].start)
 			ocbs[i].start(result ? 0 : 1);
 	}
+}
 
-#ifdef OBJECT_T25
-	return object_api_t25_pinfault_test();
-#else
-	return 0;
+/**
+ * \brief MPTT framework hardware check, 
+	include fuse check and pin fault/avdd test
+ * @Return: Zero means normal, other value means pinfault issue
+ */
+ssint mpt_api_chip_test(void)
+{
+#ifdef OBJECT_T6
+#ifdef MPTT_FUSE_CHECK
+	if (tsapi_fuse_check()) {
+		object_api_t6_set_status(MXT_T6_STATUS_SIGERR);
+	}
 #endif
+#endif
+
+	return object_api_t25_pinfault_test();
 }
 
 void mem_readback(u8 regid)

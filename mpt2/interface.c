@@ -73,15 +73,11 @@ void mptt_interface_init(void)
  */
 ssint mptt_start(void)
 {
-	ssint result;
-
-	result= tsl_start();
+	g_mptt_state = tsl_start(1);
 	
 	bus_start();
 	
-	g_mptt_state = result;
-	
-	return result;
+	return g_mptt_state;
 }
 
 /**
@@ -99,9 +95,12 @@ void mptt_process(void)
 {
 	if (g_mptt_state == 0) {
 		touch_process();
+	} else {
+		/* Check recovery of hardware issue */
+		g_mptt_state = tsl_start(0);
 	}
 
-	tsl_process();	
+	tsl_process();
 }
 
 /**
@@ -124,7 +123,7 @@ void mptt_sleep()
 
 	if (tsl_sleep() != 0)
 		return;
-
+	
 	// Must check the bus status before sleep, otherwise may latch scl line too long time
 	if (mptt_get_bus_state() != BUS_STOP)
 		return;

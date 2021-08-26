@@ -11,6 +11,7 @@
 
 #ifdef MPTT_FUSE_CHECK
 ssint fuse_check(void);
+const u8 *get_fuse_data(u8 *len_ptr);
 #endif
 
 #ifdef OBJECT_T37_DEBUG_PLATFORM_INFO

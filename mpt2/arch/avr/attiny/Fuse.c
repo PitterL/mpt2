@@ -20,7 +20,7 @@ static u8 fuse_target[] = FUSES_CONTENT;
  */
 ssint fuse_check(void)
 {
-	const u8 * const fv = (const u8 *)&FUSE;;
+	const u8 * const fv = (const u8 *)&FUSE;
 
 	for (u8 i = 0; i < ARRAY_SIZE(fuse_target); i++) {
 		if (fv[i] != fuse_target[i])
@@ -29,6 +29,21 @@ ssint fuse_check(void)
 	
 	return 0;
 	
+}
+
+/**
+ * \Get the fuse data information pointer
+ * @return the pointer
+ */
+const u8 *get_fuse_data(u8 *len_ptr)
+{	
+	const u8 * const fv = (const u8 *)&FUSE;
+	
+	if (len_ptr) {
+		*len_ptr = ARRAY_SIZE(fuse_target);
+	}
+	
+	return fv;
 }
 #endif
 

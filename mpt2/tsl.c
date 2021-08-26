@@ -167,17 +167,22 @@ void tsl_init(const hal_interface_info_t *hal)
 /**
  * \notice touch software layer active, 
 	include register start, function start
+ * @start: call chip start if set
  * @Return: Zero mean successful, other value mean something fault
  */
-ssint tsl_start(void)
+ssint tsl_start(ssint start)
 {
 	ssint result;
 
-	result = mpt_api_chip_start();
-	if (result) {
-		return result;    
+	if (start) {
+		mpt_api_chip_start();
 	}
 	
+	result = mpt_api_chip_test();
+	if (result) {
+		return result;
+	}
+
     touch_start();
 
 	return 0;

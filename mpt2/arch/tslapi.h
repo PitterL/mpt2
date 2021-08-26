@@ -98,6 +98,9 @@ typedef void (*cb_qlib_suspend_t)(bool);
 #ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
 typedef const u8 *(*cb_get_signature_row)(u8 *);
 #endif
+#ifdef MPTT_FUSE_CHECK
+typedef const u8 *(*cb_get_fuse_data)(u8 *);
+#endif
 #ifdef OBJECT_T15_USE_STATE_CB
 typedef void (*cb_button_state_change)(u8, u32);
 #endif
@@ -144,11 +147,14 @@ typedef struct qtouch_params {
 	u8 max_resl;
 }qtouch_params_t;
 
-#ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
 typedef struct chip_info_cb {
+#ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
 	cb_get_signature_row get_sigrow;
-} chip_info_cb_t;
 #endif
+#ifdef MPTT_FUSE_CHECK
+	cb_get_fuse_data get_fuse;
+#endif
+} chip_info_cb_t;
 
 typedef struct qtouch_config {
 	nodes_desc_t matrix_nodes[NUM_NODE_2D];
@@ -252,6 +258,7 @@ uint8_t	tsapi_touch_sleep(void);
 
 #ifdef MPTT_FUSE_CHECK
 uint8_t tsapi_fuse_check(void);
+const u8 *tsapi_get_fuse_data(u8 *len_ptr);
 #endif
 
 #ifdef OBJECT_T37_DEBUG_PLATFORM_INFO

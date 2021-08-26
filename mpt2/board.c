@@ -97,10 +97,13 @@ qtouch_config_t tsl_qtouch_def = {
 		.max_filter_count = FILTER_LEVEL_64,
 		.max_resl = RSEL_VAL_200,
 	},
-	
+
+#ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
 	.chip_cb = {
-	#ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
 		.get_sigrow = tsapi_get_signature_row_data,
+	#ifdef MPTT_FUSE_CHECK
+		.get_fuse = tsapi_get_fuse_data,
 	#endif
 	}
+#endif
 };

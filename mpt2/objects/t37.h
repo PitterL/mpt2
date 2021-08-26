@@ -41,6 +41,10 @@ typedef struct t37_data {
 #ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
 	const u8 *sigrow;
 	u8 sigrow_len;
+#ifdef MPTT_FUSE_CHECK
+	const u8 *fuse;
+	u8 fuse_len;
+#endif
 #endif
 } t37_data_t;
 

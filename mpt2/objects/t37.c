@@ -21,8 +21,15 @@ ssint object_t37_init(u8 rid,  const /*qtouch_config_t*/void *def, void *mem, co
 	object_txx_init(&t37_ptr->common, rid, def, mem, cb);
 	
 #ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
-	if (qdef && qdef->chip_cb.get_sigrow) {
-		t37_ptr->sigrow = qdef->chip_cb.get_sigrow(&t37_ptr->sigrow_len);
+	if (qdef) {
+		if (qdef->chip_cb.get_sigrow) {
+			t37_ptr->sigrow = qdef->chip_cb.get_sigrow(&t37_ptr->sigrow_len);
+		}
+	#ifdef MPTT_FUSE_CHECK
+		if (qdef->chip_cb.get_fuse) {
+			t37_ptr->fuse = qdef->chip_cb.get_fuse(&t37_ptr->fuse_len);
+		}
+	#endif
 	}
 #endif
 	return 0;
@@ -33,7 +40,7 @@ void object_t37_start(void)
 	
 }
 
-void copy_node_data_to_buffer(u8 cmd, u8 page, u8 offset, const void* data, u8 len)
+void copy_page_data(u8 cmd, u8 page, u8 offset, const void* data, u8 len)
 {
 	t37_data_t *ptr = &t37_data_status;
 	object_t37_t *mem = (object_t37_t *)ptr->common.mem;
@@ -43,18 +50,27 @@ void copy_node_data_to_buffer(u8 cmd, u8 page, u8 offset, const void* data, u8 l
 	mem->mode = cmd;
 	mem->page = page;
 	
-	while(offset >= pagesize) {
-		offset -= pagesize;
-		page--;
+	maxlen = pagesize - offset;
+	if (len > maxlen) {
+		len = maxlen;
 	}
 	
-	if (page == 0) {
-		//data set to current page buffer
-		maxlen = pagesize - offset;
-		if (len > maxlen)
-			len = maxlen;
-		
-		memcpy((u8 *)mem->data + offset, data, len);
+	memcpy((u8 *)mem->data + offset, data, len);
+}
+
+void copy_data_to_target_page(u8 cmd, u8 page, u8 offset, const void* data, u8 len)
+{
+	const u8 pagesize = T37_DATA_SIZE;
+	u8 current = page;
+	
+	while(offset >= pagesize) {
+		offset -= pagesize;
+		current--;
+	}
+	
+	//data value for current page, copy to page buffer
+	if (current == 0) {
+		copy_page_data(cmd, page, offset, data, len);
 	}
 }
 
@@ -145,7 +161,7 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 value)
 		case MXT_DIAGNOSTIC_MC_REF:
 		case MXT_DIAGNOSTIC_MC_SIGNAL:
 			pos = channel;
-			copy_node_data_to_buffer(cmd, page, pos << 1, &value, sizeof(value));
+			copy_data_to_target_page(cmd, page, pos << 1, &value, sizeof(value));
 		break;
 #ifdef OBJECT_T111
 		case MXT_DIAGNOSTIC_SC_REF:
@@ -171,7 +187,7 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 value)
     	    } else {
     		    pos = channel;
 		    }
-		    copy_node_data_to_buffer(cmd, page, pos << 1, &value, sizeof(value));
+		    copy_data_to_target_page(cmd, page, pos << 1, &value, sizeof(value));
             break;
         case MXT_DIAGNOSTIC_SC_DELTA:
 			//Y channel First
@@ -182,7 +198,7 @@ void t37_put_data(t37_data_t *ptr, u8 cmd, u8 page, u8 channel, u16 value)
 			} else {
 				pos = channel;
 			}
-			copy_node_data_to_buffer(cmd, page, pos << 1, &value, sizeof(value));
+			copy_data_to_target_page(cmd, page, pos << 1, &value, sizeof(value));
 		break;
 #endif
 		default:
@@ -220,16 +236,24 @@ void t37_set_low_power_data(u8 cmd, u8 page, u8 channel, u16 reference, u16 sign
 	data.status = (u8)!lowpower;
 	data.signal_raw = cap;
 	
-	copy_node_data_to_buffer(cmd, page, 0, &data, sizeof(data));
+	copy_page_data(cmd, page, 0, &data, sizeof(data));
 }
 #endif
 #ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
 void t37_set_diagnostic_platform_info(u8 cmd, u8 page)
 {
 	const t37_data_t * const ptr = &t37_data_status;
-	
-	if (ptr->sigrow) {
-		copy_node_data_to_buffer(cmd, page, 0, ptr->sigrow, ptr->sigrow_len);
+
+	if (page == 0) {
+		if (ptr->sigrow) {
+			copy_page_data(cmd, page, 0, ptr->sigrow, ptr->sigrow_len);
+		}
+	} else if (page == 1) {
+#ifdef MPTT_FUSE_CHECK
+		if (ptr->fuse) {
+			copy_page_data(cmd, page, 0, ptr->fuse, ptr->fuse_len);
+		}
+#endif
 	}
 }
 #endif

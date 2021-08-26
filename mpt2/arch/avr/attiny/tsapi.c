@@ -571,6 +571,13 @@ const u8 *tsapi_get_signature_row_data(u8 *len_ptr)
 }
 #endif
 
+#ifdef MPTT_FUSE_CHECK
+const u8 *tsapi_get_fuse_data(u8 *len_ptr)
+{
+	return get_fuse_data(len_ptr);
+}
+#endif
+
 bool tsapi_sensor_state_is_suspend(uint8_t node)
 {
 	return (get_sensor_state(node) == QTM_KEY_STATE_SUSPEND);

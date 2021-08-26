@@ -9,7 +9,8 @@
 #define MPTT_H_
 
 ssint mpt_api_chip_init(const void *tsl_ptr);
-ssint mpt_api_chip_start(void);
+void mpt_api_chip_start(void);
+ssint mpt_api_chip_test(void);
 ssint mpt_api_mem_read(u16 baseaddr, u16 offset, u8 *out_ptr);
 ssint mpt_api_mem_write(u16 baseaddr, u16 offset, u8 val);
 void mpt_api_pre_process(void);
