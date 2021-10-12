@@ -1,0 +1,1010 @@
+format_version: '2'
+name: My Project
+versions:
+  api: '1.0'
+  backend: 1.8.580
+  commit: f3d8d96e294de8dee688333bbbe8d8458a4f6b4c
+  content: unknown
+  content_pack_name: unknown
+  format: '2'
+  frontend: 1.8.580
+  packs_version_avr8: 1.0.1463
+  packs_version_qtouch: unknown
+  packs_version_sam: 1.0.1726
+  version_backend: 1.8.580
+  version_frontend: ''
+board:
+  identifier: CustomBoard
+  device: ATtiny3217-MNR
+details: null
+application: null
+middlewares:
+  QTOUCH_LIBRARY_0:
+    user_label: QTOUCH_LIBRARY_0
+    configuration: {}
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_Standard_Library
+    functionality: QTouch_Library
+    api: QTouch:General:Core
+    dependencies: {}
+  QTOUCH_TIMER:
+    user_label: QTOUCH_TIMER
+    configuration: {}
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_Timer
+    functionality: QTouch_Timer
+    api: QTouch:Driver:Timer
+    dependencies:
+      Timer: Timer
+  QTOUCH_EVSYS:
+    user_label: QTOUCH_EVSYS
+    configuration: {}
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_EVSYS
+    functionality: QTouch_EVSYS
+    api: QTouch:Driver:EVSYS
+    dependencies:
+      EVSYS: EVENT_SYSTEM_0
+  QTOUCH_LOWPOWER_0:
+    user_label: QTOUCH_LOWPOWER_0
+    configuration:
+      autoscan_drift_timeout: 2000
+      autoscan_node: 0
+      autoscan_node_threshold: 100
+      autoscan_period: 64msec
+      autoscan_touch_timeout: 5000
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_LowPower_-_with_Event_System
+    functionality: QTouch_LowPower
+    api: QTouch:General:LowPower
+    dependencies:
+      QTouch EVSYS: QTOUCH_EVSYS
+  QTOUCH_NODE:
+    user_label: QTOUCH_NODE
+    configuration:
+      order: 0
+      ptc_analog_gain: '1'
+      ptc_csd: 0
+      ptc_digital_gain: '1'
+      ptc_filter_level: '16'
+      ptc_prescaler: Divide by 16
+      ptc_rsel: No Resistor
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_mutualcap_node
+    functionality: QTouch_Node
+    api: QTouch:General:Node
+    dependencies:
+      QTouch Acquisition: QTOUCH_ACQUISITION
+      Y-line: PTC:Y/0
+      X-line: PTC:X/2
+      PTC: PTC
+  QTOUCH_NODE_0:
+    user_label: QTOUCH_NODE_0
+    configuration:
+      order: 1
+      ptc_analog_gain: '1'
+      ptc_csd: 0
+      ptc_digital_gain: '1'
+      ptc_filter_level: '16'
+      ptc_prescaler: Divide by 16
+      ptc_rsel: No Resistor
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_mutualcap_node
+    functionality: QTouch_Node
+    api: QTouch:General:Node
+    dependencies:
+      QTouch Acquisition: QTOUCH_ACQUISITION
+      Y-line: PTC:Y/3
+      X-line: PTC:X/12
+      PTC: PTC
+  QTOUCH_NODE_1:
+    user_label: QTOUCH_NODE_1
+    configuration:
+      order: 2
+      ptc_analog_gain: '1'
+      ptc_csd: 0
+      ptc_digital_gain: '1'
+      ptc_filter_level: '16'
+      ptc_prescaler: Divide by 16
+      ptc_rsel: No Resistor
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_mutualcap_node
+    functionality: QTouch_Node
+    api: QTouch:General:Node
+    dependencies:
+      QTouch Acquisition: QTOUCH_ACQUISITION
+      Y-line: PTC:Y/3
+      X-line: PTC:X/13
+      PTC: PTC
+  QTOUCH_NODE_2:
+    user_label: QTOUCH_NODE_2
+    configuration:
+      order: 3
+      ptc_analog_gain: '1'
+      ptc_csd: 0
+      ptc_digital_gain: '1'
+      ptc_filter_level: '16'
+      ptc_prescaler: Divide by 16
+      ptc_rsel: No Resistor
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_mutualcap_node
+    functionality: QTouch_Node
+    api: QTouch:General:Node
+    dependencies:
+      QTouch Acquisition: QTOUCH_ACQUISITION
+      Y-line: PTC:Y/3
+      X-line: PTC:X/5
+      PTC: PTC
+  QTOUCH_NODE_3:
+    user_label: QTOUCH_NODE_3
+    configuration:
+      order: 4
+      ptc_analog_gain: '1'
+      ptc_csd: 0
+      ptc_digital_gain: '1'
+      ptc_filter_level: '16'
+      ptc_prescaler: Divide by 16
+      ptc_rsel: No Resistor
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_mutualcap_node
+    functionality: QTouch_Node
+    api: QTouch:General:Node
+    dependencies:
+      QTouch Acquisition: QTOUCH_ACQUISITION
+      Y-line: PTC:Y/3
+      X-line: PTC:X/6
+      PTC: PTC
+  QTOUCH_NODE_4:
+    user_label: QTOUCH_NODE_4
+    configuration:
+      order: 5
+      ptc_analog_gain: '1'
+      ptc_csd: 0
+      ptc_digital_gain: '1'
+      ptc_filter_level: '16'
+      ptc_prescaler: Divide by 16
+      ptc_rsel: No Resistor
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_mutualcap_node
+    functionality: QTouch_Node
+    api: QTouch:General:Node
+    dependencies:
+      QTouch Acquisition: QTOUCH_ACQUISITION
+      Y-line: PTC:Y/10
+      X-line: PTC:X/8
+      PTC: PTC
+  QTOUCH_NODE_5:
+    user_label: QTOUCH_NODE_5
+    configuration:
+      order: 6
+      ptc_analog_gain: '1'
+      ptc_csd: 0
+      ptc_digital_gain: '1'
+      ptc_filter_level: '16'
+      ptc_prescaler: Divide by 16
+      ptc_rsel: No Resistor
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_mutualcap_node
+    functionality: QTouch_Node
+    api: QTouch:General:Node
+    dependencies:
+      QTouch Acquisition: QTOUCH_ACQUISITION
+      Y-line: PTC:Y/10
+      X-line: PTC:X/9
+      PTC: PTC
+  QTOUCH_NODE_6:
+    user_label: QTOUCH_NODE_6
+    configuration:
+      order: 7
+      ptc_analog_gain: '1'
+      ptc_csd: 0
+      ptc_digital_gain: '1'
+      ptc_filter_level: '16'
+      ptc_prescaler: Divide by 16
+      ptc_rsel: No Resistor
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_mutualcap_node
+    functionality: QTouch_Node
+    api: QTouch:General:Node
+    dependencies:
+      QTouch Acquisition: QTOUCH_ACQUISITION
+      Y-line: PTC:Y/10
+      X-line: PTC:X/11
+      PTC: PTC
+  QTOUCH_SENSOR:
+    user_label: QTOUCH_SENSOR
+    configuration:
+      anti_tch_drift_rate: 5
+      anti_tch_recal_thrshld: 100 percent of Touch threshold
+      anti_touch_count: 5
+      drift_hold_time: 20
+      max_on_duration: 0
+      reburst_mode: Reburst sensors only in process of calibration / filter in / filter
+        out and AKS groups
+      tch_drift_rate: 20
+      touch_det_int: 4
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_Sensor
+    functionality: QTouch_Sensor
+    api: QTouch:General:Sensor
+    dependencies: {}
+  QTOUCH_BUTTON:
+    user_label: QTOUCH_BUTTON
+    configuration:
+      order: 0
+      radius: 30
+      touch_sensor_aks: No AKS setting
+      touch_sensor_hysterisis: 25 percent of Sensor Threshold
+      touch_sensor_threshold: 20
+      x_position: 50
+      y_position: 50
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_Key
+    functionality: QTouch_Key
+    api: QTouch:General:Key
+    dependencies:
+      QTouch Sensor: QTOUCH_SENSOR
+      QTouch Node: QTOUCH_NODE
+  QTOUCH_BUTTON_0:
+    user_label: QTOUCH_BUTTON_0
+    configuration:
+      order: 1
+      radius: 30
+      touch_sensor_aks: No AKS setting
+      touch_sensor_hysterisis: 25 percent of Sensor Threshold
+      touch_sensor_threshold: 20
+      x_position: 130
+      y_position: 50
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_Key
+    functionality: QTouch_Key
+    api: QTouch:General:Key
+    dependencies:
+      QTouch Sensor: QTOUCH_SENSOR
+      QTouch Node: QTOUCH_NODE_0
+  QTOUCH_BUTTON_1:
+    user_label: QTOUCH_BUTTON_1
+    configuration:
+      order: 2
+      radius: 30
+      touch_sensor_aks: No AKS setting
+      touch_sensor_hysterisis: 25 percent of Sensor Threshold
+      touch_sensor_threshold: 20
+      x_position: 210
+      y_position: 50
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_Key
+    functionality: QTouch_Key
+    api: QTouch:General:Key
+    dependencies:
+      QTouch Sensor: QTOUCH_SENSOR
+      QTouch Node: QTOUCH_NODE_1
+  QTOUCH_BUTTON_2:
+    user_label: QTOUCH_BUTTON_2
+    configuration:
+      order: 3
+      radius: 30
+      touch_sensor_aks: No AKS setting
+      touch_sensor_hysterisis: 25 percent of Sensor Threshold
+      touch_sensor_threshold: 20
+      x_position: 290
+      y_position: 50
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_Key
+    functionality: QTouch_Key
+    api: QTouch:General:Key
+    dependencies:
+      QTouch Sensor: QTOUCH_SENSOR
+      QTouch Node: QTOUCH_NODE_2
+  QTOUCH_BUTTON_3:
+    user_label: QTOUCH_BUTTON_3
+    configuration:
+      order: 4
+      radius: 30
+      touch_sensor_aks: No AKS setting
+      touch_sensor_hysterisis: 25 percent of Sensor Threshold
+      touch_sensor_threshold: 20
+      x_position: 370
+      y_position: 50
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_Key
+    functionality: QTouch_Key
+    api: QTouch:General:Key
+    dependencies:
+      QTouch Sensor: QTOUCH_SENSOR
+      QTouch Node: QTOUCH_NODE_3
+  QTOUCH_BUTTON_4:
+    user_label: QTOUCH_BUTTON_4
+    configuration:
+      order: 5
+      radius: 30
+      touch_sensor_aks: No AKS setting
+      touch_sensor_hysterisis: 25 percent of Sensor Threshold
+      touch_sensor_threshold: 20
+      x_position: 450
+      y_position: 50
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_Key
+    functionality: QTouch_Key
+    api: QTouch:General:Key
+    dependencies:
+      QTouch Sensor: QTOUCH_SENSOR
+      QTouch Node: QTOUCH_NODE_4
+  QTOUCH_BUTTON_5:
+    user_label: QTOUCH_BUTTON_5
+    configuration:
+      order: 6
+      radius: 30
+      touch_sensor_aks: No AKS setting
+      touch_sensor_hysterisis: 25 percent of Sensor Threshold
+      touch_sensor_threshold: 20
+      x_position: 530
+      y_position: 50
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_Key
+    functionality: QTouch_Key
+    api: QTouch:General:Key
+    dependencies:
+      QTouch Sensor: QTOUCH_SENSOR
+      QTouch Node: QTOUCH_NODE_5
+  QTOUCH_BUTTON_6:
+    user_label: QTOUCH_BUTTON_6
+    configuration:
+      order: 7
+      radius: 30
+      touch_sensor_aks: No AKS setting
+      touch_sensor_hysterisis: 25 percent of Sensor Threshold
+      touch_sensor_threshold: 20
+      x_position: 610
+      y_position: 50
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_Key
+    functionality: QTouch_Key
+    api: QTouch:General:Key
+    dependencies:
+      QTouch Sensor: QTOUCH_SENSOR
+      QTouch Node: QTOUCH_NODE_6
+  QTOUCH_FREQUENCY_HOP_0:
+    user_label: QTOUCH_FREQUENCY_HOP_0
+    configuration:
+      frequency_autotune_count_in: 6
+      frequency_autotune_variance: 15
+      frequency_steps: 3
+      hop_frequency_0: FREQ_SEL_0
+      hop_frequency_1: FREQ_SEL_1
+      hop_frequency_10: FREQ_SEL_10
+      hop_frequency_11: FREQ_SEL_11
+      hop_frequency_12: FREQ_SEL_12
+      hop_frequency_13: FREQ_SEL_13
+      hop_frequency_14: FREQ_SEL_14
+      hop_frequency_2: FREQ_SEL_2
+      hop_frequency_3: FREQ_SEL_3
+      hop_frequency_4: FREQ_SEL_4
+      hop_frequency_5: FREQ_SEL_5
+      hop_frequency_6: FREQ_SEL_6
+      hop_frequency_7: FREQ_SEL_7
+      hop_frequency_8: FREQ_SEL_8
+      hop_frequency_9: FREQ_SEL_9
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_Frequency_Hop_-_Auto_Tuning
+    functionality: QTouch_Frequency_Hop
+    api: QTouch:General:FrequencyHop
+    dependencies: {}
+  QTOUCH_BINDING:
+    user_label: QTOUCH_BINDING
+    configuration: {}
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_Binding
+    functionality: QTouch_Binding
+    api: QTouch:General:Binding
+    dependencies: {}
+  QTOUCH_REMOVE_BINDING_0:
+    user_label: QTOUCH_REMOVE_BINDING_0
+    configuration: {}
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_Remove_Binding
+    functionality: QTouch_Remove_Binding
+    api: QTouch:General:RemoveBinding
+    dependencies: {}
+  QTOUCH_DATASTREAMER_0:
+    user_label: QTOUCH_DATASTREAMER_0
+    configuration:
+      debug_board_type: USER_BOARD
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::Data_Streamer_UART_Interface
+    functionality: QTouch_DataStreamer
+    api: QTouch:General:Datastreamer
+    dependencies:
+      QTouch Usart: QTOUCH_USART
+  QTOUCH_USART:
+    user_label: QTOUCH_USART
+    configuration: {}
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_Usart
+    functionality: QTouch_Usart
+    api: QTouch:Driver:USART
+    dependencies:
+      USART: USART
+  QTOUCH_ACQUISITION:
+    user_label: QTOUCH_ACQUISITION
+    configuration:
+      acquisition_frequency: FREQ_SEL_0
+      ptc_acq_tune: Manual user setting of Prescaler, Charge share delay & Series
+        resistor
+      ptc_measurement_time: 20
+      ptc_sensor_type: Mutualcap
+    definition: Atmel:QTOUCH_TINY_AVR:1.0.0::QTouch_Acquisition_4P_-_Manual_Tuning
+    functionality: QTouch_Acquisition
+    api: QTouch:General:Acquisition
+    dependencies:
+      QTouch Timer: QTOUCH_TIMER
+      QTouch Binding: QTOUCH_BINDING
+drivers:
+  CLKCTRL:
+    user_label: CLKCTRL
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::CLKCTRL::driver_config_definition::CLKCTRL::Drivers:CLKCTRL:Init
+    functionality: System
+    api: Drivers:CLKCTRL:Init
+    configuration:
+      $input: 20000000
+      $input_id: 20MHz Internal Oscillator (OSC20M)
+      RESERVED_InputFreq: 20000000
+      RESERVED_InputFreq_id: 20MHz Internal Oscillator (OSC20M)
+      _$freq_output_32KHz divided by 32: 1024
+      _$freq_output_External Clock (EXTCLK): '32768'
+      _$freq_output_Main Clock (CLK_MAIN): 20000000
+      _$freq_output_TCD0 Clock (CLK_TCD0): 20000000
+      clkctrl_mclkctrla_cksel: 20MHz Internal Oscillator (OSC20M)
+      clkctrl_mclkctrla_clkout: false
+      clkctrl_mclkctrlb_pdiv: '2'
+      clkctrl_mclkctrlb_pen: false
+      clkctrl_mclklock_locken: false
+      clkctrl_osc16mctrla_runstdby: false
+      clkctrl_osc20mctrla_runstdby: false
+      clkctrl_osc32kctrla_runstdby: false
+      clkctrl_xosc32kctrla_csut: 1k cycles
+      clkctrl_xosc32kctrla_runstdby: false
+      clkctrl_xosc32kctrla_sel: false
+      cpu_clock_source: Main Clock (CLK_MAIN)
+      enable_clk_per: true
+      enable_extclk: true
+      enable_main: true
+      enable_osc16m: true
+      enable_osc20m: true
+      enable_osculp1k: true
+      enable_osculp32k: true
+      enable_tcd0: true
+      enable_xosc32kctrla: false
+      extosc: 32768
+      nvm_clock_source: Main Clock (CLK_MAIN)
+      osculp1k_clksel_clksel: 32KHz Internal Ultra Low Power Oscillator (OSCULP32K)
+      ram_clock_source: Main Clock (CLK_MAIN)
+      tcd0_ctrla_clksel: 20MHz Internal Oscillator (OSC20M)
+      tcd0_ctrla_syncpres: '1'
+      xosc32kctrla_arch_enable: false
+    optional_signals: []
+    variant: null
+    clocks:
+      domain_group:
+        nodes:
+        - name: CPU
+          input: CPU
+          external: false
+          external_frequency: 0
+        configuration: {}
+  Timer:
+    user_label: Timer
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::RTC::driver_config_definition::RTC::Drivers:RTC:Init
+    functionality: RTC
+    api: Drivers:RTC:Init
+    configuration:
+      $input: 1024
+      $input_id: 32KHz divided by 32
+      RESERVED_InputFreq: 1024
+      RESERVED_InputFreq_id: 32KHz divided by 32
+      _$freq_output_RTC Clock (CLK_RTC): 1024
+      enable_rtc: true
+      inc_isr_harness: true
+      rtc_clksel_clksel: 32KHz divided by 32
+      rtc_cmp: 0
+      rtc_cnt: 0
+      rtc_ctrla_prescaler: '1'
+      rtc_ctrla_rtcen: true
+      rtc_ctrla_runstdby: true
+      rtc_dbgctrl_dbgrun: false
+      rtc_intctrl_cmp: true
+      rtc_intctrl_ovf: false
+      rtc_per: 65535
+      rtc_pitctrla_period: 'Off'
+      rtc_pitctrla_piten: false
+      rtc_pitdbgctrl_dbgrun: false
+      rtc_pitintctrl_pi: false
+    optional_signals: []
+    variant: null
+    clocks:
+      domain_group:
+        nodes:
+        - name: RTC
+          input: RTC Clock (CLK_RTC)
+          external: false
+          external_frequency: 0
+        configuration:
+          rtc_clock_source: RTC Clock (CLK_RTC)
+  PTC:
+    user_label: PTC
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::PTC::driver_config_definition::PTC::Drivers:PTC:Init
+    functionality: PTC
+    api: Drivers:PTC:Init
+    configuration: {}
+    optional_signals:
+    - identifier: PTC:X/2
+      pad: PA6
+      mode: Enabled
+      configuration: null
+      definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::optional_signal_definition::PTC.X.2
+      name: PTC/X/2
+      label: X/2
+    - identifier: PTC:X/5
+      pad: PB0
+      mode: Enabled
+      configuration: null
+      definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::optional_signal_definition::PTC.X.5
+      name: PTC/X/5
+      label: X/5
+    - identifier: PTC:X/6
+      pad: PC0
+      mode: Enabled
+      configuration: null
+      definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::optional_signal_definition::PTC.X.6
+      name: PTC/X/6
+      label: X/6
+    - identifier: PTC:X/8
+      pad: PC2
+      mode: Enabled
+      configuration: null
+      definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::optional_signal_definition::PTC.X.8
+      name: PTC/X/8
+      label: X/8
+    - identifier: PTC:X/9
+      pad: PC3
+      mode: Enabled
+      configuration: null
+      definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::optional_signal_definition::PTC.X.9
+      name: PTC/X/9
+      label: X/9
+    - identifier: PTC:X/11
+      pad: PC5
+      mode: Enabled
+      configuration: null
+      definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::optional_signal_definition::PTC.X.11
+      name: PTC/X/11
+      label: X/11
+    - identifier: PTC:X/12
+      pad: PB5
+      mode: Enabled
+      configuration: null
+      definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::optional_signal_definition::PTC.X.12
+      name: PTC/X/12
+      label: X/12
+    - identifier: PTC:X/13
+      pad: PB4
+      mode: Enabled
+      configuration: null
+      definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::optional_signal_definition::PTC.X.13
+      name: PTC/X/13
+      label: X/13
+    - identifier: PTC:Y/0
+      pad: PA4
+      mode: Enabled
+      configuration: null
+      definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::optional_signal_definition::PTC.Y.0
+      name: PTC/Y/0
+      label: Y/0
+    - identifier: PTC:Y/3
+      pad: PA7
+      mode: Enabled
+      configuration: null
+      definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::optional_signal_definition::PTC.Y.3
+      name: PTC/Y/3
+      label: Y/3
+    - identifier: PTC:Y/10
+      pad: PC4
+      mode: Enabled
+      configuration: null
+      definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::optional_signal_definition::PTC.Y.10
+      name: PTC/Y/10
+      label: Y/10
+    variant: null
+    clocks:
+      domain_group: null
+  ADC_0:
+    user_label: ADC_0
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::ADC0::driver_config_definition::ADC.Basic::Drivers:ADC:Basic
+    functionality: ADC
+    api: Drivers:ADC:Basic
+    configuration:
+      adc_calib_dutycyc: 50% Duty cycle
+      adc_ctrla_enable: true
+      adc_ctrla_freerun: false
+      adc_ctrla_ressel: 10-bit mode
+      adc_ctrla_runstby: false
+      adc_ctrlb_sampnum: 1 ADC sample
+      adc_ctrlc_presc: CLK_PER divided by 4
+      adc_ctrlc_refsel: Internal reference
+      adc_ctrlc_sampcap: false
+      adc_ctrld_asdv: false
+      adc_ctrld_initdly: Delay 0 CLK_ADC cycles
+      adc_ctrld_sampdly: 0
+      adc_ctrle_wincm: No Window Comparison
+      adc_dbgctrl_dbgrun: false
+      adc_evctrl_startei: false
+      adc_intctrl_resrdy: false
+      adc_intctrl_wcmp: false
+      adc_muxpos_muxpos: ADC input pin 0
+      adc_sampctrl_samplen: 0
+      adc_sampling_config: false
+      adc_winht: 0
+      adc_winlt: 0
+    optional_signals: []
+    variant: null
+    clocks:
+      domain_group:
+        nodes:
+        - name: ADC
+          input: Main Clock (CLK_MAIN)
+          external: false
+          external_frequency: 0
+        configuration:
+          adc_clock_source: Main Clock (CLK_MAIN)
+  USART:
+    user_label: USART
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::USART0::driver_config_definition::Async.Polled.Mode::Drivers:USART:Basic
+    functionality: USART
+    api: Drivers:USART:Basic
+    configuration:
+      baud_rate: 38400
+      ctrla_abeie: false
+      ctrla_dreie: false
+      ctrla_lbme: false
+      ctrla_rs485: RS485 Mode disabled
+      ctrla_rxcie: false
+      ctrla_rxsie: false
+      ctrla_txcie: false
+      ctrlb_mpcm: false
+      ctrlb_odme: false
+      ctrlb_rxen: true
+      ctrlb_rxmode: Normal mode
+      ctrlb_sfden: false
+      ctrlb_txen: true
+      ctrlc_chsize: 'Character size: 8 bit'
+      ctrlc_cmode: Asynchronous USART
+      ctrlc_pmode: No Parity
+      ctrlc_sbmode: 1 stop bit
+      ctrlc_ucpha: false
+      ctrlc_udord: false
+      dbgctrl_abmbp: false
+      dbgctrl_dbgrun: false
+      evctrl_irei: false
+      printf_support: false
+      rxplctrl_rxpl: 0
+      txplctrl_txpl: 0
+    optional_signals: []
+    variant:
+      specification: CMODE=0
+      required_signals:
+      - name: USART0/RXD
+        pad: PB3
+        label: RXD
+      - name: USART0/TXD
+        pad: PB2
+        label: TXD
+    clocks:
+      domain_group:
+        nodes:
+        - name: USART
+          input: Main Clock (CLK_MAIN)
+          external: false
+          external_frequency: 0
+        configuration:
+          usart_clock_source: Main Clock (CLK_MAIN)
+  WDT_0:
+    user_label: WDT_0
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::WDT::driver_config_definition::WDT::Drivers:WDT:Init
+    functionality: WDT
+    api: Drivers:WDT:Init
+    configuration:
+      wdt_ctrla_period: Watch-Dog timer Off
+      wdt_ctrla_window: Window mode off
+    optional_signals: []
+    variant: null
+    clocks:
+      domain_group:
+        nodes:
+        - name: WDT
+          input: 32KHz divided by 32
+          external: false
+          external_frequency: 0
+        configuration:
+          wdt_clock_source: 32KHz divided by 32
+  EVENT_SYSTEM_0:
+    user_label: EVENT_SYSTEM_0
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::EVSYS::driver_config_definition::EVSYS::Drivers:EVSYS:Init
+    functionality: Event_System
+    api: Drivers:EVSYS:Init
+    configuration:
+      evsys_asyncch0_asyncch0: 'Off'
+      evsys_asyncch1_asyncch1: 'Off'
+      evsys_asyncch2_asyncch2: 'Off'
+      evsys_asyncch3_asyncch3: 'Off'
+      evsys_asyncuser0_asyncuser0: 'Off'
+      evsys_asyncuser10_asyncuser10: 'Off'
+      evsys_asyncuser11_asyncuser11: 'Off'
+      evsys_asyncuser12_asyncuser12: 'Off'
+      evsys_asyncuser1_asyncuser1: 'Off'
+      evsys_asyncuser2_asyncuser2: 'Off'
+      evsys_asyncuser3_asyncuser3: 'Off'
+      evsys_asyncuser4_asyncuser4: 'Off'
+      evsys_asyncuser5_asyncuser5: 'Off'
+      evsys_asyncuser6_asyncuser6: 'Off'
+      evsys_asyncuser7_asyncuser7: 'Off'
+      evsys_asyncuser8_asyncuser8: 'Off'
+      evsys_asyncuser9_asyncuser9: 'Off'
+      evsys_syncch0_syncch0: 'Off'
+      evsys_syncch1_syncch1: 'Off'
+      evsys_syncuser0_syncuser0: 'Off'
+      evsys_syncuser1_syncuser1: 'Off'
+    optional_signals: []
+    variant: null
+    clocks:
+      domain_group: null
+  FLASH_0:
+    user_label: FLASH_0
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::NVMCTRL::driver_config_definition::NVMCTRL.Basic::Drivers:NVMCTRL:Basic
+    functionality: Flash
+    api: Drivers:NVMCTRL:Basic
+    configuration:
+      nvmctrl_ctrlb_apcwp: false
+      nvmctrl_ctrlb_bootlock: false
+      nvmctrl_intctrl_eeready: false
+      nvmctrl_irq_driven: false
+      nvmctrl_relocate_flash_functions: false
+    optional_signals: []
+    variant: null
+    clocks:
+      domain_group: null
+  CPUINT:
+    user_label: CPUINT
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::CPUINT::driver_config_definition::CPUINT::Drivers:CPUINT:Init
+    functionality: System
+    api: Drivers:CPUINT:Init
+    configuration:
+      cpuint_ctrla_cvt: false
+      cpuint_ctrla_ivsel: false
+      cpuint_ctrla_lvl0rr: false
+      cpuint_global_interrupt: true
+      cpuint_lvl0pri_lvl0pri: 0
+      cpuint_lvl1vec_lvl1vec: 0
+      inc_isr_harness: false
+    optional_signals: []
+    variant: null
+    clocks:
+      domain_group: null
+  SLPCTRL:
+    user_label: SLPCTRL
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::SLPCTRL::driver_config_definition::SLPCTRL::Drivers:SLPCTRL:Init
+    functionality: System
+    api: Drivers:SLPCTRL:Init
+    configuration:
+      slpctrl_ctrla_sen: true
+      slpctrl_ctrla_smode: Standby Mode
+    optional_signals: []
+    variant: null
+    clocks:
+      domain_group: null
+  I2C_0:
+    user_label: I2C_0
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::TWI0::driver_config_definition::I2C.Slave.Interrupt::Drivers:I2C:Slave
+    functionality: I2C
+    api: Drivers:I2C:Slave
+    configuration:
+      f_scl: 100000
+      inc_isr_harness: false
+      t_rise: 0
+      twi_ctrla_fmpen: false
+      twi_ctrla_sdahold: SDA hold time off
+      twi_ctrla_sdasetup: SDA setup time is 4 clock cycles
+      twi_dbgctrl_dbgrun: false
+      twi_mctrla_enable: false
+      twi_mctrla_qcen: false
+      twi_mctrla_rien: false
+      twi_mctrla_smen: false
+      twi_mctrla_timeout: Bus Timeout Disabled
+      twi_mctrla_wien: false
+      twi_mstatus_busstate: false
+      twi_saddr: 74
+      twi_saddr_gcren: false
+      twi_saddrmask_addren: false
+      twi_saddrmask_addrmask: 0
+      twi_sctrla_apien: true
+      twi_sctrla_dien: true
+      twi_sctrla_enable: true
+      twi_sctrla_pien: true
+      twi_sctrla_pmen: false
+      twi_sctrla_smen: false
+    optional_signals:
+    - identifier: I2C_0:SCL
+      pad: PA2
+      mode: Enabled
+      configuration: null
+      definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::optional_signal_definition::TWI0.SCL
+      name: TWI0/SCL
+      label: SCL
+    - identifier: I2C_0:SDA
+      pad: PA1
+      mode: Enabled
+      configuration: null
+      definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::optional_signal_definition::TWI0.SDA
+      name: TWI0/SDA
+      label: SDA
+    variant: null
+    clocks:
+      domain_group:
+        nodes:
+        - name: TWI
+          input: Main Clock (CLK_MAIN)
+          external: false
+          external_frequency: 0
+        configuration:
+          twi_clock_source: Main Clock (CLK_MAIN)
+  BOD:
+    user_label: BOD
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::BOD::driver_config_definition::BOD::Drivers:BOD:Init
+    functionality: System
+    api: Drivers:BOD:Init
+    configuration:
+      bod_ctrla_sleep: Disabled
+      bod_intctrl_vlmcfg: Interrupt when supply goes below VLM level
+      bod_intctrl_vlmie: false
+      bod_vlmctrla_vlmlvl: VLM threshold 5% above BOD level
+      inc_isr_harness: false
+    optional_signals: []
+    variant: null
+    clocks:
+      domain_group:
+        nodes:
+        - name: BOD
+          input: 32KHz divided by 32
+          external: false
+          external_frequency: 0
+        configuration:
+          bod_clock_source: 32KHz divided by 32
+pads:
+  PA2:
+    name: PA2
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PA2
+    mode: Advanced
+    user_label: PA2
+    configuration: null
+  CHG:
+    name: PA3
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PA3
+    mode: Digital input
+    user_label: CHG
+    configuration: null
+  PA4:
+    name: PA4
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PA4
+    mode: Analog
+    user_label: PA4
+    configuration: null
+  QTLP6:
+    name: PA5
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PA5
+    mode: Digital output
+    user_label: QTLP6
+    configuration: null
+  PA6:
+    name: PA6
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PA6
+    mode: Analog
+    user_label: PA6
+    configuration: null
+  PA7:
+    name: PA7
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PA7
+    mode: Analog
+    user_label: PA7
+    configuration: null
+  QTLP9:
+    name: PB7
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PB7
+    mode: Digital output
+    user_label: QTLP9
+    configuration: null
+  QTLP10:
+    name: PB6
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PB6
+    mode: Digital output
+    user_label: QTLP10
+    configuration: null
+  PB5:
+    name: PB5
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PB5
+    mode: Analog
+    user_label: PB5
+    configuration: null
+  PB4:
+    name: PB4
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PB4
+    mode: Analog
+    user_label: PB4
+    configuration: null
+  PB3:
+    name: PB3
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PB3
+    mode: Digital input
+    user_label: PB3
+    configuration: null
+  PB2:
+    name: PB2
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PB2
+    mode: Digital output
+    user_label: PB2
+    configuration: null
+  QTLP15:
+    name: PB1
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PB1
+    mode: Digital output
+    user_label: QTLP15
+    configuration: null
+  PB0:
+    name: PB0
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PB0
+    mode: Analog
+    user_label: PB0
+    configuration: null
+  PC0:
+    name: PC0
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PC0
+    mode: Analog
+    user_label: PC0
+    configuration: null
+  QTLP18:
+    name: PC1
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PC1
+    mode: Digital output
+    user_label: QTLP18
+    configuration: null
+  PC2:
+    name: PC2
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PC2
+    mode: Analog
+    user_label: PC2
+    configuration: null
+  PC3:
+    name: PC3
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PC3
+    mode: Analog
+    user_label: PC3
+    configuration: null
+  PC4:
+    name: PC4
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PC4
+    mode: Analog
+    user_label: PC4
+    configuration: null
+  PC5:
+    name: PC5
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PC5
+    mode: Analog
+    user_label: PC5
+    configuration: null
+  QTLP23:
+    name: PA0
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PA0
+    mode: Digital output
+    user_label: QTLP23
+    configuration: null
+  PA1:
+    name: PA1
+    definition: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::pad::PA1
+    mode: Advanced
+    user_label: PA1
+    configuration: null
+toolchain_options:
+- definition:
+    identifier: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::environment_definition::All:Microchip.Studio.xc8:7.0.0
+  configuration:
+    compiler_config:
+      xc8_compiler_miscellaneous_OtherFlags: -std=gnu99
+    linker_config:
+      xc8_linker_miscellaneous_LinkerFlags: ''
+- definition:
+    identifier: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::environment_definition::All:Microchip.Studio.gcc:7.0.0
+  configuration:
+    compiler_config:
+      avrgcc_compiler_miscellaneous_OtherFlags: -std=gnu99
+    linker_config:
+      avrgcc_linker_miscellaneous_LinkerFlags: ''
+- definition:
+    identifier: Atmel:ATtiny417_81x_161x_321x_drivers:1.0.0::ATtiny3217-MNR::environment_definition::All:Atmel.Studio:7.0.0
+  configuration:
+    compiler_config:
+      avrgcc_compiler_miscellaneous_OtherFlags: -std=gnu99
+    linker_config:
+      avrgcc_linker_miscellaneous_LinkerFlags: ''
+static_files: []
