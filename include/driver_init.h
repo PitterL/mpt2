@@ -45,10 +45,9 @@
 
 #include <rtc.h>
 
-#include <adc_basic.h>
-
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
 #include <usart_basic.h>
-
+#endif
 #include <wdt.h>
 #include <ccp.h>
 #include <evsys.h>

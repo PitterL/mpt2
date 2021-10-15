@@ -120,7 +120,7 @@ void FLASH_0_read_eeprom_block(eeprom_adr_t eeprom_adr, uint8_t *data, size_t si
  *
  * \return Status of write operation
  */
-nvmctrl_status_t FLASH_0_write_eeprom_block(eeprom_adr_t eeprom_adr, uint8_t *data, size_t size)
+nvmctrl_status_t FLASH_0_write_eeprom_block(eeprom_adr_t eeprom_adr, const uint8_t *data, size_t size)
 {
 
 	uint8_t *write = (uint8_t *)(EEPROM_START + eeprom_adr);

@@ -20,7 +20,7 @@
 #define TOUCH_API_BUTTON
 #endif
 /* Node configure parameters */
-extern qtm_acq_t321x_node_config_t ptc_seq_node_cfg1[];
+extern qtm_acq_4p_t321x_config_t ptc_seq_node_cfg1[];
 
 /* Key Configurations */
 extern qtm_touch_key_config_t qtlib_key_configs_set1[];
@@ -317,14 +317,8 @@ u8 tsapi_read_config_byte(u8 type)
 
 void tsapi_calibrate(void)
 {
-	qtm_acq_node_group_config_t *qtacq = &ptc_qtlib_acq_gen1;
-	u8 i;
-	
-	for (i = 0; i < (u8)qtacq->num_sensor_nodes; i++) {
-		/* Calibrate Node */
-		
-		calibrate_node_post(i);
-	}
+	/* Calibrate Node */
+	calibrate_node_post((uint8_t)-1);
 }
 
 u8 tsapi_get_chip_state(void)
@@ -335,11 +329,12 @@ u8 tsapi_get_chip_state(void)
 	const qtm_acq_node_data_t * const qtns= &ptc_qtlib_node_stat1[0];
 	const qtm_touch_key_group_config_t * const qttkg = &qtlib_key_grp_config_set1;
 	u8 sensor_state, cal;
-	u8 i;
+	u8 i, node;
 
 	for (i = 0; i < (u8)qttkg->num_key_sensors; i++) {
 		// FIXME, Why node_acq_status may different with sensor_state?
-		cal = qtns[i].node_acq_status & NODE_CAL_MASK;
+		node = get_sensor_node_mapping(i);
+		cal = qtns[node].node_acq_status & NODE_CAL_MASK;
 		if (cal) {
 			state = MXT_T6_STATUS_CAL;
 		} else {
@@ -405,16 +400,16 @@ u16 calculate_and_cache_cccap(qtm_comp_to_cc_cache_t * pcap, u16 comcap)
 ssint tsapi_read_ref_signal_cap(u8 index, cap_sample_value_t *cval)
 {
 	const qtm_touch_key_group_config_t * const qttkg = &qtlib_key_grp_config_set1;
-	const qtm_touch_key_data_t * const qtkds = &qtlib_key_data_set1[0];
+	//const qtm_touch_key_data_t * const qtkds = &qtlib_key_data_set1[0];
 	qtm_comp_to_cc_cache_t * const pcap = &ptc_node_cccap_cache[0];
 
 	if (index >= (u8)qttkg->num_key_sensors)
 		return -2;
 
-	cval->reference = qtkds[index].channel_reference;
-	cval->signal = qtkds[index].node_data_struct_ptr->node_acq_signals;
+	cval->reference = get_sensor_node_reference(index);
+	cval->signal = get_sensor_node_signal(index);
 	//FIXME: button order may not match sensor order
-	cval->comcap = qtkds[index].node_data_struct_ptr->node_comp_caps;
+	cval->comcap = get_sensor_cc_val(index);
 #if defined(OBJECT_T25) || defined(OBJECT_T37)
 	cval->cccap = calculate_and_cache_cccap(pcap + index, cval->comcap);
 #endif

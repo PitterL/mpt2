@@ -34,7 +34,7 @@ extern "C" {
 #include "qtm_common_components_api.h"
 #include "qtm_acq_4p_t321x_0x001b_api.h"
 #include "qtm_touch_key_0x0002_api.h"
-#include "qtm_freq_hop_auto_0x0004_api.h"
+#include "qtm_freq_hop_0x0006_api.h"
 
 /*----------------------------------------------------------------------------
  *   prototypes
@@ -44,6 +44,7 @@ uint16_t get_sensor_node_signal(uint16_t sensor_node);
 void     update_sensor_node_signal(uint16_t sensor_node, uint16_t new_signal);
 uint16_t get_sensor_node_reference(uint16_t sensor_node);
 void     update_sensor_node_reference(uint16_t sensor_node, uint16_t new_reference);
+uint16_t get_sensor_node_delta(uint16_t sensor_node);
 uint16_t get_sensor_cc_val(uint16_t sensor_node);
 void     update_sensor_cc_val(uint16_t sensor_node, uint16_t new_cc_value);
 uint8_t  get_sensor_state(uint16_t sensor_node);
@@ -51,10 +52,20 @@ void     update_sensor_state(uint16_t sensor_node, uint8_t new_state);
 void     calibrate_node(uint16_t sensor_node);
 uint8_t  get_scroller_state(uint16_t sensor_node);
 uint16_t get_scroller_position(uint16_t sensor_node);
+/* USE_MPTT_WRAPPER */
+uint8_t  get_sensor_node_mapping(uint8_t sensor_node);
+void     calibrate_node_post(uint8_t sensor_node);
+void     qtm_init_sensor_key_post(uint8_t sensor_node);
 
-void touch_timer_handler(void);
-void touch_init(void);
-void touch_process(void);
+void	touch_timer_handler(void);
+void	touch_init(void);
+/* USE_MPTT_WRAPPER */
+void	touch_process(void);
+uint8_t	touch_sleep(void);
+void	touch_suspend(uint8_t suspend);
+void	touch_inject_event(void);
+int8_t	touch_state_idle(void);
+int8_t  touch_state_sleep(void);
 
 #ifdef __cplusplus
 }

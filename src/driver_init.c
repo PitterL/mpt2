@@ -36,13 +36,7 @@
 #include "driver_init.h"
 #include <system.h>
 
-/* Configure pins and initialize registers */
-void ADC_0_initialization(void)
-{
-
-	ADC_0_init();
-}
-
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
 /* configure the pins and initialize the registers */
 void USART_initialization(void)
 {
@@ -70,17 +64,11 @@ void USART_initialization(void)
 
 	USART_init();
 }
+#endif
 
-void EVENT_SYSTEM_0_initialization(void)
+void EVSYS_initialization(void)
 {
-
 	EVENT_SYSTEM_0_init();
-}
-
-/* Initialize registers */
-void FLASH_0_initialization(void)
-{
-	FLASH_0_init();
 }
 
 /* configure pins and initialize registers */
@@ -176,6 +164,14 @@ void I2C_0_initialization(void)
 	I2C_0_init();
 }
 
+
+#ifdef MPTT_BUS_MONITOR
+bool gpio_get_bus_line_level(void)
+{
+	return PA1_get_level() && PA2_get_level();
+}
+#endif
+
 /**
  * \brief System initialization
  */
@@ -206,7 +202,7 @@ void system_init()
 	    // <id> pad_pull_config
 	    // <PORT_PULL_OFF"> Off
 	    // <PORT_PULL_UP"> Pull-up
-	    PORT_PULL_OFF);
+	    PORT_PULL_UP);
 
 	/* PORT setting on PA5 */
 
@@ -277,15 +273,21 @@ void system_init()
 
 	Timer_init();
 
-	ADC_0_initialization();
+	//ADC used for Pinfault detection, not initialized here
+	//ADC_0_initialization();
 
+#ifdef DEF_TOUCH_DATA_STREAMER_ENABLE
 	USART_initialization();
+#endif
 
-	WDT_0_init();
+	//HW WDT default enabled
+	//WDT_0_init();
 
-	EVENT_SYSTEM_0_initialization();
+	EVENT_SYSTEM_0_init();
 
-	FLASH_0_initialization();
+#ifdef MPTT_SAVE_CONFIG
+	FLASH_0_init();
+#endif
 
 	CPUINT_init();
 
@@ -293,5 +295,6 @@ void system_init()
 
 	I2C_0_initialization();
 
-	BOD_init();
+	//HW BOD default enabled
+	//BOD_init();
 }

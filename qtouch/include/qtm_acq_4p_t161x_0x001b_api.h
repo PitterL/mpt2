@@ -58,6 +58,10 @@ Copyright (C) 2019 Atmel. All rights reserved.
 /* Combine Resistor / Prescaler */
 #define NODE_RSEL_PRSC(r, p) (uint8_t)(((r) << 4u) | (p))
 
+/* Physical channel to nodes */
+#define TO_CHANNLES(n) ((n) >> 2)
+#define TO_NODES(c)	((c) << 2)
+
 /* Auto scan trigger sources */
 #define NODE_SCAN_4MS 1u
 #define NODE_SCAN_8MS 2u
@@ -71,6 +75,20 @@ Copyright (C) 2019 Atmel. All rights reserved.
 #define NODE_SCAN_2048MS 10u
 #define NODE_SCAN_4096MS 11u
 
+/*	USE_MPTT_WRAPPER, 
+	We use 32K RTC clock permanently, so the scanning rate will below */
+typedef enum tage_node_sleep_scan_rate_t {
+	NODE_SLEEP_SCAN_RATE_2MS,
+	NODE_SLEEP_SCAN_RATE_4MS,
+	NODE_SLEEP_SCAN_RATE_8MS,
+	NODE_SLEEP_SCAN_RATE_16MS,
+	NODE_SLEEP_SCAN_RATE_32MS,
+	NODE_SLEEP_SCAN_RATE_64MS,
+	NODE_SLEEP_SCAN_RATE_128MS,
+	NODE_SLEEP_SCAN_RATE_256MS,
+	NODE_SLEEP_SCAN_RATE_LEVELS
+} tage_node_sleep_scan_rate;
+
 typedef enum tag_filter_level_t {
 	FILTER_LEVEL_1,
 	FILTER_LEVEL_2,
@@ -82,7 +100,7 @@ typedef enum tag_filter_level_t {
 } filter_level_t;
 
 /* Touch library GAIN setting */
-typedef enum tag_gain_t { GAIN_1, GAIN_2, GAIN_4, GAIN_8, GAIN_16 } gain_t;
+typedef enum tag_gain_t { GAIN_1, GAIN_2, GAIN_4, GAIN_8, GAIN_16, GAIN_32 } gain_t;
 /* PTC clock prescale setting.
  * For Example: if Generic clock input to PTC = 2MHz, then:
  * PRSC_DIV_SEL_2 sets PTC Clock to 1MHz

@@ -30,15 +30,15 @@
     <EraseKey />
     <AsfFrameworkConfig>
       <framework-data xmlns="">
-  <options />
-  <configurations />
-  <files />
-  <documentation help="" />
-  <offline-documentation help="" />
-  <dependencies>
-    <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.49.1" />
-  </dependencies>
-</framework-data>
+        <options />
+        <configurations />
+        <files />
+        <documentation help="" />
+        <offline-documentation help="" />
+        <dependencies>
+          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.49.1" />
+        </dependencies>
+      </framework-data>
     </AsfFrameworkConfig>
     <Compiler>gcc</Compiler>
     <atStartFilePath>.atmelstart\atmel_start_config.atstart</atStartFilePath>
@@ -168,14 +168,15 @@
   <avrgcc.linker.libraries.Libraries>
     <ListValues>
       <Value>libqtm_touch_key_t3217_0x0002.a</Value>
-      <Value>libqtm_freq_hop_auto_t3217_0x0004.a</Value>
       <Value>libqtm_acq_runtime_4p_t3217_0x001d.a</Value>
       <Value>libm</Value>
+      <Value>libqtm_freq_hop_t3217_0x0006.a</Value>
     </ListValues>
   </avrgcc.linker.libraries.Libraries>
   <avrgcc.linker.libraries.LibrarySearchPaths>
     <ListValues>
       <Value>../qtouch/lib/gcc</Value>
+      <Value>D:\Users\a41450\atmel studio\ATtiny3217-1Finger-Low_Power-4x-Project-MPT2\ATtiny3217-1Finger-Low_Power-4x-Project-MPT2\qtouch\lib\gcc</Value>
     </ListValues>
   </avrgcc.linker.libraries.LibrarySearchPaths>
   <avrgcc.assembler.general.IncludePaths>
@@ -210,6 +211,44 @@
   <avrgcc.compiler.symbols.DefSymbols>
     <ListValues>
       <Value>DEBUG</Value>
+      <Value>PROJECT_A08</Value>
+      <Value>USE_WDT</Value>
+      <Value>USE_MPTT_WRAPPER</Value>
+      <Value>MPTT_CCAMP_DIV100</Value>
+      <Value>MPTT_AUTO_PINMUX</Value>
+      <Value>MPTT_BUS_MONITOR</Value>
+      <Value>MPTT_SAVE_CONFIG</Value>
+      <Value>MPTT_FUSE_CHECK</Value>
+      <Value>xMPTT_MATRIX_NODES</Value>
+      <Value>OBJECT_WRITEBACK</Value>
+      <Value>OBJECT_T37</Value>
+      <Value>xOBJECT_T37_DEBUG_LOWPOWER_INFO</Value>
+      <Value>OBJECT_T37_DEBUG_PLATFORM_INFO</Value>
+      <Value>OBJECT_T44</Value>
+      <Value>OBJECT_T5</Value>
+      <Value>OBJECT_T6</Value>
+      <Value>OBJECT_T7</Value>
+      <Value>OBJECT_T8</Value>
+      <Value>xOBJECT_T9</Value>
+      <Value>xOBJECT_T9_ORIENT</Value>
+      <Value>xOBJECT_T9_USE_STATE_CB</Value>
+      <Value>OBJECT_T15</Value>
+      <Value>xOBJECT_T15_USE_STATE_CB</Value>
+      <Value>xOBJECT_T18</Value>
+      <Value>OBJECT_T25</Value>
+      <Value>OBJECT_T25_PIN_FAULT_ENABLE</Value>
+      <Value>OBJECT_T25_EXTENSION</Value>
+      <Value>OBJECT_T38</Value>
+      <Value>xOBJECT_T104</Value>
+      <Value>OBJECT_T111</Value>
+      <Value>OBJECT_T111_DUMMY</Value>
+      <Value>xOBJECT_T109</Value>
+      <Value>OBJECT_T126</Value>
+      <Value>xDEBUG_FORMAT_HAWKEYE</Value>
+      <Value>xDEF_TOUCH_DATA_STREAMER_ENABLE</Value>
+      <Value>__DELAY_BACKWARD_COMPATIBLE__</Value>
+      <Value>xDEF_TOUCH_LOWPOWER_SOFT</Value>
+      <Value>DEF_TOUCH_MEASUREMENT_OVERFLOW</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>
   <avrgcc.compiler.directories.IncludePaths>
@@ -224,10 +263,11 @@
       <Value>../qtouch</Value>
       <Value>../qtouch/datastreamer</Value>
       <Value>../qtouch/include</Value>
+      <Value>../mpt2</Value>
       <Value>%24(PackRepoDir)\Atmel\ATtiny_DFP\1.3.229\include</Value>
     </ListValues>
   </avrgcc.compiler.directories.IncludePaths>
-  <avrgcc.compiler.optimization.level>Optimize debugging experience (-Og)</avrgcc.compiler.optimization.level>
+  <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
   <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
   <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
   <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
@@ -235,14 +275,15 @@
   <avrgcc.linker.libraries.Libraries>
     <ListValues>
       <Value>libqtm_touch_key_t3217_0x0002.a</Value>
-      <Value>libqtm_freq_hop_auto_t3217_0x0004.a</Value>
       <Value>libqtm_acq_runtime_4p_t3217_0x001d.a</Value>
       <Value>libm</Value>
+      <Value>libqtm_freq_hop_t3217_0x0006.a</Value>
     </ListValues>
   </avrgcc.linker.libraries.Libraries>
   <avrgcc.linker.libraries.LibrarySearchPaths>
     <ListValues>
       <Value>../qtouch/lib/gcc</Value>
+      <Value>D:\Users\a41450\atmel studio\ATtiny3217-1Finger-Low_Power-4x-Project-MPT2\ATtiny3217-1Finger-Low_Power-4x-Project-MPT2\qtouch\lib\gcc</Value>
     </ListValues>
   </avrgcc.linker.libraries.LibrarySearchPaths>
   <avrgcc.assembler.general.IncludePaths>
@@ -298,6 +339,27 @@
     <Folder Include="modules\usart\doc\" />
     <Folder Include="modules\wdt\" />
     <Folder Include="modules\wdt\doc\" />
+    <Folder Include="mpt2\" />
+    <Folder Include="mpt2\arch\" />
+    <Folder Include="mpt2\arch\" />
+    <Folder Include="mpt2\arch\" />
+    <Folder Include="mpt2\arch\" />
+    <Folder Include="mpt2\arch\" />
+    <Folder Include="mpt2\arch\" />
+    <Folder Include="mpt2\arch\avr\" />
+    <Folder Include="mpt2\arch\avr\" />
+    <Folder Include="mpt2\arch\avr\" />
+    <Folder Include="mpt2\arch\avr\" />
+    <Folder Include="mpt2\arch\avr\" />
+    <Folder Include="mpt2\arch\avr\attiny\" />
+    <Folder Include="mpt2\arch\avr\attiny\" />
+    <Folder Include="mpt2\arch\avr\attiny\" />
+    <Folder Include="mpt2\arch\avr\attiny\" />
+    <Folder Include="mpt2\arch\avr\attiny\" />
+    <Folder Include="mpt2\arch\avr\attiny\include\" />
+    <Folder Include="mpt2\include\" />
+    <Folder Include="mpt2\include\" />
+    <Folder Include="mpt2\objects\" />
     <Folder Include="qtouch\" />
     <Folder Include="qtouch\datastreamer\" />
     <Folder Include="qtouch\include\" />
@@ -421,13 +483,7 @@
     <Compile Include="driver_isr.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="examples\include\adc_basic_example.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="examples\include\i2c_slave_example.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="examples\include\nvmctrl_basic_example.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="examples\include\touch_example.h">
@@ -436,13 +492,7 @@
     <Compile Include="examples\include\usart_basic_example.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="examples\src\adc_basic_example.c">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="examples\src\i2c_slave_example.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="examples\src\nvmctrl_basic_example.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="examples\src\touch_example.c">
@@ -451,7 +501,7 @@
     <Compile Include="examples\src\usart_basic_example.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="include\adc_basic.h">
+    <Compile Include="include\adc_basic2.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="include\atmel_start_pins.h">
@@ -508,6 +558,196 @@
     <Compile Include="main.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="mpt2\arch\avr\attiny\bus.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\avr\attiny\flash.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\avr\attiny\Fuse.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\avr\attiny\i2c.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\avr\attiny\include\mutex.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\avr\attiny\include\tswrapper.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\avr\attiny\pinconf.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\avr\attiny\sysctrl.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\avr\attiny\timer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\avr\attiny\tsapi.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\bus.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\cpu.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\flash.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\fuse.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\i2c.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\pinconf.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\sysctrl.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\timer.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\arch\tslapi.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\board.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\board.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\crc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\crc.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\include\list.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\include\list.h" />
+    <Compile Include="mpt2\include\types.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\interface.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\interface.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\mptt.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\mptt.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t104.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t104.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t109.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t109.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t111.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t111.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t126.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t126.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t15.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t15.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t18.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t18.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t25.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t25.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t37.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t37.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t38.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t38.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t44.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t44.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t5.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t5.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t6.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t6.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t7.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t7.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t8.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t8.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t9.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\t9.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\txx.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\objects\txx.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\tsl.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="mpt2\tsl.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="qtouch\datastreamer\datastreamer.h">
       <SubType>compile</SubType>
     </Compile>
@@ -535,13 +775,16 @@
     <Compile Include="qtouch\license.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="qtouch\pack.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="qtouch\touch.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="qtouch\touch.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\adc_basic.c">
+    <Compile Include="src\adc_basic2.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\bod.c">
@@ -595,7 +838,13 @@
     <Compile Include="utils\compiler.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="utils\compiler_included.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="utils\interrupt_avr8.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="utils\status_codes.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="utils\utils.h">

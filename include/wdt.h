@@ -36,7 +36,15 @@
 extern "C" {
 #endif
 
-int8_t WDT_0_init();
+/* USE_MPTT_WRAPPER  required */
+#define CLR_WDT()         __asm__ __volatile__ ( "wdr" ::: "memory")
+
+/* USE_MPTT_WRAPPER  required */
+uint16_t WDT_0_get_period_value(void);
+int8_t WDT_0_set_period_value_ge(uint16_t val);
+
+/* USE_MPTT_WRAPPER  required */
+#define DEF_WDT_FEEDING_MARGIN 40	//ms
 
 #ifdef __cplusplus
 }

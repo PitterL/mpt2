@@ -92,7 +92,7 @@ void I2C_0_init()
 
 	// TWI0.DBGCTRL = 0 << TWI_DBGRUN_bp; /* Debug Run: disabled */
 
-	TWI0.SADDR = 0x4a << TWI_ADDRMASK_gp /* Slave Address: 0x4a */
+	TWI0.SADDR = I2C_SLAVE_ADDRESS << TWI_ADDRMASK_gp /* Slave Address */
 	             | 0 << TWI_ADDREN_bp;   /* General Call Recognition Enable: disabled */
 
 	// TWI0.SADDRMASK = 0 << TWI_ADDREN_bp /* Address Mask Enable: disabled */
@@ -100,7 +100,7 @@ void I2C_0_init()
 
 	TWI0.SCTRLA = 1 << TWI_APIEN_bp    /* Address/Stop Interrupt Enable: enabled */
 	              | 1 << TWI_DIEN_bp   /* Data Interrupt Enable: enabled */
-	              | 1 << TWI_ENABLE_bp /* Enable TWI Slave: enabled */
+	              /* | 1 << TWI_ENABLE_bp Enable TWI Slave: enabled */
 	              | 1 << TWI_PIEN_bp   /* Stop Interrupt Enable: enabled */
 	              | 0 << TWI_PMEN_bp   /* Promiscuous Mode Enable: disabled */
 	              | 0 << TWI_SMEN_bp;  /* Smart Mode Enable: disabled */
@@ -144,11 +144,13 @@ void I2C_0_isr()
 	static char isFirstByte = true; // to bypass the NACK flag for the first byte in a transaction
 
 	if (TWI0.SSTATUS & TWI_COLL_bm) {
+		TWI0.SSTATUS |= TWI_COLL_bm;	// Fix for the isr loop forever
 		I2C_0_collision_callback();
 		return;
 	}
 
 	if (TWI0.SSTATUS & TWI_BUSERR_bm) {
+		TWI0.SSTATUS |= TWI_BUSERR_bm;	// Fix for the isr loop forever
 		I2C_0_bus_error_callback();
 		return;
 	}

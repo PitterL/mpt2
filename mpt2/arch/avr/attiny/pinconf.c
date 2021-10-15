@@ -45,7 +45,7 @@ ptc_pin_map_t attiny_xx17_ptc_pin_map[] = {
 #define PTC_CHANNLE_COUNT ARRAY_SIZE(attiny_xx17_ptc_pin_map)
 
 /* Node configure parameters */
-extern qtm_acq_t321x_node_config_t ptc_seq_node_cfg1[];
+extern qtm_acq_4p_t321x_config_t ptc_seq_node_cfg1[];
 
 /* Acquisition set 1 - General settings */
 extern qtm_acq_node_group_config_t ptc_qtlib_acq_gen1;
@@ -102,12 +102,33 @@ void ptc_enable(void)
     // memcpy((void *)PTC_REG_START, ptc_register_buffer, 1);
 }
 
+/*============================================================================
+static uint16_t qtm_get_x_mask(uint8_t which_node_group); --- same as in touchlib
+------------------------------------------------------------------------------
+Purpose: Gets a mask of all 4 X configs lines for the group
+Input  : Group number
+Output : X Line mask
+Notes  : none
+============================================================================*/
+static uint16_t qtm_get_x_mask(uint8_t which_node_group)
+{
+	uint16_t x_mask_all = 0u;
+	uint8_t i;
+	
+	for ( i = 0; i < 4; i++ ) {
+		x_mask_all = ptc_seq_node_cfg1[which_node_group].grp4_x_mask[i];
+	}
+
+	return x_mask_all;
+}
+
 bool ptc_channel_used(uint8_t channel)
 {
 	uint8_t i;
+	uint8_t num_channels = (uint8_t)TO_CHANNLES(ptc_qtlib_acq_gen1.num_sensor_nodes);
 
-	for ( i = 0; i < ptc_qtlib_acq_gen1.num_sensor_nodes; i++) {
-		if (((ptc_seq_node_cfg1[i].node_xmask | ptc_seq_node_cfg1[i].node_ymask) >> channel) & 0x1) {
+	for ( i = 0; i < num_channels; i++ ) {
+		if (((qtm_get_x_mask(i) | ptc_seq_node_cfg1[i].grp4_ymask) >> channel) & 0x1) {
 			return true;
 		}
 	}
@@ -124,7 +145,7 @@ void touch_ptc_pin_config(void)
 	const ptc_pin_map_t *ptc_map = attiny_xx17_ptc_pin_map;
 	uint8_t i;
 
-	for ( i = 0; i < PTC_CHANNLE_COUNT; i++) {
+	for ( i = 0; i < PTC_CHANNLE_COUNT; i++ ) {
 		if (ptc_channel_used(ptc_map[i].ptc_channel)) {
 			gpio_set_pin_pull_mode(ptc_map[i].port, ptc_map[i].pin, PORT_PULL_OFF);
 			gpio_set_pin_isc(ptc_map[i].port, ptc_map[i].pin, PORT_ISC_INPUT_DISABLE_gc);
@@ -197,7 +218,7 @@ bool pinfault_test_cycle(uint8_t delay,uint8_t thld, bool walk, bool level, uint
 	bool result = true;
 
 	// Set all pins status
-	for ( i = 0; i < PTC_CHANNLE_COUNT; i++) {
+	for ( i = 0; i < PTC_CHANNLE_COUNT; i++ ) {
 		if (ptc_channel_used(ptc_map[i].ptc_channel)) {
 			gpio_set_pin_dir(ptc_map[i].port, ptc_map[i].pin, PORT_DIR_OUT);
 			gpio_set_pin_level(ptc_map[i].port, ptc_map[i].pin, walk ? !level : level);
@@ -209,7 +230,7 @@ bool pinfault_test_cycle(uint8_t delay,uint8_t thld, bool walk, bool level, uint
 	delay_ms(10);
 #endif
 
-	for ( i = 0; i < PTC_CHANNLE_COUNT; i++) {
+	for ( i = 0; i < PTC_CHANNLE_COUNT; i++ ) {
 		if (ptc_channel_used(ptc_map[i].ptc_channel)) {
 			if (walk) {
 				if (level) {

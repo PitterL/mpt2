@@ -3,7 +3,7 @@
  *
  * \brief ADC Basic driver implementation.
  *
- (c) 2020 Microchip Technology Inc. and its subsidiaries.
+ (c) 2018 Microchip Technology Inc. and its subsidiaries.
 
     Subject to your compliance with these terms,you may use this software and
     any derivatives exclusively with Microchip products.It is your responsibility
@@ -34,7 +34,7 @@
  *
  *@{
  */
-#include <adc_basic.h>
+#include <adc_basic2.h>
 
 /**
  * \brief Initialize ADC interface
@@ -45,41 +45,41 @@
  * \retval 0 the ADC init was successful
  * \retval 1 the ADC init was not successful
  */
-int8_t ADC_0_init()
+int8_t ADC_init(ADC_t *reg, ADC_REFSEL_t ref, ADC_SAMPNUM_t acc, ADC_RESSEL_t bitmode)
 {
 
-	// ADC0.CALIB = ADC_DUTYCYC_DUTY50_gc; /* 50% Duty cycle */
+	// reg->CALIB = ADC_DUTYCYC_DUTY50_gc; /* 50% Duty cycle */
 
-	// ADC0.CTRLB = ADC_SAMPNUM_ACC1_gc; /* 1 ADC sample */
+	reg->CTRLB = acc; /* 1 ADC sample */
 
-	ADC0.CTRLC = ADC_PRESC_DIV4_gc      /* CLK_PER divided by 4 */
-	             | ADC_REFSEL_INTREF_gc /* Internal reference */
-	             | 0 << ADC_SAMPCAP_bp; /* Sample Capacitance Selection: disabled */
+	reg->CTRLC = ADC_PRESC_DIV4_gc /* CLK_PER divided by 4 */
+			 | ref /* VDD reference */
+			 | 1 << ADC_SAMPCAP_bp; /* Sample Capacitance Selection: enable */
 
-	// ADC0.CTRLD = 0 << ADC_ASDV_bp /* Automatic Sampling Delay Variation: disabled */
-	//		 | 0x0 << ADC_SAMPDLY_gp /* Sampling Delay Selection: 0x0 */
-	//		 | ADC_INITDLY_DLY0_gc; /* Delay 0 CLK_ADC cycles */
+	reg->CTRLD = 1 << ADC_ASDV_bp /* Automatic Sampling Delay Variation: enable */
+			 | 0x0 << ADC_SAMPDLY_gp /* Sampling Delay Selection: 0x0 */
+			 | ADC_INITDLY_DLY16_gc; /* Delay 32 CLK_ADC cycles */
 
-	// ADC0.CTRLE = ADC_WINCM_NONE_gc; /* No Window Comparison */
+	// reg->CTRLE = ADC_WINCM_NONE_gc; /* No Window Comparison */
 
-	// ADC0.DBGCTRL = 0 << ADC_DBGRUN_bp; /* Debug run: disabled */
+	// reg->DBGCTRL = 0 << ADC_DBGRUN_bp; /* Debug run: disabled */
 
-	// ADC0.EVCTRL = 0 << ADC_STARTEI_bp; /* Start Event Input Enable: disabled */
+	// reg->EVCTRL = 0 << ADC_STARTEI_bp; /* Start Event Input Enable: disabled */
 
-	// ADC0.INTCTRL = 0 << ADC_RESRDY_bp /* Result Ready Interrupt Enable: disabled */
+	// reg->INTCTRL = 0 << ADC_RESRDY_bp /* Result Ready Interrupt Enable: disabled */
 	//		 | 0 << ADC_WCMP_bp; /* Window Comparator Interrupt Enable: disabled */
 
-	// ADC0.MUXPOS = ADC_MUXPOS_AIN0_gc; /* ADC input pin 0 */
+	// reg->MUXPOS = ADC_MUXPOS_AIN0_gc; /* ADC input pin 0 */
 
-	// ADC0.SAMPCTRL = 0x0 << ADC_SAMPLEN_gp; /* Sample length: 0x0 */
+	reg->SAMPCTRL = 0x4 << ADC_SAMPLEN_gp; /* Sample length: 0x0 */
 
-	// ADC0.WINHT = 0x0; /* Window Comparator High Threshold: 0x0 */
+	// reg->WINHT = 0x0; /* Window Comparator High Threshold: 0x0 */
 
-	// ADC0.WINLT = 0x0; /* Window Comparator Low Threshold: 0x0 */
+	// reg->WINLT = 0x0; /* Window Comparator Low Threshold: 0x0 */
 
-	ADC0.CTRLA = 1 << ADC_ENABLE_bp     /* ADC Enable: enabled */
+	reg->CTRLA = 1 << ADC_ENABLE_bp     /* ADC Enable: enabled */
 	             | 0 << ADC_FREERUN_bp  /* ADC Freerun mode: disabled */
-	             | ADC_RESSEL_10BIT_gc  /* 10-bit mode */
+	             | bitmode  /* 10-bit mode ADC_RESSEL_8BIT_gc|ADC_RESSEL_10BIT_gc*/
 	             | 0 << ADC_RUNSTBY_bp; /* Run standby mode: disabled */
 
 	return 0;
@@ -92,9 +92,9 @@ int8_t ADC_0_init()
  *
  * \return Nothing
  */
-void ADC_0_enable()
+void ADC_enable(ADC_t *reg)
 {
-	ADC0.CTRLA |= ADC_ENABLE_bm;
+	reg->CTRLA |= ADC_ENABLE_bm;
 }
 /**
  * \brief Disable ADC_0
@@ -103,9 +103,9 @@ void ADC_0_enable()
  *
  * \return Nothing
  */
-void ADC_0_disable()
+void ADC_disable(ADC_t *reg)
 {
-	ADC0.CTRLA &= ~ADC_ENABLE_bm;
+	reg->CTRLA &= ~ADC_ENABLE_bm;
 }
 
 /**
@@ -115,10 +115,10 @@ void ADC_0_disable()
  *
  * \return Nothing
  */
-void ADC_0_start_conversion(adc_0_channel_t channel)
+void ADC_start_conversion(ADC_t *reg, adc_channel_t channel)
 {
-	ADC0.MUXPOS  = channel;
-	ADC0.COMMAND = ADC_STCONV_bm;
+	reg->MUXPOS  = channel;
+	reg->COMMAND = ADC_STCONV_bm;
 }
 
 /**
@@ -128,9 +128,10 @@ void ADC_0_start_conversion(adc_0_channel_t channel)
  * \retval true The ADC conversion is done
  * \retval false The ADC converison is not done
  */
-bool ADC_0_is_conversion_done()
+bool ADC_is_conversion_done(ADC_t *reg)
 {
-	return (ADC0.INTFLAGS & ADC_RESRDY_bm);
+	/* COMMAND must be clear before result will be valid */
+	return ((!reg->COMMAND) && (reg->INTFLAGS & ADC_RESRDY_bm));
 }
 
 /**
@@ -138,9 +139,9 @@ bool ADC_0_is_conversion_done()
  *
  * \return Conversion result read from the ADC_0 ADC module
  */
-adc_result_t ADC_0_get_conversion_result(void)
+adc_result_t ADC_get_conversion_result(ADC_t *reg)
 {
-	return (ADC0.RES);
+	return (reg->RES);
 }
 
 /**
@@ -148,15 +149,15 @@ adc_result_t ADC_0_get_conversion_result(void)
  *
  * \return Conversion result read from the ADC_0 ADC module
  */
-adc_result_t ADC_0_get_conversion(adc_0_channel_t channel)
+adc_result_t ADC_get_conversion(ADC_t *reg, adc_channel_t channel)
 {
 	adc_result_t res;
 
-	ADC_0_start_conversion(channel);
-	while (!ADC_0_is_conversion_done())
+	ADC_start_conversion(reg, channel);
+	while (!ADC_is_conversion_done(reg))
 		;
-	res = ADC_0_get_conversion_result();
-	ADC0.INTFLAGS |= ADC_RESRDY_bm;
+	res = ADC_get_conversion_result(reg);
+	reg->INTFLAGS |= ADC_RESRDY_bm;
 	return res;
 }
 
@@ -165,7 +166,7 @@ adc_result_t ADC_0_get_conversion(adc_0_channel_t channel)
  *
  * \return The number of bits in the ADC conversion result
  */
-uint8_t ADC_0_get_resolution()
+uint8_t ADC_get_resolution(ADC_t *reg)
 {
-	return (ADC0.CTRLA & ADC_RESSEL_bm) ? 8 : 10;
+	return (reg->CTRLA & ADC_RESSEL_bm) ? 8 : 10;
 }

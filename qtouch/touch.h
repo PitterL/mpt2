@@ -39,7 +39,14 @@ extern "C" {
  * Range: 1 to 255.
  * Default value: 20.
  */
-#define DEF_TOUCH_MEASUREMENT_PERIOD_MS 20
+#define DEF_TOUCH_MEASUREMENT_PERIOD_MS 10
+
+/* Defines the Measurement Time in milli seconds.
+ * Range: support[2, 4, 8, 16, 32, 64, 128, 256]
+ * Default value 64
+ * value 0 mean never measured in idle
+ */
+#define DEF_TOUCH_MEASUREMENT_IDLE_PERIOD_MS 64
 
 /* Defines the Type of sensor
  * Default value: NODE_MUTUAL.
@@ -80,8 +87,29 @@ extern "C" {
  * Range: 1 to 65535.
  * Default value: 1
  */
-#define DEF_NUM_CHANNELS (3)
+/*
+	Pin 5~9
+	GND
+	X2:		PA4		XY(0)
+	GND
+	Y7:		PA6		XY(2)
+	GND
+	X0:		PA7		XY(3)
+	GND
+	Y0:		PB5		XY(12)
+	Y1:		PB4		XY(13)
+	Y2:		PB0		XY(5)
+	Y3:		PC0		XY(6)
+	Y4:		PC1		XY(7)
+	Y5:		PC2		XY(8)
+	Y6:		PC3		XY(9)
+	GND
+	X1:		PC4		XY(10)
+	GND
+*/
 
+#define DEF_NUM_CHANNELS (3)
+#define DEF_NUM_CHANNEL_NODES (DEF_NUM_CHANNELS << 2)
 /* Defines mutual cap node parameter setting
  * {X-line, Y-line, Charge Share Delay, NODE_RSEL_PRSC(series resistor, prescaler), NODE_G(Analog Gain , Digital Gain),
  * filter level}
@@ -98,9 +126,15 @@ extern "C" {
 	}
 #define GRP_2_4P_PARAMS                                                                                                \
 	{                                                                                                                  \
-		{X(8), X(9), X(11), X_NONE}, Y(10), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_16), NODE_GAIN(GAIN_1, GAIN_1), \
+		{X(7), X(8), X(9), X_NONE}, Y(10), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_16), NODE_GAIN(GAIN_1, GAIN_1), \
 		    FILTER_LEVEL_16                                                                                            \
 	}
+
+#define PTC_SEQ_NODE_CFG1	{	\
+	GRP_0_4P_PARAMS,	\
+	GRP_1_4P_PARAMS, \
+	GRP_2_4P_PARAMS, 	\
+}
 
 /**********************************************************/
 /***************** Key Params   ******************/
@@ -147,6 +181,12 @@ extern "C" {
 		20, HYST_25, NO_AKS_GROUP                                                                                      \
 	}
 
+#define QTLIB_KEY_CONFIGS_SET {	\
+	KEY_0_PARAMS,	\
+	KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
+	KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
+}
+
 /* De-bounce counter for additional measurements to confirm touch detection
  * Range: 0 to 255.
  * Default value: 4.
@@ -172,7 +212,7 @@ extern "C" {
  * Range: 0-255
  * Default value: 20u = 4 seconds.
  */
-#define DEF_TCH_DRIFT_RATE 20
+#define DEF_TCH_DRIFT_RATE 1
 
 /* Rate at which sensor reference value is adjusted towards sensor signal value
  * when signal value is less than reference.
@@ -180,14 +220,14 @@ extern "C" {
  * Range: 0-255
  * Default value: 5u = 1 second.
  */
-#define DEF_ANTI_TCH_DRIFT_RATE 5
+#define DEF_ANTI_TCH_DRIFT_RATE 1
 
 /* Time to restrict drift on all sensor when one or more sensors are activated.
  * Units: 200ms
  * Range: 0-255
  * Default value: 20u = 4 seconds.
  */
-#define DEF_DRIFT_HOLD_TIME 20
+#define DEF_DRIFT_HOLD_TIME 2
 
 /* Set mode for additional sensor measurements based on touch activity.
  * Range: REBURST_NONE / REBURST_UNRESOLVED / REBURST_ALL
@@ -199,7 +239,7 @@ extern "C" {
  * Range: 0-255
  * Default value: 0
  */
-#define DEF_MAX_ON_DURATION 0
+#define DEF_MAX_ON_DURATION 250 //200ms
 
 /**********************************************************/
 /********* Frequency Hop Auto tune Module ****************/
@@ -212,25 +252,7 @@ extern "C" {
 #define NUM_FREQ_STEPS 3
 
 /* PTC Sampling Delay Selection - 0 to 15 PTC CLK cycles */
-#define DEF_MEDIAN_FILTER_FREQUENCIES FREQ_SEL_0, FREQ_SEL_1, FREQ_SEL_2
-
-/* Enable / Disable the frequency hop auto tune
- * Range: 0 / 1
- * Default value: 1
- */
-#define DEF_FREQ_AUTOTUNE_ENABLE 1
-
-/* sets the maximum variance for Frequency Hop Auto tune.
- * Range: 1 to 255.
- * Default value: 15
- */
-#define FREQ_AUTOTUNE_MAX_VARIANCE 15
-
-/* sets the Tune in count for Frequency Hop Auto tune.
- * Range: 1 to 255.
- * Default value: 6
- */
-#define FREQ_AUTOTUNE_COUNT_IN 6
+#define DEF_MEDIAN_FILTER_FREQUENCIES FREQ_SEL_0, FREQ_SEL_7, FREQ_SEL_15
 
 /**********************************************************/
 /******************* Low-power parameters *****************/
@@ -239,7 +261,9 @@ extern "C" {
  * Range: 0 or 1
  * Default value: 1
  */
+#ifdef OBJECT_T126
 #define DEF_TOUCH_LOWPOWER_ENABLE 1u
+#endif
 
 /* Node selection for Low-power scan.
  * Range: 0 to (DEF_NUM_CHANNELS-1).
@@ -258,27 +282,37 @@ extern "C" {
  * Range: NODE_SCAN_4MS to NODE_SCAN_4096MS
  * Default value: NODE_SCAN_64MS
  */
-#define QTM_AUTOSCAN_TRIGGER_PERIOD NODE_SCAN_64MS
+#define QTM_AUTOSCAN_TRIGGER_PERIOD NODE_SCAN_32MS
 
 /* Waiting time (in millisecond) for the application to switch to low-power measurement after the last touch.
- * Range: 1 to 65535
- * Default value: 5000
+ * Range: 0 to 255, unit 200ms
+ * Default value: 0(never timeout)
  */
-#define DEF_TOUCH_TIMEOUT 5000
+#define DEF_TOUCH_ACTIVE_IDLE_TIMEOUT 0
 
 /* Defines drift measurement period
  * During low-power measurement, it is recommended to perform periodic active measurement to perform drifting.
  * This parameter defines the measurement interval to perform drifting.
- * Range: 1 to 65535 ( should be more than QTM_AUTOSCAN_TRIGGER_PERIOD)
- * Default value: 2000
+ * Range: 0 to 255 ( should be more than QTM_AUTOSCAN_TRIGGER_PERIOD) unit 200ms
+	0: never drift
+   Note: the maximum value will be limited by WDTDOG setting
  */
-#define DEF_TOUCH_DRIFT_PERIOD_MS 2000
+#define DEF_TOUCH_DRIFT_PERIOD_MS 20
+
+/* Defines overflow measage of the measurement
+ * During measurement, acquisition should be done before next measurement. If not, that means sampling interval is two fast or something wrong of the measurement
+ * Range: count that notice overflow
+	0 ~ 255
+ */
+#ifdef DEF_TOUCH_MEASUREMENT_OVERFLOW
+#define DEF_TOUCH_MEASUREMENT_OVERFLOW_THRESHOLD 2
+#define DEF_TOUCH_MEASUREMENT_OVERFLOW_FORCE_DONE 200
+#endif
 
 /**********************************************************/
 /***************** Communication - Data Streamer ******************/
 /**********************************************************/
 
-#define DEF_TOUCH_DATA_STREAMER_ENABLE 1u
 #define DATA_STREAMER_BOARD_TYPE USER_BOARD
 
 #ifdef __cplusplus

@@ -30,6 +30,9 @@
 
 #include <compiler.h>
 
+#include <string.h>
+#include <ccp.h>
+
 #define BOOTLOADER_SECTION __attribute__((section(".bootloader")))
 
 #ifdef __cplusplus
@@ -57,7 +60,7 @@ nvmctrl_status_t FLASH_0_write_eeprom_byte(eeprom_adr_t eeprom_adr, uint8_t data
 
 void FLASH_0_read_eeprom_block(eeprom_adr_t eeprom_adr, uint8_t *data, size_t size);
 
-nvmctrl_status_t FLASH_0_write_eeprom_block(eeprom_adr_t eeprom_adr, uint8_t *data, size_t size);
+nvmctrl_status_t FLASH_0_write_eeprom_block(eeprom_adr_t eeprom_adr, const uint8_t *data, size_t size);
 
 bool FLASH_0_is_eeprom_ready();
 
