@@ -283,13 +283,17 @@ uint8_t avdd_test(void)
 		default VREF = 2.5v, for 8 bit sampling, numerator is du = 2.5 *256 = 640
 		du <181, 209> => 3.52 ~ 3.06v
 		
+		Now, Select VREF = 1.5v:
+		Vref = Vmeasured(1.5) *256 /adcval
+		Vref => (2.95, 3.84)
+		
 	*/
 
 	val = (uint8_t)gpio_get_adc_value(1, ADC_MUXPOS_INTREF_gc, ADC_SAMPNUM_ACC16_gc, 255);
 	ADC_disable(&ADC1);
 
 	// standard 116
-	if (val > 100 && val < 130)	// 2.9v ~3.8v
+	if (val > 100 && val < 130)	// 2.95v ~ 3.84v
 		return 0;
 
 	return val;
