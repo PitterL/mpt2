@@ -116,18 +116,18 @@ extern "C" {
  */
 #define GRP_0_4P_PARAMS                                                                                                \
 	{                                                                                                                  \
-		{X(2), X_NONE, X_NONE, X_NONE}, Y(0), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_16),                          \
-		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
+		{X(2), X_NONE, X_NONE, X_NONE}, Y(0), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_8),                          \
+		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_4                                                                 \
 	}
 #define GRP_1_4P_PARAMS                                                                                                \
 	{                                                                                                                  \
-		{X(12), X(13), X(5), X(6)}, Y(3), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_16), NODE_GAIN(GAIN_1, GAIN_1),   \
-		    FILTER_LEVEL_16                                                                                            \
+		{X(12), X(13), X(5), X(6)}, Y(3), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_8), NODE_GAIN(GAIN_1, GAIN_1),   \
+		    FILTER_LEVEL_4                                                                                            \
 	}
 #define GRP_2_4P_PARAMS                                                                                                \
 	{                                                                                                                  \
-		{X(7), X(8), X(9), X_NONE}, Y(10), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_16), NODE_GAIN(GAIN_1, GAIN_1), \
-		    FILTER_LEVEL_16                                                                                            \
+		{X(7), X(8), X(9), X_NONE}, Y(10), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_8), NODE_GAIN(GAIN_1, GAIN_1), \
+		    FILTER_LEVEL_4                                                                                            \
 	}
 
 #define PTC_SEQ_NODE_CFG1	{	\
@@ -305,7 +305,7 @@ extern "C" {
 	0 ~ 255
  */
 #ifdef DEF_TOUCH_MEASUREMENT_OVERFLOW
-#define DEF_TOUCH_MEASUREMENT_OVERFLOW_THRESHOLD 2
+#define DEF_TOUCH_MEASUREMENT_OVERFLOW_THRESHOLD 4
 #define DEF_TOUCH_MEASUREMENT_OVERFLOW_FORCE_DONE 200
 #endif
 
