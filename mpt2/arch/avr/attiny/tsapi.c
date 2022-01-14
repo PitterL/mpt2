@@ -333,7 +333,7 @@ u8 tsapi_get_chip_state(void)
 
 	for (i = 0; i < (u8)qttkg->num_key_sensors; i++) {
 		// FIXME, Why node_acq_status may different with sensor_state?
-		node = get_sensor_node_mapping(i);
+		node = get_sensor_node_mapping(i, false);
 		cal = qtns[node].node_acq_status & NODE_CAL_MASK;
 		if (cal) {
 			state = MXT_T6_STATUS_CAL;
@@ -576,4 +576,16 @@ const u8 *tsapi_get_fuse_data(u8 *len_ptr)
 bool tsapi_sensor_state_is_suspend(uint8_t node)
 {
 	return (get_sensor_state(node) == QTM_KEY_STATE_SUSPEND);
+}
+
+/* sensor key index to channel node mapping */
+uint8_t tsapi_get_sensor_node_mapping(uint8_t sensor_node, int8_t lumped)
+{
+	return get_sensor_node_mapping(sensor_node, lumped);
+}
+
+/* channel node to sensor key index mapping */
+uint8_t tsapi_get_channel_node_mapping(uint8_t channel_node)
+{
+	return get_channel_node_mapping(channel_node);
 }

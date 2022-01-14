@@ -254,13 +254,18 @@ uint8_t touch_channel_node_mapping_4p[DEF_NUM_CHANNEL_NODES] = {
 		5,	6,	7,	-1
 };
 
-/* key index to channel node mapping */
-uint8_t get_sensor_node_mapping(uint8_t sensor_node)
+/* sensor key index to channel node mapping */
+uint8_t get_sensor_node_mapping(uint8_t sensor_node, int8_t lumped)
 {
-	return touch_key_node_mapping_4p[sensor_node];
+	uint8_t channel = touch_key_node_mapping_4p[sensor_node];
+	if (lumped) {
+		channel = TO_CHANNLES(channel);
+	}
+	
+	return channel;
 }
 
-/* channel node to key index mapping */
+/* channel node to sensor key index mapping */
 uint8_t get_channel_node_mapping(uint8_t channel_node)
 {
 	return touch_channel_node_mapping_4p[channel_node];
@@ -975,7 +980,7 @@ static void soft_enable_nonlp_sensors(uint8_t key_mask, bool en)
 	for (uint8_t k = 0; k < num_key_sensors; k++) {
 		state = qtlib_key_data_set1[k].sensor_state;
 		
-		if (TEST_BIT(key_mask, key)) {
+		if (TEST_BIT(key_mask, k)) {
 			if (state == QTM_KEY_STATE_SUSPEND) {
 				qtm_key_resume(k, &qtlib_key_set1);
 			}
@@ -1003,7 +1008,8 @@ Notes  : none
 ============================================================================*/
 touch_ret_t qtm_autoscan_sensor_node_soft(void) 
 {
-	const uint8_t num_nodes = (uint8_t)ptc_qtlib_acq_gen1.num_sensor_nodes;
+	// FIXME: this function need be fixed the channel map to sensor before using
+	const uint8_t num_nodes = (uint8_t)TO_CHANNLES(ptc_qtlib_acq_gen1.num_sensor_nodes);
 	const uint8_t mask = auto_scan_setup.auto_scan_node_number;
 	uint8_t next, key;
 

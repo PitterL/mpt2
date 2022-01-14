@@ -1226,27 +1226,27 @@ void mpt_api_pre_process(void)
     return: < 0 the rsd data is not required currently; 0 rsd data is processed.
 */
 
-ssint mpt_api_set_sensor_data(u8 channel, /*const cap_sample_value_t * const*/ const void * cv)
+ssint mpt_api_set_sensor_data(u8 sensor, /*const cap_sample_value_t * const*/ const void * cv)
 {
 	ssint checked = -1;
 	ssint result;
 	
 #ifdef OBJECT_T37
-	result = object_api_t37_set_sensor_data(channel, cv);
+	result = object_api_t37_set_sensor_data(sensor, cv);
 	if (result == 0) {
 		checked = 0;
 	}
 #endif
 
 #ifdef OBJECT_T25
-	result = object_api_t25_selftest(channel, cv);
+	result = object_api_t25_selftest(sensor, cv);
 	if (result == 0) {
 		checked = 0;
 	}
 #endif
 
 #ifdef OBJECT_T109
-	result = object_api_t109_set_sensor_data(channel, cv);
+	result = object_api_t109_set_sensor_data(sensor, cv);
 	if (result == 0) {
 		checked = 0;
 	}

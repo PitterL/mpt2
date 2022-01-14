@@ -49,17 +49,23 @@ void t104_data_sync(const t104_data_t *ptr, u8 rw)
 #ifndef OBJECT_T15
 #ifndef MPTT_MATRIX_NODES
 	const nodes_desc_t *ns = (nodes_desc_t *)ptr->ns;
-	txx_cb_param_t xparams[] = {
-		{ API_NODE_PARAMS_GAIN, &mem->xgain, sizeof(mem->xgain) },
+	txx_cb_param_t xparams_sensor[] = {
 		{ API_KEY_PARAMS_THRESHOLD, &mem->xtchthr, sizeof(mem->xtchthr) },
 		{ API_KEY_PARAMS_HYSTERESIS, &mem->xtchhyst, sizeof(mem->xtchhyst)}
 	};
-	
-	txx_cb_param_t yparams[] = {
-		{ API_NODE_PARAMS_GAIN, &mem->ygain, sizeof(mem->ygain) },
+
+	txx_cb_param_t xparams_channel[] = {
+		{ API_NODE_PARAMS_GAIN, &mem->xgain, sizeof(mem->xgain) },
+	};
+		
+	txx_cb_param_t yparams_sensor[] = {
 		{ API_KEY_PARAMS_THRESHOLD, &mem->ytchthr, sizeof(mem->ytchthr) },
 		{ API_KEY_PARAMS_HYSTERESIS, &mem->ytchhyst, sizeof(mem->ytchhyst) },
 	};
+	txx_cb_param_t yparams_channel[] = {
+		{ API_NODE_PARAMS_GAIN, &mem->ygain, sizeof(mem->ygain) },
+	};	
+	uint8_t lumped_channel, lumped_channel_last;
 	u8 i;
 #endif
 	if (!(mem->ctrl & MXT_T104_CTRL_ENABLE))	// Not enabled is readonly mode
@@ -68,15 +74,27 @@ void t104_data_sync(const t104_data_t *ptr, u8 rw)
 
 #ifndef MPTT_MATRIX_NODES
 	// Sensor channel parameter for X channel
+	lumped_channel = 0xff;
 	for (i = ns[NODE_X].origin; i < ns[NODE_X].origin + ns[NODE_X].size; i++) {
-		object_txx_op(&ptr->common, xparams, ARRAY_SIZE(xparams), i, rw);
+		object_txx_op(&ptr->common, xparams_sensor, ARRAY_SIZE(xparams_sensor), i, rw);
+		
+		lumped_channel = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
+		if (lumped_channel_last != lumped_channel) {
+			object_txx_op(&ptr->common, xparams_channel, ARRAY_SIZE(xparams_channel), lumped_channel, rw);
+			lumped_channel_last = lumped_channel;
+		}	
 		if (rw == OP_READ)
 			break;
 	}
 	
 	//  Sensor channel parameter for Y channel
 	for (i = ns[NODE_Y].origin; i < ns[NODE_Y].origin + ns[NODE_Y].size; i++) {
-		object_txx_op(&ptr->common, yparams, ARRAY_SIZE(yparams), i, rw);
+		object_txx_op(&ptr->common, yparams_sensor, ARRAY_SIZE(yparams_sensor), i, rw);
+		lumped_channel = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
+		if (lumped_channel_last != lumped_channel) {
+			object_txx_op(&ptr->common, yparams_channel, ARRAY_SIZE(yparams_channel), lumped_channel, rw);
+			lumped_channel_last = lumped_channel;
+		}
 		if (rw == OP_READ)
 			break;
 	}

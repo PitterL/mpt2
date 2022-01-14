@@ -108,6 +108,9 @@ typedef void (*cb_button_state_change)(u8, u32);
 typedef void (*cb_touch_state_change)(u8 inst, /* Slot id */u8 id, u8 status, u16 x, u16 y, u16 max_resol);
 #endif
 
+typedef uint8_t (*cb_sensor_node_mapping)(uint8_t sensor_node, int8_t lumped);
+typedef uint8_t (*cb_channel_node_mapping)(uint8_t channel_node);
+
 typedef union {
 	struct {
 		u8 origin;
@@ -156,9 +159,14 @@ typedef struct chip_info_cb {
 #endif
 } chip_info_cb_t;
 
+typedef struct chip_node_map_cb {
+	cb_sensor_node_mapping to_channel;
+	cb_channel_node_mapping to_sensor; 
+} chip_node_map_cb_t;
+
 typedef struct qtouch_config {
 	nodes_desc_t matrix_nodes[NUM_NODE_2D];
-	u8 maxtrix_channel_count;	//	logical channels count(actual channels for selfcap or nodes for mutualcap)
+	u8 sensor_count;	//	sensor(key) counts
 
 	qbutton_config_t *buttons;
 	u8 num_button;
@@ -175,10 +183,12 @@ typedef struct qtouch_config {
 #ifdef OBJECT_T37_DEBUG_PLATFORM_INFO
 	chip_info_cb_t chip_cb;
 #endif
+	chip_node_map_cb_t map_cb;
 } qtouch_config_t;
 
 #define QTOUCH_CONFIG_VAL(_p, _n) (((qtouch_config_t *)(_p))->_n)
 #define QTOUCH_PARAMS_VAL(_p, _n) (((qtouch_config_t *)(_p))->params._n)
+#define QTOUCH_MAP_CALL(_p, _n) (((qtouch_config_t *)(_p))->map_cb._n)
 
 #define QT_MATRIX_X_ST(_p) (((qtouch_config_t *)(_p))->matrix_nodes[NODE_X].origin)
 #define QT_MATRIX_X_SIZE(_p) (((qtouch_config_t *)(_p))->matrix_nodes[NODE_X].size)
@@ -265,4 +275,6 @@ const u8 *tsapi_get_fuse_data(u8 *len_ptr);
 const u8 *tsapi_get_signature_row_data(u8 *len_ptr);
 #endif
 
+uint8_t tsapi_get_sensor_node_mapping(uint8_t sensor_node, int8_t lumped);
+uint8_t tsapi_get_channel_node_mapping(uint8_t channel_node);
 #endif /* TSLAPI_H_ */

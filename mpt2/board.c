@@ -45,8 +45,8 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 	#endif
 #ifdef PROJECT_A08
     { .node = {	.origin = 0, .size = 1 } },
-	{ .node = {	.origin = 1, .size = 2 } },
-	{ .node = {	.origin = 3, .size = 5 } },
+	{ .node = {	.origin = 1, .size = 4 } },
+	{ .node = {	.origin = 5, .size = 3 } },
 #endif
 };
 #endif
@@ -112,6 +112,13 @@ qtouch_config_t tsl_qtouch_def = {
 	#ifdef MPTT_FUSE_CHECK
 		.get_fuse = tsapi_get_fuse_data,
 	#endif
-	}
+	},
 #endif
+
+	.map_cb = {
+		/* sensor key index to channel node mapping */
+		.to_channel = tsapi_get_sensor_node_mapping,
+		/* channel node to sensor key index mapping */
+		.to_sensor = tsapi_get_channel_node_mapping,
+	}
 };

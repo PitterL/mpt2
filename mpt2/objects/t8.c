@@ -43,13 +43,15 @@ u8 object_api_t8_ref_mode(void)
 
 void t8_data_sync(const txx_data_t *ptr, u8 rw)
 {
+	const txx_data_t * cm = ptr;
 	object_t8_t *mem = (object_t8_t *)ptr->mem;
     u8 sensortype;
 
-	txx_cb_param_t ct_params[] = {
+	txx_cb_param_t params_channel[] = {
 		{ API_NODE_PARAMS_CSD, &mem->chrgtime, sizeof(mem->chrgtime)},	//Compared to T111 Intdelay
 	};
 	u8 i;
+	uint8_t lumped_channel, lumped_channel_last;
 	
 	txx_cb_param_t params[] = {
         { API_DEF_SENSOR_TYPE, &sensortype, sizeof(sensortype) },
@@ -65,8 +67,13 @@ void t8_data_sync(const txx_data_t *ptr, u8 rw)
 	}
 
 	//T8 always write all channels
-	for (i = 0; i < QTOUCH_CONFIG_VAL(ptr->def, maxtrix_channel_count); i++) {
-		object_txx_op(ptr, ct_params, ARRAY_SIZE(ct_params), i, rw);
+	lumped_channel_last = 0xff;
+	for (i = 0; i < QTOUCH_CONFIG_VAL(cm->def, sensor_count); i++) {
+		lumped_channel = QTOUCH_MAP_CALL(cm->def, to_channel)(i, true);
+		if (lumped_channel_last != lumped_channel) {
+			object_txx_op(cm, params_channel, ARRAY_SIZE(params_channel), lumped_channel, rw);
+			lumped_channel_last = lumped_channel;
+		}
 		if (rw == OP_READ)
 			break;
 	}

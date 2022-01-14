@@ -40,7 +40,7 @@ u8 tsl_assert_irq(void)
 
 void init_maxtrix_node(qtouch_config_t *qdef)
 {
-	u8 sensor_count = tsapi_read_config_byte(API_NUM_CHANNELS);
+	u8 sensor_count = tsapi_read_config_byte(API_NUM_SENSORS);
 
 	if (!(qdef->matrix_nodes[NODE_X].size || qdef->matrix_nodes[NODE_Y].size)) {
 		qdef->matrix_nodes[NODE_X].origin = 0;
@@ -49,7 +49,7 @@ void init_maxtrix_node(qtouch_config_t *qdef)
 		qdef->matrix_nodes[NODE_Y].size = sensor_count - qdef->matrix_nodes[NODE_X].size;
 	}
 	
-	qdef->maxtrix_channel_count = (u8)sensor_count;
+	qdef->sensor_count = (u8)sensor_count;
 }
 
 #ifdef TOUCH_API_BUTTON

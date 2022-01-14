@@ -105,7 +105,7 @@ void ptc_enable(void)
 /*============================================================================
 static uint16_t qtm_get_x_mask(uint8_t which_node_group); --- same as in touchlib
 ------------------------------------------------------------------------------
-Purpose: Gets a mask of all 4 X configs lines for the group
+Purpose: Gets a mask of all 4X config lines for the group
 Input  : Group number
 Output : X Line mask
 Notes  : none
@@ -115,8 +115,8 @@ static uint16_t qtm_get_x_mask(uint8_t which_node_group)
 	uint16_t x_mask_all = 0u;
 	uint8_t i;
 	
-	for ( i = 0; i < 4; i++ ) {
-		x_mask_all = ptc_seq_node_cfg1[which_node_group].grp4_x_mask[i];
+	for ( i = 0; i < ARRAY_SIZE(ptc_seq_node_cfg1[which_node_group].grp4_x_mask); i++ ) {
+		x_mask_all |= ptc_seq_node_cfg1[which_node_group].grp4_x_mask[i];
 	}
 
 	return x_mask_all;
@@ -147,6 +147,7 @@ void touch_ptc_pin_config(void)
 
 	for ( i = 0; i < PTC_CHANNLE_COUNT; i++ ) {
 		if (ptc_channel_used(ptc_map[i].ptc_channel)) {
+			gpio_set_pin_inverted(ptc_map[i].port, ptc_map[i].pin, false);
 			gpio_set_pin_pull_mode(ptc_map[i].port, ptc_map[i].pin, PORT_PULL_OFF);
 			gpio_set_pin_isc(ptc_map[i].port, ptc_map[i].pin, PORT_ISC_INPUT_DISABLE_gc);
 			//FIXME: set input in default ?
@@ -220,6 +221,7 @@ bool pinfault_test_cycle(uint8_t delay,uint8_t thld, bool walk, bool level, uint
 	// Set all pins status
 	for ( i = 0; i < PTC_CHANNLE_COUNT; i++ ) {
 		if (ptc_channel_used(ptc_map[i].ptc_channel)) {
+			gpio_set_pin_inverted(ptc_map[i].port, ptc_map[i].pin, false);
 			gpio_set_pin_dir(ptc_map[i].port, ptc_map[i].pin, PORT_DIR_OUT);
 			gpio_set_pin_level(ptc_map[i].port, ptc_map[i].pin, walk ? !level : level);
 			gpio_set_pin_isc(ptc_map[i].port, ptc_map[i].pin, PORT_ISC_INTDISABLE_gc);

@@ -46,7 +46,7 @@ void t109_data_sync(t109_data_t *ptr, u8 rw)
 		
 	// Sensor channel parameter
 	// Fix me: if mutual cap node by node mode, the node_comp_caps may not enough?
-	for (i = 0; i < QTOUCH_CONFIG_VAL(ptr->common.def, maxtrix_channel_count) && i < ARRAY_SIZE(ptr->status.node_comp_caps); i++) {
+	for (i = 0; i < QTOUCH_CONFIG_VAL(ptr->common.def, sensor_count) && i < ARRAY_SIZE(ptr->status.node_comp_caps); i++) {
 		compcap = ptr->status.node_comp_caps[i];
 		object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
 		if (rw == OP_READ) {
@@ -107,7 +107,7 @@ u8 object_t109_single_end_mode(void)
 	t109_data_t *ptr = &t109_data_status;
 	object_t109_t *mem = (object_t109_t *)ptr->common.mem;
 	
-	if (ptr->status.counter == QTOUCH_CONFIG_VAL(ptr->common.def, maxtrix_channel_count))
+	if (ptr->status.counter == QTOUCH_CONFIG_VAL(ptr->common.def, sensor_count))
 		return (mem->ctrl & MXT_T109_CMD_SNGLENDEN);
 	
 	return 0;
@@ -128,7 +128,7 @@ void t109_set_sensor_data(t109_data_t *ptr, u8 channel, u16 compcap)
 		ptr->status.counter++;
 	}
 	
-	if (ptr->status.counter == QTOUCH_CONFIG_VAL(ptr->common.def, maxtrix_channel_count)) {
+	if (ptr->status.counter == QTOUCH_CONFIG_VAL(ptr->common.def, sensor_count)) {
 		ptr->status.result.errorcode = MSG_ERRCODE_SUCCESSFUL;
 		t109_report_status(ptr);
 	}

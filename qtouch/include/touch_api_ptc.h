@@ -53,7 +53,8 @@ void     calibrate_node(uint16_t sensor_node);
 uint8_t  get_scroller_state(uint16_t sensor_node);
 uint16_t get_scroller_position(uint16_t sensor_node);
 /* USE_MPTT_WRAPPER */
-uint8_t  get_sensor_node_mapping(uint8_t sensor_node);
+uint8_t  get_sensor_node_mapping(uint8_t sensor_node, int8_t lumped);
+uint8_t  get_channel_node_mapping(uint8_t channel_node);
 void     calibrate_node_post(uint8_t sensor_node);
 void     qtm_init_sensor_key_post(uint8_t sensor_node);
 
