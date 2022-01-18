@@ -101,7 +101,7 @@ void t111_data_sync(const t111_data_t *ptr, u8 rw)
 	};
 #endif
 	u8 i, yid;
-	uint8_t lumped_channel, lumped_channel_last;
+	uint8_t channel_group, channel_group_last;
 	
 	if (num_ns == NUM_NODE_2D) {
 		yid = NODE_Y;
@@ -110,12 +110,12 @@ void t111_data_sync(const t111_data_t *ptr, u8 rw)
 	}
 
 	//  Sensor channel parameter for Y channel
-	lumped_channel_last = 0xff;
+	channel_group_last = 0xff;
 	for (i = ns[yid].origin; i < ns[yid].origin + ns[yid].size; i++) {	
-		lumped_channel = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
-		if (lumped_channel_last != lumped_channel) {
-			object_txx_op(&ptr->common, yparams_channel, ARRAY_SIZE(yparams_channel), lumped_channel, rw);
-			lumped_channel_last = lumped_channel;
+		channel_group = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
+		if (channel_group_last != channel_group) {
+			object_txx_op(&ptr->common, yparams_channel, ARRAY_SIZE(yparams_channel), channel_group, rw);
+			channel_group_last = channel_group;
 		}
 		
 		if (rw == OP_READ)
@@ -125,12 +125,12 @@ void t111_data_sync(const t111_data_t *ptr, u8 rw)
 #ifdef MPTT_MATRIX_NODES
 	// Sensor channel parameter for X channel
 	if (num_ns == NUM_NODE_2D) {
-		lumped_channel_last = 0xff;
+		channel_group_last = 0xff;
 		for (i = ns[NODE_X].origin; i < ns[NODE_X].origin + ns[NODE_X].size; i++) {
-			lumped_channel = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
-			if (lumped_channel_last != lumped_channel) {
-				object_txx_op(&ptr->common, xparams_channel, ARRAY_SIZE(xparams_channel), lumped_channel, rw);
-				lumped_channel_last = lumped_channel;
+			channel_group = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
+			if (channel_group_last != channel_group) {
+				object_txx_op(&ptr->common, xparams_channel, ARRAY_SIZE(xparams_channel), channel_group, rw);
+				channel_group_last = channel_group;
 			}
 			if (rw == OP_READ)
 			break;

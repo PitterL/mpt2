@@ -108,7 +108,7 @@ typedef void (*cb_button_state_change)(u8, u32);
 typedef void (*cb_touch_state_change)(u8 inst, /* Slot id */u8 id, u8 status, u16 x, u16 y, u16 max_resol);
 #endif
 
-typedef uint8_t (*cb_sensor_node_mapping)(uint8_t sensor_node, int8_t lumped);
+typedef uint8_t (*cb_sensor_node_mapping)(uint8_t sensor_node, int8_t group);
 typedef uint8_t (*cb_channel_node_mapping)(uint8_t channel_node);
 
 typedef union {
@@ -275,6 +275,6 @@ const u8 *tsapi_get_fuse_data(u8 *len_ptr);
 const u8 *tsapi_get_signature_row_data(u8 *len_ptr);
 #endif
 
-uint8_t tsapi_get_sensor_node_mapping(uint8_t sensor_node, int8_t lumped);
+uint8_t tsapi_get_sensor_node_mapping(uint8_t sensor_node, int8_t group);
 uint8_t tsapi_get_channel_node_mapping(uint8_t channel_node);
 #endif /* TSLAPI_H_ */

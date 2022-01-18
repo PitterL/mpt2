@@ -216,14 +216,14 @@ void t37_set_rsf_data(u8 cmd, u8 page, u8 channel, u16 reference, u16 signal, u1
 void t37_set_low_power_data(u8 cmd, u8 page, u8 channel, u16 reference, u16 signal, u16 cap)
 {
 	dbg_low_power_data_t data;
-	ssint node;
+	ssint ret;
 	bool lowpower;
 	
 	if (page > 0)
 		return;
 	
-	node = object_api_t126_get_low_power_node();
-	if (node != channel)
+	ret = object_api_t126_is_low_power_node(channel);
+	if (ret <= 0)
 		return;
 	
 	lowpower = object_api_t126_get_low_power_status();

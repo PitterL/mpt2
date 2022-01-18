@@ -417,16 +417,16 @@ ssint tsapi_read_ref_signal_cap(u8 index, cap_sample_value_t *cval)
 	return 0;
 }
 
-ssint tsapi_read_button_state(u8 index)
+ssint tsapi_read_button_state(u8 sensor_id)
 {	
 	const qtm_touch_key_group_config_t * const qttkg = &qtlib_key_grp_config_set1;
 	const qtm_touch_key_data_t * const qtkds = &qtlib_key_data_set1[0];
 	u8 status;
 
-	if (index >= (u8)qttkg->num_key_sensors)
+	if (sensor_id >= (u8)qttkg->num_key_sensors)
 		return -2;
 
-	if (qtkds[index].sensor_state & KEY_TOUCHED_MASK) {
+	if (qtkds[sensor_id].sensor_state & KEY_TOUCHED_MASK) {
 		status = 1;
 	} else {
 		status = 0;
@@ -578,10 +578,10 @@ bool tsapi_sensor_state_is_suspend(uint8_t node)
 	return (get_sensor_state(node) == QTM_KEY_STATE_SUSPEND);
 }
 
-/* sensor key index to channel node mapping */
-uint8_t tsapi_get_sensor_node_mapping(uint8_t sensor_node, int8_t lumped)
+/* sensor key index to channel node/group mapping */
+uint8_t tsapi_get_sensor_node_mapping(uint8_t sensor_node, int8_t group)
 {
-	return get_sensor_node_mapping(sensor_node, lumped);
+	return get_sensor_node_mapping(sensor_node, group);
 }
 
 /* channel node to sensor key index mapping */

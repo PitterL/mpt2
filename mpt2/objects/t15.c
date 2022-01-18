@@ -59,7 +59,7 @@ void t15_data_sync(t15_data_t *ptr, u8 rw)
 {
 	object_t15_t *mem = (object_t15_t *) ptr->common.mem;
 	const qbutton_config_t *btndef = (qbutton_config_t *)ptr->btndef;
-	uint8_t lumped_channel, lumped_channel_last;
+	uint8_t channel_group, channel_group_last;
 	u8 i;
 	
 	txx_cb_param_t params_sensor[] = {
@@ -77,14 +77,14 @@ void t15_data_sync(t15_data_t *ptr, u8 rw)
 	if ((mem->ctrl & MXT_T15_CTRL_ENABLE) || rw == OP_READ) {
 		if (btndef) {
 			// Sensor channel parameter
-			lumped_channel_last = 0xff;
+			channel_group_last = 0xff;
 			for (i = btndef->node.origin; i < btndef->node.origin + btndef->node.size; i++) {
 				object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
 				
-				lumped_channel = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
-				if (lumped_channel_last != lumped_channel) {
-					object_txx_op(&ptr->common, params_channel, ARRAY_SIZE(params_channel), lumped_channel, rw);
-					lumped_channel_last = lumped_channel;
+				channel_group = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
+				if (channel_group_last != channel_group) {
+					object_txx_op(&ptr->common, params_channel, ARRAY_SIZE(params_channel), channel_group, rw);
+					channel_group_last = channel_group;
 				}
 				if (rw == OP_READ)
 					break;

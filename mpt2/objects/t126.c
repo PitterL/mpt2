@@ -156,7 +156,7 @@ bool object_api_t126_node_skipped(u8 node)
 	return ret;
 }
 
-ssint object_api_t126_get_low_power_node(void)
+ssint object_api_t126_is_low_power_node(u8 node)
 {
 	t126_data_t *ptr =  &t126s_data_status;
 	object_t126_t *mem = (object_t126_t *) ptr->common.mem;
@@ -165,8 +165,8 @@ ssint object_api_t126_get_low_power_node(void)
 	if (!(mem->ctrl & MXT_T126_CTRL_ENABLE)) {
 		return ret;
 	}
-	
-	return mem->node;
+
+	return is_lo_node(node);
 }
 
 bool object_api_t126_get_low_power_status(void)

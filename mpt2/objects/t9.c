@@ -112,7 +112,7 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 	txx_cb_param_t params_channel[] = {
 		{ API_NODE_PARAMS_GAIN, &mem->blen, sizeof(mem->blen) },
 	};
-	uint8_t lumped_channel, lumped_channel_last;
+	uint8_t channel_group, channel_group_last;
 #endif
 
 	nibble_t  movfilter = { .value = 0 };
@@ -141,15 +141,15 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 	#ifdef MPTT_MATRIX_NODES
 			// Note: for read operation, there first XY channel value be valid
 	
-			lumped_channel_last = 0xff;
+			channel_group_last = 0xff;
 			for (count = 0, i = surdef->nodes[NODE_X].origin; i < surdef->nodes[NODE_X].origin + surdef->nodes[NODE_X].size; i++) {
 				for (j = surdef->nodes[NODE_Y].origin; j < surdef->nodes[NODE_Y].origin + surdef->nodes[NODE_Y].size; j++, count++) {
 					object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), count, rw);
 					
-					lumped_channel = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
-					if (lumped_channel_last != lumped_channel) {
-						object_txx_op(&ptr->common, params_channel, ARRAY_SIZE(params_channel), lumped_channel, rw);
-						lumped_channel_last = lumped_channel;
+					channel_group = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
+					if (channel_group_last != channel_group) {
+						object_txx_op(&ptr->common, params_channel, ARRAY_SIZE(params_channel), channel_group, rw);
+						channel_group_last = channel_group;
 					}
 					
 					if (rw == OP_READ)
@@ -164,27 +164,27 @@ void t9_data_sync(t9_data_t *ptr, u8 rw)
 
 			// Sensor channel parameter for X channel 
 			if (rw == OP_WRITE) {
-				lumped_channel_last = 0xff;
+				channel_group_last = 0xff;
 				for (i = surdef->nodes[NODE_X].origin; i < surdef->nodes[NODE_X].origin + surdef->nodes[NODE_X].size; i++) {
 					object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
 					
-					lumped_channel = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
-					if (lumped_channel_last != lumped_channel) {
-						object_txx_op(&ptr->common, params_channel, ARRAY_SIZE(params_channel), lumped_channel, rw);
-						lumped_channel_last = lumped_channel;
+					channel_group = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
+					if (channel_group_last != channel_group) {
+						object_txx_op(&ptr->common, params_channel, ARRAY_SIZE(params_channel), channel_group, rw);
+						channel_group_last = channel_group;
 					}		
 				}
 			}
 	
 			//  Sensor channel parameter for Y channel
-			lumped_channel_last = 0xff;
+			channel_group_last = 0xff;
 			for (i = surdef->nodes[NODE_Y].origin; i < surdef->nodes[NODE_Y].origin + surdef->nodes[NODE_Y].size; i++) {
 				object_txx_op(&ptr->common, params_sensor, ARRAY_SIZE(params_sensor), i, rw);
 				
-				lumped_channel = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
-				if (lumped_channel_last != lumped_channel) {
-					object_txx_op(&ptr->common, params_channel, ARRAY_SIZE(params_channel), lumped_channel, rw);
-					lumped_channel_last = lumped_channel;
+				channel_group = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
+				if (channel_group_last != channel_group) {
+					object_txx_op(&ptr->common, params_channel, ARRAY_SIZE(params_channel), channel_group, rw);
+					channel_group_last = channel_group;
 				}
 				
 				if (rw == OP_READ)

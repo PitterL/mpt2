@@ -65,7 +65,7 @@ void t104_data_sync(const t104_data_t *ptr, u8 rw)
 	txx_cb_param_t yparams_channel[] = {
 		{ API_NODE_PARAMS_GAIN, &mem->ygain, sizeof(mem->ygain) },
 	};	
-	uint8_t lumped_channel, lumped_channel_last;
+	uint8_t channel_group, channel_group_last;
 	u8 i;
 #endif
 	if (!(mem->ctrl & MXT_T104_CTRL_ENABLE))	// Not enabled is readonly mode
@@ -74,26 +74,27 @@ void t104_data_sync(const t104_data_t *ptr, u8 rw)
 
 #ifndef MPTT_MATRIX_NODES
 	// Sensor channel parameter for X channel
-	lumped_channel = 0xff;
+	channel_group_last = 0xff;
 	for (i = ns[NODE_X].origin; i < ns[NODE_X].origin + ns[NODE_X].size; i++) {
 		object_txx_op(&ptr->common, xparams_sensor, ARRAY_SIZE(xparams_sensor), i, rw);
 		
-		lumped_channel = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
-		if (lumped_channel_last != lumped_channel) {
-			object_txx_op(&ptr->common, xparams_channel, ARRAY_SIZE(xparams_channel), lumped_channel, rw);
-			lumped_channel_last = lumped_channel;
+		channel_group = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
+		if (channel_group_last != channel_group) {
+			object_txx_op(&ptr->common, xparams_channel, ARRAY_SIZE(xparams_channel), channel_group, rw);
+			lumped_channel_last = channel_group;
 		}	
 		if (rw == OP_READ)
 			break;
 	}
 	
 	//  Sensor channel parameter for Y channel
+	channel_group_last = 0xff;
 	for (i = ns[NODE_Y].origin; i < ns[NODE_Y].origin + ns[NODE_Y].size; i++) {
 		object_txx_op(&ptr->common, yparams_sensor, ARRAY_SIZE(yparams_sensor), i, rw);
-		lumped_channel = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
-		if (lumped_channel_last != lumped_channel) {
-			object_txx_op(&ptr->common, yparams_channel, ARRAY_SIZE(yparams_channel), lumped_channel, rw);
-			lumped_channel_last = lumped_channel;
+		channel_group = QTOUCH_MAP_CALL(ptr->common.def, to_channel)(i, true);
+		if (lumped_channel_last != channel_group) {
+			object_txx_op(&ptr->common, yparams_channel, ARRAY_SIZE(yparams_channel), channel_group, rw);
+			lumped_channel_last = channel_group;
 		}
 		if (rw == OP_READ)
 			break;

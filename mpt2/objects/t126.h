@@ -68,7 +68,7 @@ void object_api_t126_force_waked(int16_t val);
 void object_api_t126_breach_waked(int16_t val);
 void object_api_t126_breach_sleep(void);
 bool object_api_t126_node_skipped(u8 node);
-ssint object_api_t126_get_low_power_node(void);
+ssint object_api_t126_is_low_power_node(u8 node);
 bool object_api_t126_get_low_power_status(void);
 
 #else	/* OBJECT_T126 */

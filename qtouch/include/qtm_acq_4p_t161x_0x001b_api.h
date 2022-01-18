@@ -60,6 +60,7 @@ Copyright (C) 2019 Atmel. All rights reserved.
 
 /* Physical channel to nodes */
 #define TO_CHANNLES(n) ((n) >> 2)
+#define TO_CHANNLE_GROUPS(n) ((n) >> 2)
 #define TO_NODES(c)	((c) << 2)
 
 /* Auto scan trigger sources */

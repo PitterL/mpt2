@@ -125,9 +125,9 @@ static uint16_t qtm_get_x_mask(uint8_t which_node_group)
 bool ptc_channel_used(uint8_t channel)
 {
 	uint8_t i;
-	uint8_t num_channels = (uint8_t)TO_CHANNLES(ptc_qtlib_acq_gen1.num_sensor_nodes);
+	uint8_t num_channel_groups = (uint8_t)TO_CHANNLE_GROUPS(ptc_qtlib_acq_gen1.num_sensor_nodes);
 
-	for ( i = 0; i < num_channels; i++ ) {
+	for ( i = 0; i < num_channel_groups; i++ ) {
 		if (((qtm_get_x_mask(i) | ptc_seq_node_cfg1[i].grp4_ymask) >> channel) & 0x1) {
 			return true;
 		}

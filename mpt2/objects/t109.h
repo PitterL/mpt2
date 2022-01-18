@@ -44,7 +44,7 @@ typedef struct object_t109_status {
 		u8 errorcode;
 	}__attribute__ ((packed)) result;
 	
-#define T109_DEF_NUM_SENSORS 14	// Need to be check whether the actual sensor channel (DEF_NUM_CHANNELS in touch.h) is more than this value
+#define T109_DEF_NUM_SENSORS 14	// Need to be check whether the actual sensor channel (DEF_NUM_CHANNEL_NODES in touch.h) is more than this value
 	u16 node_comp_caps[T109_DEF_NUM_SENSORS];
 	u8 counter;
 } object_t109_Status_t;

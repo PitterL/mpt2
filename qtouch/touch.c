@@ -39,6 +39,8 @@ Copyright (c) 2021 Microchip. All rights reserved.
 
 #include "datastreamer.h"
 
+#include "utils/utils.h"
+
 /* USE_MPTT_WRAPPER, we process sleep mode outside */
 #if DEF_PTC_CAL_OPTION != CAL_AUTO_TUNE_NONE
 #error "Autotune feature is NOT supported by this acquisition library. Enable Autotune featuers in START."
@@ -94,7 +96,7 @@ static uint16_t touch_read_lp_button_delta(void);
 static int8_t touch_read_lp_button_state(void);
 
 #ifdef DEF_TOUCH_LOWPOWER_SOFT
-/* Low-power measurement sensor currently, it will change for next scanning channel if multi channel enabled in low power mode
+/* Low-power measurement sensor(key) node currently, it will change for next scanning channel if multi channel enabled in low power mode
 	initialized as 0
 */
 uint16_t current_lp_sensor;
@@ -234,7 +236,7 @@ qtm_comp_to_cc_cache_t ptc_node_cccap_cache[DEF_NUM_CHANNEL_NODES];
 #endif
 
 /* Node configurations */
-qtm_acq_4p_t321x_config_t ptc_seq_node_cfg1[DEF_NUM_CHANNELS] = PTC_SEQ_NODE_CFG1;
+qtm_acq_4p_t321x_config_t ptc_seq_node_cfg1[DEF_NUM_CHANNEL_GROUPS] = PTC_SEQ_NODE_CFG1;
 
 /* Container */
 qtm_acquisition_control_t qtlib_acq_set1 = {&ptc_qtlib_acq_gen1, &ptc_seq_node_cfg1[0], &ptc_qtlib_node_stat1[0]};
@@ -254,12 +256,12 @@ uint8_t touch_channel_node_mapping_4p[DEF_NUM_CHANNEL_NODES] = {
 		5,	6,	7,	-1
 };
 
-/* sensor key index to channel node mapping */
-uint8_t get_sensor_node_mapping(uint8_t sensor_node, int8_t lumped)
+/* sensor key index to channel node/group mapping */
+uint8_t get_sensor_node_mapping(uint8_t sensor_node, int8_t group)
 {
 	uint8_t channel = touch_key_node_mapping_4p[sensor_node];
-	if (lumped) {
-		channel = TO_CHANNLES(channel);
+	if (group) {
+		channel = TO_CHANNLE_GROUPS(channel);
 	}
 	
 	return channel;
@@ -337,7 +339,7 @@ Notes  :
 /* Touch sensors config - assign nodes to buttons / wheels / sliders / surfaces / water level / etc */
 static touch_ret_t touch_sensors_config(void)
 {
-	uint16_t    sensor_nodes;
+	uint16_t    channel_nodes, sensor_nodes;
 	touch_ret_t touch_ret = TOUCH_SUCCESS;
 
 	/* Init acquisition module */
@@ -347,10 +349,10 @@ static touch_ret_t touch_sensors_config(void)
 	qtm_ptc_qtlib_assign_signal_memory(&touch_acq_signals_raw[0]);
 
 	/* Initialize sensor nodes */
-	for (sensor_nodes = 0u; sensor_nodes < DEF_NUM_CHANNEL_NODES; sensor_nodes++) {
+	for (channel_nodes = 0u; channel_nodes < DEF_NUM_CHANNEL_NODES; channel_nodes++) {
 		/* Enable each node for measurement and mark for calibration */
-		qtm_enable_sensor_node(&qtlib_acq_set1, sensor_nodes);
-		qtm_calibrate_sensor_node(&qtlib_acq_set1, sensor_nodes);
+		qtm_enable_sensor_node(&qtlib_acq_set1, channel_nodes);
+		qtm_calibrate_sensor_node(&qtlib_acq_set1, channel_nodes);
 	}
 
 	/* Enable sensor keys and assign nodes */
@@ -1009,38 +1011,37 @@ Notes  : none
 touch_ret_t qtm_autoscan_sensor_node_soft(void) 
 {
 	// FIXME: this function need be fixed the channel map to sensor before using
-	const uint8_t num_nodes = (uint8_t)TO_CHANNLES(ptc_qtlib_acq_gen1.num_sensor_nodes);
+	const uint8_t num_sensors = (uint8_t)qtlib_key_grp_config_set1.num_key_sensors;
 	const uint8_t mask = auto_scan_setup.auto_scan_node_number;
-	uint8_t next, key;
+	uint8_t next, key = current_lp_sensor;
 
-	if (current_lp_sensor >= num_nodes) {
+	if (key >= num_sensors) {
 		// Select first low power sensor
-		current_lp_sensor = ffs(mask) - 1;
+		key = ffs(mask) - 1;
 	} else {
 		// Select next low power sensor
-		key = get_channel_node_mapping(current_lp_sensor);
 		if (!sensor_node_is_busy(key)) {
-			for (uint8_t cnt = current_lp_sensor + 1; cnt <= current_lp_sensor + num_nodes; cnt++) {
+			for (uint8_t cnt = key + 1; cnt <= key + num_sensors; cnt++) {
 				next = cnt;
-				if (next >= num_nodes) {
-					next -= num_nodes;
+				if (next >= num_sensors) {
+					next -= num_sensors;
 				}
 				
 				if (TEST_BIT(mask, next)) {
-					current_lp_sensor = next;
+					key = next;
 					break;
 				}
 			}
 		}
 	}
 	
-	if (current_lp_sensor >= num_nodes) {
+	if (key >= num_sensors) {
 		return TOUCH_INVALID_INPUT_PARAM;
 	}
 
 	// Disable non-lowpower sensor
-	key = get_channel_node_mapping(current_lp_sensor);
 	soft_enable_nonlp_sensors(BIT(key), false);
+	current_lp_sensor = key;
 
 	return TOUCH_SUCCESS;
 }
@@ -1055,14 +1056,14 @@ Notes  : none
 ============================================================================*/
 void qtm_autoscan_node_cancel_soft(void)
 {
-	const uint8_t num_channels = (uint8_t)TO_CHANNLES(ptc_qtlib_acq_gen1.num_sensor_nodes);
+	const uint8_t num_sensors = (uint8_t)qtlib_key_grp_config_set1.num_key_sensors;
 	uint8_t mask = auto_scan_setup.auto_scan_node_number;
 	
 	// enable all non-lowpoer sensor
 	soft_enable_nonlp_sensors(mask, true);
 	
 	// mask lp sensor invalid
-	current_lp_sensor = num_channels;
+	current_lp_sensor = num_sensors;
 }
 #endif
 
@@ -1111,15 +1112,21 @@ Notes  : none
 ============================================================================*/
 static int8_t touch_read_lp_button_state(void)
 {
+	const uint8_t num_sensors = (uint8_t)qtlib_key_grp_config_set1.num_key_sensors;
 	uint8_t node;
+	int8_t state = 0;
 	
 #ifdef DEF_TOUCH_LOWPOWER_SOFT
 	node = current_lp_sensor;
 #else
-	node = auto_scan_setup.auto_scan_node_number;
+	node = get_channel_node_mapping(auto_scan_setup.auto_scan_node_number);
 #endif
 	
-	return tsapi_read_button_state(node);
+	if (node < num_sensors) {
+		state = tsapi_read_button_state(node);
+	}
+	
+	return state;
 }
 
 /*============================================================================
@@ -1132,15 +1139,21 @@ Notes  : none
 ============================================================================*/
 static uint16_t touch_read_lp_button_delta(void)
 {
+	const uint8_t num_sensors = (uint8_t)qtlib_key_grp_config_set1.num_key_sensors;
 	uint8_t node;
+	uint16_t result = 0;
 	
 #ifdef DEF_TOUCH_LOWPOWER_SOFT
 	node = current_lp_sensor;
 #else
-	node = auto_scan_setup.auto_scan_node_number;
+	node = get_channel_node_mapping(auto_scan_setup.auto_scan_node_number);
 #endif
+
+	if (node < num_sensors) {
+		result = get_sensor_node_delta(node);
+	}
 	
-	return get_sensor_node_delta(node);
+	return result;
 }
 
 /*============================================================================
@@ -1363,10 +1376,7 @@ void update_sensor_state(uint16_t sensor_node, uint8_t new_state)
 void calibrate_node(uint16_t sensor_node)
 {
 	/* Calibrate Node */
-	qtm_calibrate_sensor_node(&qtlib_acq_set1, sensor_node);
-
-	/* Initialize key */
-	qtm_init_sensor_key(&qtlib_key_set1, sensor_node, &ptc_qtlib_node_stat1[touch_key_node_mapping_4p[sensor_node]]);
+	qtm_calibrate_sensor_node(&qtlib_acq_set1, TO_CHANNLES(touch_key_node_mapping_4p[sensor_node]));
 }
 
 void calibrate_node_post(uint8_t sensor_node)
@@ -1376,15 +1386,11 @@ void calibrate_node_post(uint8_t sensor_node)
 
 void calibrate_all_nodes(void)
 {
-	const qtm_touch_key_group_config_t *qttkg = &qtlib_key_grp_config_set1;
 	uint8_t i;
 
-	for ( i = 0; i < (uint8_t)qttkg->num_key_sensors; i++) {
+	for ( i = 0; i < ARRAY_SIZE(ptc_seq_node_cfg1); i++) {
 		/* Calibrate Node */
 		qtm_calibrate_sensor_node(&qtlib_acq_set1, i);
-	
-		/* Initialize key */
-		qtm_init_sensor_key(&qtlib_key_set1, i, &ptc_qtlib_node_stat1[touch_key_node_mapping_4p[i]]);
 	}
 }
 

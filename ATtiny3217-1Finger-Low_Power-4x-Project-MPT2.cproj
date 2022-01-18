@@ -129,6 +129,22 @@
         <NonsecureFilesInfo />
       </AcmeProjectConfig>
     </AcmeProjectConfig>
+    <avrtool>com.atmel.avrdbg.tool.powerdebugger</avrtool>
+    <avrtoolserialnumber>J51800001787</avrtoolserialnumber>
+    <avrdeviceexpectedsignature>0x1E9522</avrdeviceexpectedsignature>
+    <avrtoolinterface>UPDI</avrtoolinterface>
+    <com_atmel_avrdbg_tool_powerdebugger>
+      <ToolOptions>
+        <InterfaceProperties>
+          <UpdiClock>750000</UpdiClock>
+        </InterfaceProperties>
+        <InterfaceName>UPDI</InterfaceName>
+      </ToolOptions>
+      <ToolType>com.atmel.avrdbg.tool.powerdebugger</ToolType>
+      <ToolNumber>J51800001787</ToolNumber>
+      <ToolName>Power Debugger</ToolName>
+    </com_atmel_avrdbg_tool_powerdebugger>
+    <avrtoolinterfaceclock>750000</avrtoolinterfaceclock>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
@@ -222,7 +238,7 @@
       <Value>xMPTT_MATRIX_NODES</Value>
       <Value>OBJECT_WRITEBACK</Value>
       <Value>OBJECT_T37</Value>
-      <Value>xOBJECT_T37_DEBUG_LOWPOWER_INFO</Value>
+      <Value>OBJECT_T37_DEBUG_LOWPOWER_INFO</Value>
       <Value>OBJECT_T37_DEBUG_PLATFORM_INFO</Value>
       <Value>OBJECT_T44</Value>
       <Value>OBJECT_T5</Value>
@@ -243,11 +259,11 @@
       <Value>OBJECT_T111</Value>
       <Value>OBJECT_T111_DUMMY</Value>
       <Value>xOBJECT_T109</Value>
-      <Value>xOBJECT_T126</Value>
+      <Value>OBJECT_T126</Value>
       <Value>xDEBUG_FORMAT_HAWKEYE</Value>
       <Value>xDEF_TOUCH_DATA_STREAMER_ENABLE</Value>
       <Value>__DELAY_BACKWARD_COMPATIBLE__</Value>
-      <Value>DEF_TOUCH_LOWPOWER_SOFT</Value>
+      <Value>xDEF_TOUCH_LOWPOWER_SOFT</Value>
       <Value>DEF_TOUCH_MEASUREMENT_OVERFLOW</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>

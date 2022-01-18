@@ -108,8 +108,8 @@ extern "C" {
 	GND
 */
 
-#define DEF_NUM_CHANNELS (3)
-#define DEF_NUM_CHANNEL_NODES (DEF_NUM_CHANNELS << 2)
+#define DEF_NUM_CHANNEL_GROUPS (3)
+#define DEF_NUM_CHANNEL_NODES (DEF_NUM_CHANNEL_GROUPS << 2)
 /* Defines mutual cap node parameter setting
  * {X-line, Y-line, Charge Share Delay, NODE_RSEL_PRSC(series resistor, prescaler), NODE_G(Analog Gain , Digital Gain),
  * filter level}
