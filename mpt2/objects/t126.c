@@ -101,7 +101,14 @@ void object_api_t126_force_waked(int16_t val)
 
 void object_api_t126_breach_waked(int16_t val)
 {
-	wakeup_type_t type = val > 0 ? WK_POS_BREACH : WK_RSV_NEG_BREACH;
+	wakeup_type_t type;
+	
+	if (val >= 0) {
+		type = WK_POS_BREACH;
+	} else {
+		type = WK_RSV_NEG_BREACH;
+		val = -val;
+	}
 	
 	object_t126_lowpower_status_change(type, val);
 }
