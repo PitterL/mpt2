@@ -106,6 +106,16 @@ extern "C" {
 	GND
 	X1:		PC4		XY(10)
 	GND
+
+        X0  X1  X2
+    Y0  k2
+    Y1  k3
+    Y2  k4
+    Y3  k5
+    Y4      k6
+    Y5      k7
+    Y6      k8
+    Y7          k1
 */
 
 #define DEF_NUM_CHANNEL_GROUPS (3)

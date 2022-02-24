@@ -83,8 +83,8 @@ typedef struct t9_point_status {
 	t9_range_t pos;
 }t9_point_status_t;
 
-#define MXT_TOUCH_MULTI_T9_INST 1	/* Only support 1 instance now */
-#define MXT_TOUCH_MULTI_T9_RIDS 1
+#define MXT_TOUCH_MULTI_T9_INST 1
+#define MXT_TOUCH_MULTI_T9_RIDS 1   /* For multi-fingers support, we could set more report id */
 
 typedef struct t9_data {
 	txx_data_t common;

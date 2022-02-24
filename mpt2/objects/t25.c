@@ -138,7 +138,9 @@ ssint inspect_button_data(t25_data_t *ptr, u8 channel, u16 reference, u16 cap, o
 
 ssint t25_inspect_t15_sensor_data(t25_data_t *ptr, u8 channel, u16 reference, u16 cap)
 {
+#ifdef OBJECT_T15
 	object_t25_result_t *tdat = &ptr->cache;
+#endif
 	ssint result = 0;
 			
 #ifdef OBJECT_T15

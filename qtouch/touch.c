@@ -1386,9 +1386,10 @@ void calibrate_node_post(uint8_t sensor_node)
 
 void calibrate_all_nodes(void)
 {
+	qtm_acq_node_group_config_t *qtacq = &ptc_qtlib_acq_gen1;
 	uint8_t i;
 
-	for ( i = 0; i < ARRAY_SIZE(ptc_seq_node_cfg1); i++) {
+	for ( i = 0; i < qtacq->num_sensor_nodes; i++) {
 		/* Calibrate Node */
 		qtm_calibrate_sensor_node(&qtlib_acq_set1, i);
 	}

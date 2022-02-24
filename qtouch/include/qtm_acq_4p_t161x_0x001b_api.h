@@ -200,7 +200,7 @@ typedef struct {
 
 /* Node group configuration */
 typedef struct qtm_acq_node_group_config_type {
-	uint16_t num_sensor_nodes;    /* Number of sensor nodes */
+	uint16_t num_sensor_nodes;    /* Errata name, it's number of channel nodes actually */
 	uint8_t  acq_sensor_type;     /* Self or mutual sensors */
 	uint8_t  calib_option_select; /* Hardware tuning: XX | TT 3/4/5 Tau | X | XX None/RSEL/PRSC/CSD */
 	uint8_t  freq_option_select;  /* SDS or ASDV setting */

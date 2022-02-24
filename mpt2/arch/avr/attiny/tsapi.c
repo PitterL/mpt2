@@ -280,13 +280,11 @@ static inline ssint tch_config_rw(const tch_config_callback_t *param, void *buf,
 
 ssint tsapi_config_op(u8 type, void *buf, size_t size, u8 index, u8 rw)
 {
-	qtm_acq_node_group_config_t *qtacq = &ptc_qtlib_acq_gen1;
 	const tch_config_callback_t *tccs = &touch_config_list[0];
 	u8 i;
 	ssint result = -1;
-		
-	if (index >= (u8)qtacq->num_sensor_nodes)
-		return result;
+	
+	/* Note, the index may be overflow, there is difficult to check the value */
 	
 	for (i = 0; i < TCH_CONFIG_WRITEBACK_NUM; i++) {
 		if (tccs[i].type == type) {
@@ -317,8 +315,11 @@ u8 tsapi_read_config_byte(u8 type)
 
 void tsapi_calibrate(void)
 {
-	/* Calibrate Node */
+	/* CC Calibrate */
 	calibrate_node_post((uint8_t)-1);
+
+	/* Sofware calibration */
+	qtm_init_sensor_key_post((uint8_t)-1);
 }
 
 u8 tsapi_get_chip_state(void)
