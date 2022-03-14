@@ -247,14 +247,10 @@ qtm_auto_scan_config_t auto_scan_setup
     = {&qtlib_acq_set1, QTM_AUTOSCAN_NODE, QTM_AUTOSCAN_THRESHOLD, /*QTM_AUTOSCAN_TRIGGER_PERIOD*/0};
 
 /* map node to key */
-uint8_t touch_key_node_mapping_4p[DEF_NUM_SENSORS] = {0, 4, 5, 6, 7, 8, 9, 10};
+uint8_t touch_key_node_mapping_4p[DEF_NUM_SENSORS] = TOUCH_KEY_SENSOR_MAPPING_4P;
 
 /* map node to key */
-uint8_t touch_channel_node_mapping_4p[DEF_NUM_CHANNEL_NODES] = {
-		0, -1, -1, -1,
-		1,	2,	3,	4,
-		5,	6,	7,	-1
-};
+uint8_t touch_channel_node_mapping_4p[DEF_NUM_CHANNEL_NODES] = TOUCH_CHANNEL_NODE_MAPPIING_4P;
 
 /* sensor key index to channel node/group mapping */
 uint8_t get_sensor_node_mapping(uint8_t sensor_node, int8_t group)
@@ -323,9 +319,21 @@ qtm_touch_key_control_t qtlib_key_set1
     = {&qtlib_key_grp_data_set1, &qtlib_key_grp_config_set1, &qtlib_key_data_set1[0], &qtlib_key_configs_set1[0]};
 
 // "This is config for special pins of touch panel, be careful to not re-configure PTC pin because it's auto-configured in MPTT"
+#include "arch/pinconf.h"
 static void touch_non_ptc_pin_config(void)
 {
 	// Some None PTC Pin config here
+    gpio_set_pin_dir(GPIOA, 5, PORT_DIR_OUT);
+    gpio_set_pin_level(GPIOA, 5, false);
+
+    gpio_set_pin_dir(GPIOC, 2, PORT_DIR_OUT);
+    gpio_set_pin_level(GPIOC, 2, false);
+
+    gpio_set_pin_dir(GPIOC, 4, PORT_DIR_OUT);
+    gpio_set_pin_level(GPIOC, 4, false);
+
+    gpio_set_pin_dir(GPIOC, 5, PORT_DIR_OUT);
+    gpio_set_pin_level(GPIOC, 5, false);
 }
 
 /*============================================================================

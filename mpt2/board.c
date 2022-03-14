@@ -43,10 +43,9 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 #endif
 	},
 	#endif
-#ifdef PROJECT_A08
-    { .node = {	.origin = 0, .size = 1 } },
-	{ .node = {	.origin = 1, .size = 4 } },
-	{ .node = {	.origin = 5, .size = 3 } },
+#ifdef PROJECT_IP42
+    { .node = {	.origin = 0, .size = 4 } },
+	{ .node = {	.origin = 4, .size = 4 } },
 #endif
 };
 #endif
@@ -80,7 +79,7 @@ qtouch_config_t tsl_qtouch_def = {
 	#ifdef EVK_3217_XPLAIN
 	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 2}},
 	#endif
-#ifdef PROJECT_A08
+#ifdef PROJECT_IP42
 	.matrix_nodes = {{.origin = 0, .size = 4}, {.origin =  4, .size = 4}},
 #endif
 	#ifdef TOUCH_API_BUTTON
