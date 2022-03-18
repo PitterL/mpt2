@@ -46,6 +46,7 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 #ifdef PROJECT_IP42
     { .node = {	.origin = 0, .size = 4 } },
 	{ .node = {	.origin = 4, .size = 4 } },
+    { .node = {	.origin = 8, .size = 3 } },
 #endif
 };
 #endif
@@ -80,7 +81,7 @@ qtouch_config_t tsl_qtouch_def = {
 	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 2}},
 	#endif
 #ifdef PROJECT_IP42
-	.matrix_nodes = {{.origin = 0, .size = 4}, {.origin =  4, .size = 4}},
+	.matrix_nodes = {{.origin = 0, .size = 4}, {.origin =  0, .size = 3}},
 #endif
 	#ifdef TOUCH_API_BUTTON
 	//If define num_button, should filled the buttons_config
