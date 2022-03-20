@@ -100,6 +100,7 @@ extern uint8_t measurement_active_to_idle;
 
 #ifdef OBJECT_T126
 extern qtm_auto_scan_config_t auto_scan_setup;
+extern qtm_acq_4p_t321x_config_t ptc_seq_auto_scan_node_cfg[];
 extern uint8_t measurement_period_idle_drift;
 #endif
 
@@ -155,8 +156,17 @@ tch_config_callback_t touch_config_list[] ={
 #endif
 #ifdef OBJECT_T126
 	{API_DEF_TOUCH_DRIFT_PERIOD_MS, &measurement_period_idle_drift, sizeof(measurement_period_idle_drift), 0 },
-	{API_DEF_QTM_AUTOSCAN_THRESHOLD, &auto_scan_setup.auto_scan_node_threshold, sizeof(auto_scan_setup.auto_scan_node_threshold), 0 },
+	{API_DEF_QTM_AUTOSCAN_THRESHOLD_H, &auto_scan_setup.auto_scan_node_threshold_h, sizeof(auto_scan_setup.auto_scan_node_threshold_h), 0 },
+    {API_DEF_QTM_AUTOSCAN_THRESHOLD_L, &auto_scan_setup.auto_scan_node_threshold_l, sizeof(auto_scan_setup.auto_scan_node_threshold_l), 0 },
+#ifdef DEF_TOUCH_LOWPOWER_SOFT
 	{API_DEF_QTM_AUTOSCAN_NODE, &auto_scan_setup.auto_scan_node_number, sizeof(auto_scan_setup.auto_scan_node_number), 0 },
+#else
+    {API_DEF_QTM_AUTOSCAN_TUNING_PARAM, &auto_scan_setup.autoscan_comp_caps, sizeof(auto_scan_setup.autoscan_comp_caps), 0 },
+    {API_DEF_QTM_AUTOSCAN_CSD, &ptc_seq_auto_scan_node_cfg[0].node_csd, sizeof(ptc_seq_auto_scan_node_cfg[0].node_csd), sizeof(ptc_seq_auto_scan_node_cfg[0]) },
+    {API_DEF_QTM_AUTOSCAN_RESISTOR_PRESCALER, &ptc_seq_auto_scan_node_cfg[0].node_rsel_prsc, sizeof(ptc_seq_auto_scan_node_cfg[0].node_rsel_prsc), sizeof(ptc_seq_auto_scan_node_cfg[0]) },
+    {API_DEF_QTM_AUTOSCAN_GAIN, &ptc_seq_auto_scan_node_cfg[0].node_gain, sizeof(ptc_seq_auto_scan_node_cfg[0].node_gain), sizeof(ptc_seq_auto_scan_node_cfg[0]) },
+    {API_DEF_QTM_AUTOSCAN_ADC_OVERSAMPLING, &ptc_seq_auto_scan_node_cfg[0].node_oversampling, sizeof(ptc_seq_auto_scan_node_cfg[0].node_oversampling), sizeof(ptc_seq_auto_scan_node_cfg[0]) },
+#endif
 #endif
 	//
 #ifdef OBJECT_T109
@@ -391,7 +401,7 @@ u16 calculate_and_cache_cccap(qtm_comp_to_cc_cache_t * pcap, u16 comcap)
 {
 	if (pcap->node_comp_caps != comcap) {
 		pcap->node_comp_caps = comcap;
-		pcap->node_cc_caps = CALCULATE_CAP(comcap);
+		pcap->node_cc_caps = tsapi_comp_value_to_cc(comcap);
 	}
 
 	return pcap->node_cc_caps;
@@ -589,4 +599,9 @@ uint8_t tsapi_get_sensor_node_mapping(uint8_t sensor_node, int8_t group)
 uint8_t tsapi_get_channel_node_mapping(uint8_t channel_node)
 {
 	return get_channel_node_mapping(channel_node);
+}
+
+uint16_t tsapi_comp_value_to_cc(uint16_t comp)
+{
+    return CALCULATE_CAP(comp);
 }

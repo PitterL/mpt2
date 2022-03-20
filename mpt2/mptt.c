@@ -25,115 +25,53 @@
 #include <pack.h>
 /*
 	FW version:
-	
-	v21: added t25 pinfault detection
-	v22: <1> added t38 object
-		 <2> add 'aks' function at T15
-	v23(1.0): draft merge from low power scanning support
-		 <1> support idle(low power) and active scanning rate setting
-		 <2> support switch from active to idle by timeout setting
-		 <3> set i2c bus mornitor ticks from current measure time: mptt_bus_monitor_ticks(measurement_period_store);
-		 <4> disable API_DEF_TCH_DRIFT_RATE sync with qtlib for calibration directly, it will affect the lowpower dynamical setting(caused calibration)
-		 
-		 the current in idle mode:
-	v23(1.1): 
-		 <1> add T126 object for low power control
-		 <2> wake up node mask
-		 <3> re-grouped the state machine of `qlib_touch_flag` to fix the frozen symptom after I2C command issued
-		 <4> Fixed the scanning issue in status switch
-		 <5> Fixed T126 skip message bug
-		 <6> Preliminary tested the t25 command in lowpower mode
-		 <8> Change mpt_api_request_irq() LOCK zone and placed into each call before sleep
-	v23(2.0):
-		 <1> add T126 diagnostic debug data support in T37
-		 <2> add T126 wakeup message report
-		 <3> T6 backup command result check added 
-	v24(2.1):
-		<1> I2c end callback(flash data) only when written transfer larger than 2 bytes
-		<2> Set bus_asset_irq in each cycle for fast response(special in sleep state)
-		<3> Use gpio_release_chg() for retrigger int pulse(not verified)
-		<4> rename `get_bus_line_level` to `gpio_get_bus_line_level`
-		<5> remove `tsl_suspend()` in pinfault.c
-		<6> async handle calibration and initialize sensor by `qtm_init_sensor_key_post` and `calibrate_node_post`, note the all sensor will be processed whatever
-		<7> move `touch_process()` to `mptt_process()`
-		<8> add `tsl_assert_irq()` at `mptt_post_process()` becasue some message generated after process()
-		<9> check i2c status twice by call mptt_get_bus_state() in mptt_sleep() before sleep_cpu(), that avoids I2C snatched be sleep instruction
-		<10> add mpt_get_message_count() for message count, which will decide `t5.reportid != MXT_RPTID_NOMSG`. That will avoid non-standard reading size of accessing t5 to discard a valid message
-		<11> update t44 value only in object read cycle
-		<12> T25 Pin fault test with library idle check object_ts_state_idle() limit, and set object_ts_suspend()
-		<13> T37 SIGNAL will return delta in refmode `DBG_CAP`
-		<14> change sleep logic: mptt_sleep()->tsl_sleep()->touch_sleep()->touch_process_lowpower()=>sleep_cpu(), it will check tsapi_get_chip_state() and mptt_get_bus_state()
-		<15> change to`qlib_touch_state` from `qlib_touch_flag` for touch lib state management
-		<16> add `measurement_state` for for calibration and initialization post process
-	v25(1.0):
-		<1> Fuse check with `SigErr` T6 message
-		<2> Config check with `CfgErr` T6 message
-		<3> cccap calculation cache at call CALCULATE_CAP() to save power comsuption
-		<4> tsapi_get_number_sensor_channels() and tsapi_get_number_key_sensors() for fast access sensor count at main loop to save power comsuption
-		<5> move `buttons_config`, `surfaces_sliders_config` and `tsl_qtouch_def` from tsl.c to board.c
-		<6> mpt_api_set_sensor_data() use pointer to transfer parameter value(T37/T25/T109)
-		<7> Remove T111 default
-		
-		(1.1)
-		<1> Support Signature Row data
-		<2> Check suspend channel in data update
-		<3> Put `channel switch` in from touch_process() to touch_sleep() to make post_process with correct channels
+    v40
+      (1.0)
+        <1> 4p mode intitialized
+      (1.1)
+        <1> modified touch_autoscan_sensor_node() functon in library `ptc_driver_t1617_4p_runtime.c`/v2.1a version to support 1p mode event sys sleep
+        <2> change the `qtm_auto_scan_config_t` structure definition(in qtm_acq_4p_t161x_0x001b_api.h --- both lib):
+            typedef struct
+            {
+                qtm_acquisition_control_t* qtm_acq_control;
+                uint16_t auto_scan_node_number;
+                uint8_t auto_scan_node_threshold_h; // Unit 32 counts if threshold l is set
+                uint8_t auto_scan_node_threshold_l;
+                uint16_t autoscan_comp_caps;
+            }qtm_auto_scan_config_t;
+        <3> move object_api_t126_breach_waked() to touch_measure_wcomp_match() and report `signal` reported to t126 instead of delta
+        <4> t126 change the config definition with threshold low and high support and compensation value   
+      (1.2)
+        <1> use individual auto scan sensor config
+        <2> t126 support auto scan gain/prescale/csd/adc samples setting
 
-		(1.2)
-		<1> Revert the `channel switch` to touch_process() and use touch_state_sleep() to decide wether execute touch_post_process()
-		
-		(1.3)
-		<1> Add t9/t15 callback hook
-		<2> Use t15 as primary gain/threshold parameter 
-		(1.4)
-		<1> T25 test scanning mode switch will issue a calibration command, signal limit test will pending after switched
-		<2> T25 Test All is splitted into the pinfault test(handled in tsl_pre_process()) and signal limit test(tsl_post_process()) to supply stable test cycle
-		<3> T25 signal limit test for T9 bug fixed and use T15 as baseref source
-		<4> T25 test command will wakeup chip for processing in short time
-		<5> T6 calibration command will wakeup chip and done in next drift cycle
-		<6> Drift decide with get_next_measurement_period() and set margin from 200ms to 40ms to save power and avoid frozen timer issue(restart timer before timeout)
-		<7> Fix the issue I2C communication will be stalled if Pinfault detected at bootup 
-		<8> Tested the sleep mode in 5*6 surface(15uA@event system system, 55uA@software sleep / 1.5mA@active)
-		(1.5)
-		<1> Use indenpent global varible for qlib_touch_state_xxx states instead of bit mask, which cause un-atomic mutex between interupt and main thread
-		<2> Add overflow counter for qtm_ptc_start_measurement_seq() timeout, which will report overflow tag in T6 message
-		<3> split touch_process() to touch_handle_measurement() and touch_handle_acquisition_process(), the later one will called first
-		(1.6)
-		<1> T111 controllable with parameters
-		<2> add `WK_RSV_NEG_BREACH` in T126 wakeup message
-		<3> add touch_non_ptc_pin_config() at touch_init() for non PTC pin initialize
-		<4> #define DEF_TOUCH_MEASUREMENT_OVERFLOW_FORCE_DONE 200
-		<5> add LED0 callback when button touched
-		(1.7)
-		<1> Add Fuse output in `MXT_DIAGNOSTIC_DEVICE_INFO` at page 1
-		<2> Set Pin Fault and AVDD test looped check if POR found failure, it could recovery when symptom gone 
-		<3> Disable I2C controller at init() stage, enable is at open()
+        Report ID Object Table Index Object Type Object Instance
+        0 = 0x00                  0           0               0
+        1 = 0x01                  3           6               0
+        2 = 0x02                  7          15               0
+        3 = 0x03                  7          15               1
+        4 = 0x04                  7          15               2
+        5 = 0x05                  8          25               0
+        6 = 0x06                 10         126               0
 
-		Report ID Object Table Index Object Type Object Instance
-		0 = 0x00                  0           0               0
-		1 = 0x01                  3           6               0
-		2 = 0x02                  7          15               0
-		3 = 0x03                  7          15               1
-		4 = 0x04                  8          25               0
-		5 = 0x05                  9         126               0
-
-		Object Table Index Object Type Address Size Instances Report IDs
-		0          37      71   66         1          -
-		1          44     137    1         1          -
-		2           5     138   10         1          -
-		3           6     148    6         1          1
-		4          38     154   16         1          -
-		5           7     170    4         1          -
-		6           8     174   15         1          -
-		7          15     189   11         2      2 - 3
-		8          25     211   16         1          4
-		9         126     227    9         1          5
+        Object Table Index Object Type Address Size Instances Report IDs
+        0          37      77   66         1          -
+        1          44     143    1         1          -
+        2           5     144   10         1          -
+        3           6     154    6         1          1
+        4          38     160   16         1          -
+        5           7     176    4         1          -
+        6           8     180   15         1          -
+        7          15     195   11         3      2 - 4
+        8          25     228   22         1          5
+        9         111     250   29         1          -
+        10         126     279   12         1          6
 
 */
 
 #define MPTT_FW_FAMILY_ID 0xa6
 #define MPTT_FW_VARIANT_ID 0x11
-#define MPTT_FW_VERSION 0x25
+#define MPTT_FW_VERSION 0x40
 /* use the latest byte for the build version */
 #define MPTT_FW_BUILD (PROJECT_CODE & 0xFF)
 

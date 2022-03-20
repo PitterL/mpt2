@@ -106,7 +106,7 @@ typedef enum tag_rsel_val_t {
 
 /* Node group configuration */
 typedef struct qtm_acq_node_group_config_type {
-	uint16_t num_sensor_nodes;    /* Number of sensor nodes */
+	uint16_t num_sensor_nodes;    /* Errata name, it's number of channel nodes actually */
 	uint8_t  acq_sensor_type;     /* Self or mutual sensors */
 } qtm_acq_node_group_config_t;
 extern qtm_acq_node_group_config_t ptc_qtlib_acq_gen1;

@@ -3,9 +3,18 @@ Filename : qtm_acq_t1617_0x001b_api.h
 Project : QTouch Modular Library
 Purpose : API for Acquisition module - TINY1617/PTC 4P Mutual
 ------------------------------------------------------------------------------
-Version Number : 0.6
-Last Updated : 23/10/2018
-Updated By : Feargal Cleary
+Version Number : 0.6a
+Last Updated : 03/19/2022
+Updated By : Feargal Cleary Pitter
+Revision 0.6a: changed the qtm_auto_scan_config_t definition same as `libqtm_acq_runtime_4p_t3217_0x001d_autoscan_1p.o`
+        typedef struct
+        {
+            qtm_acquisition_control_t* qtm_acq_control;
+            uint16_t auto_scan_node_number;
+            uint8_t auto_scan_node_threshold_h; // Unit 32 counts if threshold l is set
+            uint8_t auto_scan_node_threshold_l;
+            uint16_t autoscan_comp_caps;
+        }qtm_auto_scan_config_t;
 ------------------------------------------------------------------------------
 Copyright (C) 2019 Atmel. All rights reserved.
 ------------------------------------------------------------------------------
@@ -213,12 +222,14 @@ typedef struct {
 	qtm_acq_node_data_t *        qtm_acq_node_data;
 } qtm_acquisition_control_t;
 
-typedef struct {
-	qtm_acquisition_control_t *qtm_acq_control;
-	uint16_t                   auto_scan_node_number;
-	uint8_t                    auto_scan_node_threshold;
-	uint8_t                    auto_scan_trigger;
-} qtm_auto_scan_config_t;
+typedef struct
+{
+    qtm_acquisition_control_t* qtm_acq_control;
+    uint16_t auto_scan_node_number;
+    uint8_t auto_scan_node_threshold_h; /* Unit 32 counts if threshold l is set */
+    uint8_t auto_scan_node_threshold_l;
+    uint16_t autoscan_comp_caps;
+}qtm_auto_scan_config_t;
 
 /*----------------------------------------------------------------------------
  * prototypes

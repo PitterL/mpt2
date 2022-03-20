@@ -43,9 +43,15 @@ enum {
 	API_DEF_MAX_ON_DURATION,
 	
 	API_DEF_TOUCH_DRIFT_PERIOD_MS,
-	API_DEF_QTM_AUTOSCAN_THRESHOLD,
+	API_DEF_QTM_AUTOSCAN_THRESHOLD_H,
+    API_DEF_QTM_AUTOSCAN_THRESHOLD_L,
 	API_DEF_QTM_AUTOSCAN_NODE,
-	
+	API_DEF_QTM_AUTOSCAN_TUNING_PARAM,
+    API_DEF_QTM_AUTOSCAN_CSD,
+    API_DEF_QTM_AUTOSCAN_RESISTOR_PRESCALER,
+    API_DEF_QTM_AUTOSCAN_GAIN,
+    API_DEF_QTM_AUTOSCAN_ADC_OVERSAMPLING,
+
 	API_NUM_SLIDERS,
 	API_SLIDER_START_KEY,
 	API_SLIDER_NUM_KEYS,
@@ -277,4 +283,5 @@ const u8 *tsapi_get_signature_row_data(u8 *len_ptr);
 
 uint8_t tsapi_get_sensor_node_mapping(uint8_t sensor_node, int8_t group);
 uint8_t tsapi_get_channel_node_mapping(uint8_t channel_node);
+uint16_t tsapi_comp_value_to_cc(uint16_t comp);
 #endif /* TSLAPI_H_ */

@@ -41,6 +41,8 @@ Copyright (c) 2021 Microchip. All rights reserved.
 
 #include "utils/utils.h"
 
+#include "arch/tslapi.h"
+
 /* USE_MPTT_WRAPPER, we process sleep mode outside */
 #if DEF_PTC_CAL_OPTION != CAL_AUTO_TUNE_NONE
 #error "Autotune feature is NOT supported by this acquisition library. Enable Autotune featuers in START."
@@ -92,14 +94,14 @@ static void touch_measure_wcomp_match(void);
 static void touch_cancel_autoscan(void);
 static void touch_enable_lowpower_measurement(void);
 static void touch_disable_lowpower_measurement(void);
-static uint16_t touch_read_lp_button_delta(void);
+static uint16_t touch_read_lp_sensor_signal(void);
 static int8_t touch_read_lp_button_state(void);
 
 #ifdef DEF_TOUCH_LOWPOWER_SOFT
 /* Low-power measurement sensor(key) node currently, it will change for next scanning channel if multi channel enabled in low power mode
 	initialized as 0
 */
-uint16_t current_lp_sensor;
+uint16_t current_autoscan_sensor;
 /* Low-power measurement variables, store how long last drift elapsed, unit: ms 
 	initialized as 0
 */
@@ -244,7 +246,7 @@ qtm_acquisition_control_t qtlib_acq_set1 = {&ptc_qtlib_acq_gen1, &ptc_seq_node_c
 /* USE_MPTT_WRAPPER, the trigger period is never used, we use idle period instead */
 /* Low-power autoscan related parameters */
 qtm_auto_scan_config_t auto_scan_setup
-    = {&qtlib_acq_set1, QTM_AUTOSCAN_NODE, QTM_AUTOSCAN_THRESHOLD, /*QTM_AUTOSCAN_TRIGGER_PERIOD*/0};
+    = {&qtlib_acq_set1, QTM_AUTOSCAN_NODE, QTM_AUTOSCAN_THRESHOLD, 0, 0x0100 /* Assumed 6.75pf */};
 
 /* map node to key */
 uint8_t touch_key_node_mapping_4p[DEF_NUM_SENSORS] = TOUCH_KEY_SENSOR_MAPPING_4P;
@@ -633,25 +635,26 @@ Notes  :
 ============================================================================*/
 extern bool object_api_t126_lowpower_mode_enabled(void);
 extern uint8_t object_api_t25_get_test_op(void);
-extern void object_api_t126_force_waked(int16_t val);
-extern void object_api_t126_breach_waked(int16_t val);
+extern void object_api_t126_force_waked(void);
+extern void object_api_t126_breach_waked(u16 signal);
 static void touch_set_measurement_state(void)
 {	
 	uint16_t period;
 	
 	/* Here we test whether current state in sleep mode, if it is:
-		<1> it's drift cycle, (both QTLIB_STATE_SLEEP and QTLIB_STATE_TIME_TO_MEASURE is set), we just do lowpower config switched to normal config, but keep flags
+		<1> it's drift cycle, (both QTLIB_STATE_SLEEP and QTLIB_STATE_TIME_TO_MEASURE is set), we just do autoscan config switched to normal config, but keep flags
 		<2> it's pre-exit status or external command forced exit, we will clear all other flag and set to active
 	 */
 #if (DEF_TOUCH_LOWPOWER_ENABLE == 1u)
 	// In sleep
 	if (TEST(qlib_touch_state, QTLIB_STATE_SLEEP)) {	
-		/* check whether exit lowpower mode */
+		/* check whether exit autoscan mode */
 		
 		/* touch detection exit */
 		if (TEST(qlib_touch_state, QTLIB_STATE_SLEEP_PRE_EXIT)) {
-			/* notice t126 register the status changed */
-			object_api_t126_breach_waked(touch_read_lp_button_delta());
+			/* could do something for pre-exit */
+            /* notice t126 register the status changed */
+            //object_api_t126_breach_waked(touch_read_lp_sensor_signal());
 		} else {
 			/* `QTLIB_STATE_EXTERNAL_EVENT`
 					external T7 command forced exit or
@@ -665,7 +668,7 @@ static void touch_set_measurement_state(void)
 #endif
 			) {
 				/* notice t126 register the status changed */
-				object_api_t126_force_waked(touch_read_lp_button_delta());			
+				object_api_t126_force_waked();			
 			} else {
 				/* invalid external event */
 				CLR(qlib_touch_state, QTLIB_STATE_EXTERNAL_EVENT);
@@ -877,7 +880,7 @@ static void touch_handle_acquisition_process(void)
 				if (TEST(qlib_touch_state, QTLIB_STATE_SLEEP) || TEST(qlib_touch_state, QTLIB_STATE_SLEEP_WALK)) {
 					if (touch_read_lp_button_state() > 0) {
 #ifdef DEF_TOUCH_LOWPOWER_SOFT
-						// Exit lowpower mode if button pressed
+						// Exit autoscan mode if button pressed
 						touch_measure_wcomp_match();
 #else
 						time_since_touch = 0u;
@@ -963,25 +966,22 @@ static bool sensor_node_is_busy(uint8_t k)
 	const uint8_t num_key_sensors = (uint8_t)qtlib_key_grp_config_set1.num_key_sensors;
 	uint8_t state;
 
-	if (k >= DEF_NUM_SENSORS)
-		return 0;
-
 	if (k < num_key_sensors) {
 		state = qtlib_key_data_set1[k].sensor_state;
 		return (state == QTM_KEY_STATE_CAL) || (state == QTM_KEY_STATE_FILT_IN) || (state == QTM_KEY_STATE_FILT_OUT) ;
 	}
 
-	return 0;
+	return true;
 }
 /*============================================================================
-touch_ret_t touch_disable_nonlp_sensors(void)
+touch_ret_t soft_enable_lp_and_nonlp_sensors(void)
 ------------------------------------------------------------------------------
-Purpose: Disable
-Input  : None
-Output : touch_ret_t
+Purpose: enable the lp sensor, enable/disable the nonlp sensor
+Input  : lp sensor mask, nonlp setting
+Output : none
 Notes  : none
 ============================================================================*/
-static void soft_enable_nonlp_sensors(uint8_t key_mask, bool en)
+static void soft_enable_lp_and_nonlp_sensors(uint8_t lp_sensor_mask, bool en)
 {
 	const uint8_t num_key_sensors = (uint8_t)qtlib_key_grp_config_set1.num_key_sensors;
 	uint8_t state;
@@ -990,7 +990,7 @@ static void soft_enable_nonlp_sensors(uint8_t key_mask, bool en)
 	for (uint8_t k = 0; k < num_key_sensors; k++) {
 		state = qtlib_key_data_set1[k].sensor_state;
 		
-		if (TEST_BIT(key_mask, k)) {
+		if (TEST_BIT(lp_sensor_mask, k)) {
 			if (state == QTM_KEY_STATE_SUSPEND) {
 				qtm_key_resume(k, &qtlib_key_set1);
 			}
@@ -1021,7 +1021,7 @@ touch_ret_t qtm_autoscan_sensor_node_soft(void)
 	// FIXME: this function need be fixed the channel map to sensor before using
 	const uint8_t num_sensors = (uint8_t)qtlib_key_grp_config_set1.num_key_sensors;
 	const uint8_t mask = auto_scan_setup.auto_scan_node_number;
-	uint8_t next, key = current_lp_sensor;
+	uint8_t next, key = current_autoscan_sensor;
 
 	if (key >= num_sensors) {
 		// Select first low power sensor
@@ -1047,9 +1047,9 @@ touch_ret_t qtm_autoscan_sensor_node_soft(void)
 		return TOUCH_INVALID_INPUT_PARAM;
 	}
 
-	// Disable non-lowpower sensor
-	soft_enable_nonlp_sensors(BIT(key), false);
-	current_lp_sensor = key;
+	// Disable non-autoscan sensor
+	soft_enable_lp_and_nonlp_sensors(BIT(key), false);
+	current_autoscan_sensor = key;
 
 	return TOUCH_SUCCESS;
 }
@@ -1067,11 +1067,11 @@ void qtm_autoscan_node_cancel_soft(void)
 	const uint8_t num_sensors = (uint8_t)qtlib_key_grp_config_set1.num_key_sensors;
 	uint8_t mask = auto_scan_setup.auto_scan_node_number;
 	
-	// enable all non-lowpoer sensor
-	soft_enable_nonlp_sensors(mask, true);
+	// enable all non-autoscan sensor
+	soft_enable_lp_and_nonlp_sensors(mask, true);
 	
-	// mask lp sensor invalid
-	current_lp_sensor = num_sensors;
+	// mask autoscan sensor invalid
+	current_autoscan_sensor = num_sensors;
 }
 #endif
 
@@ -1113,7 +1113,7 @@ static void touch_autoscan_node_cancel(void)
 /*============================================================================
 int8_t touch_read_lp_button_state(void)
 ------------------------------------------------------------------------------
-Purpose: get lowpower key status
+Purpose: get autoscan key status
 Input  : None
 Output : Zero, Not pressed; Large than Zero, pressed, Negative error
 Notes  : none
@@ -1121,47 +1121,46 @@ Notes  : none
 static int8_t touch_read_lp_button_state(void)
 {
 	const uint8_t num_sensors = (uint8_t)qtlib_key_grp_config_set1.num_key_sensors;
-	uint8_t node;
+	uint8_t sensor;
 	int8_t state = 0;
 	
 #ifdef DEF_TOUCH_LOWPOWER_SOFT
-	node = current_lp_sensor;
+	sensor = current_autoscan_sensor;
 #else
-	node = get_channel_node_mapping(auto_scan_setup.auto_scan_node_number);
+	sensor = get_channel_node_mapping(auto_scan_setup.auto_scan_node_number);
 #endif
 	
-	if (node < num_sensors) {
-		state = tsapi_read_button_state(node);
+	if (sensor < num_sensors) {
+		state = tsapi_read_button_state(sensor);
 	}
 	
 	return state;
 }
 
 /*============================================================================
-uint16_t touch_read_lp_button_delta(void)
+uint16_t touch_read_lp_sensor_signal(void)
 ------------------------------------------------------------------------------
-Purpose: get lowpower key delta
+Purpose: get autoscan key signal
 Input  : None
 Output : current low power button delta
 Notes  : none
 ============================================================================*/
-static uint16_t touch_read_lp_button_delta(void)
+static uint16_t touch_read_lp_sensor_signal(void)
 {
 	const uint8_t num_sensors = (uint8_t)qtlib_key_grp_config_set1.num_key_sensors;
-	uint8_t node;
-	uint16_t result = 0;
-	
+	uint8_t sensor;
+
 #ifdef DEF_TOUCH_LOWPOWER_SOFT
-	node = current_lp_sensor;
+	sensor = current_autoscan_sensor;
 #else
-	node = get_channel_node_mapping(auto_scan_setup.auto_scan_node_number);
+	sensor = get_channel_node_mapping(auto_scan_setup.auto_scan_node_number);
 #endif
 
-	if (node < num_sensors) {
-		result = get_sensor_node_delta(node);
+	if (sensor < num_sensors) {
+        return get_sensor_node_signal(sensor);
 	}
 	
-	return result;
+	return 0;
 }
 
 /*============================================================================
@@ -1241,11 +1240,15 @@ void touch_measure_wcomp_match(void)
 	/* USE_MPTT_WRAPPER
 		the Compare mode only used in sleep mode
 	 */
+
 	if (TEST(qlib_touch_state, QTLIB_STATE_SLEEP)) {
 		touch_disable_lowpower_measurement();
 		/* USE_MPTT_WRAPPER 
-			Prepare to exit sleep if the compare interrupt occured
+			Prepare to exit sleep if the compare interrupt occurred
 		*/
+        /* notice t126 register the status changed */
+        object_api_t126_breach_waked(touch_read_lp_sensor_signal());
+
 		// time_to_measure_touch_flag = 1u;
 		SET(qlib_touch_state, QTLIB_STATE_SLEEP_PRE_EXIT);
 		time_since_touch           = 0u;

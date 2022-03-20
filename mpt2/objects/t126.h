@@ -18,9 +18,11 @@ typedef struct object_t126 {
 	u8 threshold;
 	u8 syncsperl;
 	u8 driftcoef;
-	u8 sigfiltcoef;
-	u8 tunparam;
-	u8 rsv2;
+    u8 sigfiltcoef;
+	u8 tunparam[2];
+    u8 csd;
+    u8 respres;
+    u8 threshold_l;
 } __attribute__ ((packed)) object_t126_t;
 
 /* MXT_SPT_LOWPOWERIDLECONFIG_T126 field */
@@ -37,7 +39,11 @@ typedef struct object_t126 {
 
 typedef struct object_t126_result {
 	u8 status;
-	u16 delta;
+    struct {
+        /* u16 delta; */
+        u16 signal;
+        /* u16 ccval; */
+    } info;
 }__attribute__ ((packed)) object_t126_result_t;
 
 #define MXT_SPT_LOWPOWERIDLECONFIG_T126_RIDS 1
@@ -64,8 +70,8 @@ void object_t126_start(u8 loaded);
 void object_t126_data_sync(u8 rw);
 void object_t126_report_status(u8 force);
 bool object_api_t126_lowpower_mode_enabled(void);
-void object_api_t126_force_waked(int16_t val);
-void object_api_t126_breach_waked(int16_t val);
+void object_api_t126_force_waked(void);
+void object_api_t126_breach_waked(u16 signal);
 void object_api_t126_breach_sleep(void);
 bool object_api_t126_node_skipped(u8 node);
 ssint object_api_t126_is_low_power_node(u8 node);
