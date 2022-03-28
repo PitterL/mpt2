@@ -243,10 +243,17 @@ qtm_acq_4p_t321x_config_t ptc_seq_node_cfg1[DEF_NUM_CHANNEL_GROUPS] = PTC_SEQ_NO
 /* Container */
 qtm_acquisition_control_t qtlib_acq_set1 = {&ptc_qtlib_acq_gen1, &ptc_seq_node_cfg1[0], &ptc_qtlib_node_stat1[0]};
 
+#if (DEF_TOUCH_LOWPOWER_ENABLE == 1u)
 /* USE_MPTT_WRAPPER, the trigger period is never used, we use idle period instead */
+
 /* Low-power autoscan related parameters */
+qtm_acq_4p_t321x_config_t ptc_seq_auto_scan_node_cfg[1] = PTC_SEQ_AUTO_SCAN_NODE_CFG1;
+qtm_acquisition_control_t qtlib_acq_auto_scan_set = {&ptc_qtlib_acq_gen1, &ptc_seq_auto_scan_node_cfg[0], &ptc_qtlib_node_stat1[0]};
+
+/* Auto Scan Node configurations */
 qtm_auto_scan_config_t auto_scan_setup
-    = {&qtlib_acq_set1, QTM_AUTOSCAN_NODE, QTM_AUTOSCAN_THRESHOLD, 0, 0x0100 /* Assumed 6.75pf */};
+    = {&qtlib_acq_auto_scan_set, QTM_AUTOSCAN_NODE, QTM_AUTOSCAN_THRESHOLD, 0, 0x0100 /* Assumed 6.75pf */};
+#endif
 
 /* map node to key */
 uint8_t touch_key_node_mapping_4p[DEF_NUM_SENSORS] = TOUCH_KEY_SENSOR_MAPPING_4P;

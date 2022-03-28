@@ -125,7 +125,7 @@ extern "C" {
     X10             Menu
 */
 
-#define DEF_NUM_CHANNEL_GROUPS (4)
+#define DEF_NUM_CHANNEL_GROUPS (3)
 #define DEF_NUM_CHANNEL_NODES (DEF_NUM_CHANNEL_GROUPS << 2)
 /* Defines mutual cap node parameter setting
  * {X-line, Y-line, Charge Share Delay, NODE_RSEL_PRSC(series resistor, prescaler), NODE_G(Analog Gain , Digital Gain),
@@ -146,22 +146,28 @@ extern "C" {
         {X(8), X(10), X(11), X_NONE}, Y(0)|Y(9), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_8),                           \
             NODE_GAIN(GAIN_1, GAIN_1),   FILTER_LEVEL_4                                                                \
 }
-/* Lumpped as the auto scanning node */
+/* Lumped as the auto scanning node */
 #define GRP_3_4P_PARAMS                                                                                                \
 {                                                                                                                  \
-        {X(12) | X(13) | X(4) | X(5) | X(6) | X(7) | X(8) | X(10) | X(11), X_NONE, X_NONE, X_NONE}, Y(0)|Y(9), 5, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_8),                           \
+        {X(12) | X(13) | X(4) | X(5) | X(6) | X(7) | X(8) | X(10) | X(11), X_NONE, X_NONE, X_NONE}, Y(0)|Y(9), 5, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                           \
             NODE_GAIN(GAIN_1, GAIN_1),   FILTER_LEVEL_16                                                                \
 }
+
+/* Normal channel nodes */
 #define PTC_SEQ_NODE_CFG1	{	\
 	GRP_0_4P_PARAMS,	\
 	GRP_1_4P_PARAMS, \
     GRP_2_4P_PARAMS, \
-    GRP_3_4P_PARAMS, \
+}
+
+/* Auto scan channel use individual node */
+#define PTC_SEQ_AUTO_SCAN_NODE_CFG1 { \
+    GRP_3_4P_PARAMS \
 }
 
 /* key sensor to channel node */
 #define TOUCH_KEY_SENSOR_MAPPING_4P { \
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12 \
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 \
 }
 
 /* channel node to key sensor (fill `-1` for invalid node)*/
@@ -169,7 +175,6 @@ extern "C" {
     0, 1, 2,  3,     \
     4, 5, 6,  7,      \
     8, 9, 10, -1,      \
-    11, -1, -1, -1  \
 }
 
 /**********************************************************/
@@ -180,7 +185,7 @@ extern "C" {
  * Default value: 1
  */
 /* All sensors */
-#define DEF_NUM_SENSORS (12)
+#define DEF_NUM_SENSORS (11)
 
 /* Defines Key Sensor setting
  * {Sensor Threshold, Sensor Hysterisis, Sensor AKS}
@@ -193,7 +198,7 @@ extern "C" {
 #define QTLIB_KEY_CONFIGS_SET {	\
 	KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS ,KEY_0_PARAMS, \
     KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS ,KEY_0_PARAMS, \
-    KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS , KEY_0_PARAMS \
+    KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS \
 }
 
 /* De-bounce counter for additional measurements to confirm touch detection

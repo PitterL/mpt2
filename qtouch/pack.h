@@ -19,7 +19,7 @@ The below definition is used for cupdi package tool.
 	Warning: Support '//' comment mark, but not support '/ * * /' comment mark inside the definition
 */
 /* Project code*/
-#define PROJECT_CODE 0x4950424C	/*IP42, v4.C*/
+#define PROJECT_CODE 0x4950421D	/*IP42, v1.D*/
 
 /* Fuse content */
 // BOD level 2(2.6v Sampled 1Khz at Sleep, Enabled at Active), OSC 16Mhz, NVM protect after POR, EEPROM erased, WDT(2048ms)
