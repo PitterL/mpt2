@@ -102,6 +102,15 @@ void ptc_enable(void)
     // memcpy((void *)PTC_REG_START, ptc_register_buffer, 1);
 }
 
+/**
+ * \reset PTC register 
+ */
+void ptc_reset(void) 
+{
+	ADC_disable(&ADC0);
+	ADC_enable(&ADC0);
+}
+
 /*============================================================================
 static uint16_t qtm_get_x_mask(uint8_t which_node_group); --- same as in touchlib
 ------------------------------------------------------------------------------

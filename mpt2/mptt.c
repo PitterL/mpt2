@@ -44,6 +44,11 @@
       (1.2)
         <1> use individual auto scan sensor config
         <2> t126 support auto scan gain/prescale/csd/adc samples setting
+	  (1.3)
+	    <1> change hardware to 3217-t10 evk and support `ptc_driver_t1617_4p_runtime.c`/v2.1b version
+	  	<2> support drift and set median value comparator for evsys sleep
+		<3> t126 set target drift channel
+	  (1.4) add PTC reset to save power for software sleep mode
 
         Report ID Object Table Index Object Type Object Instance
         0 = 0x00                  0           0               0

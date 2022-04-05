@@ -223,6 +223,9 @@ static uint8_t touch_measurement_overflow;
 /* Acquisition module internal data - Size to largest acquisition set */
 uint16_t touch_acq_signals_raw[DEF_NUM_CHANNEL_NODES];
 
+/* Autoscan module internal data - Size to autoscan buffer set */
+uint16_t touch_autoscan_signals_raw[NUM_QTM_AUTOSCAN_BUFFER];
+
 /* Acquisition set 1 - General settings */
 qtm_acq_node_group_config_t ptc_qtlib_acq_gen1
     = {DEF_NUM_CHANNEL_NODES, DEF_SENSOR_TYPE, DEF_PTC_CAL_AUTO_TUNE, DEF_SEL_FREQ_INIT};
@@ -363,7 +366,7 @@ static touch_ret_t touch_sensors_config(void)
 	qtm_ptc_init_acquisition_module(&qtlib_acq_set1);
 
 	/* Init pointers to DMA sequence memory */
-	qtm_ptc_qtlib_assign_signal_memory(&touch_acq_signals_raw[0]);
+	qtm_ptc_qtlib_assign_signal_memory(&touch_acq_signals_raw[0], &touch_autoscan_signals_raw[0]);
 
 	/* Initialize sensor nodes */
 	for (channel_nodes = 0u; channel_nodes < DEF_NUM_CHANNEL_NODES; channel_nodes++) {
@@ -1057,6 +1060,9 @@ touch_ret_t qtm_autoscan_sensor_node_soft(void)
 	// Disable non-autoscan sensor
 	soft_enable_lp_and_nonlp_sensors(BIT(key), false);
 	current_autoscan_sensor = key;
+
+	// Reset PTC to save power consumption
+	ptc_reset();
 
 	return TOUCH_SUCCESS;
 }

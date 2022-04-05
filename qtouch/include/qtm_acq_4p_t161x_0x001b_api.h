@@ -224,12 +224,15 @@ typedef struct {
 
 typedef struct
 {
-    qtm_acquisition_control_t* qtm_acq_control;
-    uint16_t auto_scan_node_number;
-    uint8_t auto_scan_node_threshold_h; /* Unit 32 counts if threshold l is set */
-    uint8_t auto_scan_node_threshold_l;
-    uint16_t autoscan_comp_caps;
+  qtm_acquisition_control_t* qtm_acq_control;
+  uint16_t auto_scan_node_number;
+  uint8_t auto_scan_node_threshold_h;
+  uint8_t auto_scan_drift_target_node;	/* drift following the target channel node */
+  uint16_t autoscan_comp_caps;
 }qtm_auto_scan_config_t;
+
+/* Autoscan signal buffer definition */
+enum { QTM_AUTOSCAN_SIGNAL = 0, QTM_AUTOSCAN_DRIFT_TARGET_SIGNAL, NUM_QTM_AUTOSCAN_BUFFER};
 
 /*----------------------------------------------------------------------------
  * prototypes
@@ -257,14 +260,14 @@ Notes  : ptc_init_acquisition module must be called ONLY once with a pointer to 
 touch_ret_t qtm_ptc_init_acquisition_module(qtm_acquisition_control_t *qtm_acq_control_ptr);
 
 /*============================================================================
-touch_ret_t ptc_qtlib_assign_signal_memory(uint16_t* qtm_signal_raw_data_ptr);
+touch_ret_t ptc_qtlib_assign_signal_memory(uint16_t* qtm_signal_raw_data_ptr, uint16_t* qtm_signal_autoscan_data_ptr)
 ------------------------------------------------------------------------------
 Purpose: Assign raw signals pointer to array defined in application code
-Input  : pointer to raw data array
-Output : touch_ret_t: TOUCH_SUCCESS
+Input  : pointer to raw data array, autoscan data array 
+Output : touch_ret_t: TOUCH_SUCCESS or INVALID_POINTER
 Notes  : none
 ============================================================================*/
-touch_ret_t qtm_ptc_qtlib_assign_signal_memory(uint16_t *qtm_signal_raw_data_ptr);
+touch_ret_t qtm_ptc_qtlib_assign_signal_memory(uint16_t* qtm_signal_raw_data_ptr, uint16_t* qtm_signal_autoscan_data_ptr);
 
 /* Scan configuration */
 

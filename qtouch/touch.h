@@ -90,42 +90,28 @@ extern "C" {
 /*
 	Pin 1~20
     PCB     Chip            Sensor
-	GND
-	X0:		PA4		XY(0)   Y0
-	GND
-	Y0:		PA6		XY(2)   X0
-	Y1      PA7		XY(3)   X1
-	Y2:		PB5		XY(12)  X2
-	Y3:     PB4		XY(13)  X3
-	Y4:		PB1     XY(4)   X4
-	GND		
-	Y5:		PB0		XY(5)   X5
-	Y6:		PC0		XY(6)   X6
-	Y7:		PC1		XY(7)   X7
-	Y8:		PC2		XY(8)   X8
-	GND		
-	X1:     PC3		XY(9)   Y1
-	GND		
-	Y9:     PC4		XY(10)  X9
-    Y10:    PC5		XY(11)  X10
+	ID
     GND
-    GND
+	Y1:		PA6		XY(2)   Y0
+	Y2:     PA7     XY(3)   Y1
+	NC:		-		
+	NC      -		
+	X1:		PB0		XY(5)   X0
+	X2:     PB1		XY(4)   X1
+	X3:		PA5     XY(1)   X2
+	X4:		PA4     XY(0)   X3
+	SDA:	PA1     SDA
+	SCL:	PA2     SCL
+	
 
-        Y0          Y1
-    X0  SLD0
-    X1  SLD1
-    X2  SLD2
-    X3  SLD3
-    X4  SLD4
-    X5              Light
-    X6              ECO
-    X7              Normal
-    X8              Sport
-    X9              Cluster
-    X10             Menu
+         Y0          Y1
+    X0  SLD0        BTN0
+    X1  SLD1        BTN1
+    X2  SLD2        BTN2
+    X3  SLD3        BTN3
 */
 
-#define DEF_NUM_CHANNEL_GROUPS (3)
+#define DEF_NUM_CHANNEL_GROUPS (2)
 #define DEF_NUM_CHANNEL_NODES (DEF_NUM_CHANNEL_GROUPS << 2)
 /* Defines mutual cap node parameter setting
  * {X-line, Y-line, Charge Share Delay, NODE_RSEL_PRSC(series resistor, prescaler), NODE_G(Analog Gain , Digital Gain),
@@ -133,23 +119,19 @@ extern "C" {
  */
 #define GRP_0_4P_PARAMS                                                                                                \
 	{                                                                                                                  \
-		{/*X(2), X(3),*/X_NONE, X_NONE, X(12), X(13)}, Y(0)|Y(9), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_8),                          \
+		{ X(5), X(4), X(1), X(0) }, Y(2), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_8),                          \
 		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_4                                                                 \
 	}
 #define GRP_1_4P_PARAMS                                                                                                \
 	{                                                                                                                  \
-		{X(4), X(5), X(6), X(7)}, Y(0)|Y(9), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_8),                           \
+		{ X(5), X(4), X(1), X(0) }, Y(3), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_8),                           \
             NODE_GAIN(GAIN_1, GAIN_1),   FILTER_LEVEL_4                                                                \
 	}
-#define GRP_2_4P_PARAMS                                                                                                \
-{                                                                                                                  \
-        {X(8), X(10), X(11), X_NONE}, Y(0)|Y(9), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_8),                           \
-            NODE_GAIN(GAIN_1, GAIN_1),   FILTER_LEVEL_4                                                                \
-}
+
 /* Lumped as the auto scanning node */
-#define GRP_3_4P_PARAMS                                                                                                \
+#define GRP_Lump_4P_PARAMS                                                                                                \
 {                                                                                                                  \
-        {X(12) | X(13) | X(4) | X(5) | X(6) | X(7) | X(8) | X(10) | X(11), X_NONE, X_NONE, X_NONE}, Y(0)|Y(9), 5, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                           \
+        { X(5) | X(4) | X(1) | X(0), X_NONE, X_NONE, X_NONE }, Y(2), 5, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_4),                           \
             NODE_GAIN(GAIN_1, GAIN_1),   FILTER_LEVEL_16                                                                \
 }
 
@@ -157,24 +139,22 @@ extern "C" {
 #define PTC_SEQ_NODE_CFG1	{	\
 	GRP_0_4P_PARAMS,	\
 	GRP_1_4P_PARAMS, \
-    GRP_2_4P_PARAMS, \
 }
 
 /* Auto scan channel use individual node */
 #define PTC_SEQ_AUTO_SCAN_NODE_CFG1 { \
-    GRP_3_4P_PARAMS \
+    GRP_Lump_4P_PARAMS \
 }
 
 /* key sensor to channel node */
 #define TOUCH_KEY_SENSOR_MAPPING_4P { \
-    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 \
+    0, 1, 2, 3, 4, 5, 6, 7 \
 }
 
 /* channel node to key sensor (fill `-1` for invalid node)*/
 #define TOUCH_CHANNEL_NODE_MAPPIING_4P  {   \
     0, 1, 2,  3,     \
     4, 5, 6,  7,      \
-    8, 9, 10, -1,      \
 }
 
 /**********************************************************/
@@ -185,7 +165,7 @@ extern "C" {
  * Default value: 1
  */
 /* All sensors */
-#define DEF_NUM_SENSORS (11)
+#define DEF_NUM_SENSORS (8)
 
 /* Defines Key Sensor setting
  * {Sensor Threshold, Sensor Hysterisis, Sensor AKS}
@@ -198,7 +178,6 @@ extern "C" {
 #define QTLIB_KEY_CONFIGS_SET {	\
 	KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS ,KEY_0_PARAMS, \
     KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS ,KEY_0_PARAMS, \
-    KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS \
 }
 
 /* De-bounce counter for additional measurements to confirm touch detection

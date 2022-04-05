@@ -36,4 +36,9 @@ void gpio_set_pin_isr(const uint8_t port, const uint8_t pin, const PORT_ISC_t is
 void gpio_set_pin_dir(const uint8_t port, const uint8_t pin, const enum port_dir dir);
 void gpio_set_pin_level(const uint8_t port, const uint8_t pin, const bool level);
 
+/**
+ * \reset PTC register 
+ */
+void ptc_reset(void);
+
 #endif /* ARCH_PINCONFIG_H_ */

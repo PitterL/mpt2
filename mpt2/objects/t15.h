@@ -44,7 +44,7 @@ typedef struct object_t15_result {
 	t15_button_status_t keystate;
 }__attribute__ ((packed)) object_t15_result_t;
 
-#define MXT_TOUCH_KEYARRAY_T15_INST 3
+#define MXT_TOUCH_KEYARRAY_T15_INST 2
 #define MXT_TOUCH_KEYARRAY_T15_RIDS 1	// Must be 1
 
 typedef struct t15_data {

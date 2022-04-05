@@ -156,11 +156,11 @@ tch_config_callback_t touch_config_list[] ={
 #endif
 #ifdef OBJECT_T126
 	{API_DEF_TOUCH_DRIFT_PERIOD_MS, &measurement_period_idle_drift, sizeof(measurement_period_idle_drift), 0 },
-	{API_DEF_QTM_AUTOSCAN_THRESHOLD_H, &auto_scan_setup.auto_scan_node_threshold_h, sizeof(auto_scan_setup.auto_scan_node_threshold_h), 0 },
-    {API_DEF_QTM_AUTOSCAN_THRESHOLD_L, &auto_scan_setup.auto_scan_node_threshold_l, sizeof(auto_scan_setup.auto_scan_node_threshold_l), 0 },
+	{API_DEF_QTM_AUTOSCAN_THRESHOLD, &auto_scan_setup.auto_scan_node_threshold_h, sizeof(auto_scan_setup.auto_scan_node_threshold_h), 0 },
 #ifdef DEF_TOUCH_LOWPOWER_SOFT
 	{API_DEF_QTM_AUTOSCAN_NODE, &auto_scan_setup.auto_scan_node_number, sizeof(auto_scan_setup.auto_scan_node_number), 0 },
 #else
+    {API_DEF_QTM_AUTOSCAN_DRIFT_TARGET_NODE, &auto_scan_setup.auto_scan_drift_target_node, sizeof(auto_scan_setup.auto_scan_drift_target_node), 0 },
     {API_DEF_QTM_AUTOSCAN_TUNING_PARAM, &auto_scan_setup.autoscan_comp_caps, sizeof(auto_scan_setup.autoscan_comp_caps), 0 },
     {API_DEF_QTM_AUTOSCAN_CSD, &ptc_seq_auto_scan_node_cfg[0].node_csd, sizeof(ptc_seq_auto_scan_node_cfg[0].node_csd), sizeof(ptc_seq_auto_scan_node_cfg[0]) },
     {API_DEF_QTM_AUTOSCAN_RESISTOR_PRESCALER, &ptc_seq_auto_scan_node_cfg[0].node_rsel_prsc, sizeof(ptc_seq_auto_scan_node_cfg[0].node_rsel_prsc), sizeof(ptc_seq_auto_scan_node_cfg[0]) },
@@ -206,6 +206,10 @@ void force_parameters(u8 type, u8 index)
 		case API_NODE_PARAMS_RESISTOR_PRESCALER:
 		case API_NODE_PARAMS_GAIN:
 		case API_NODE_PARAMS_ADC_OVERSAMPLING:
+#ifndef DEF_TOUCH_LOWPOWER_SOFT
+        case API_DEF_QTM_AUTOSCAN_DRIFT_TARGET_NODE:
+        case API_DEF_QTM_AUTOSCAN_GAIN:
+#endif
 			qtm_init_sensor_key_post(index);
 			calibrate_node_post(index);
 			break;

@@ -22,7 +22,7 @@ typedef struct object_t126 {
 	u8 tunparam[2];
     u8 csd;
     u8 respres;
-    u8 threshold_l;
+    u8 driftnode;
 } __attribute__ ((packed)) object_t126_t;
 
 /* MXT_SPT_LOWPOWERIDLECONFIG_T126 field */

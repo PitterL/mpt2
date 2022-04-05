@@ -33,8 +33,8 @@ void t126_data_sync(t126_data_t *ptr, u8 rw)
 #endif
 	txx_cb_param_t params_sensor[] = {
 		{ API_DEF_TOUCH_DRIFT_PERIOD_MS, &mem->driftcoef, sizeof(mem->driftcoef) },
-		{ API_DEF_QTM_AUTOSCAN_THRESHOLD_H, &mem->threshold, sizeof(mem->threshold) },
-        { API_DEF_QTM_AUTOSCAN_THRESHOLD_L, &mem->threshold_l, sizeof(mem->threshold_l) },
+		{ API_DEF_QTM_AUTOSCAN_THRESHOLD, &mem->threshold, sizeof(mem->threshold) },
+        { API_DEF_QTM_AUTOSCAN_DRIFT_TARGET_NODE, &mem->driftnode, sizeof(mem->driftnode) },
 #ifdef DEF_TOUCH_LOWPOWER_SOFT
 		{ API_DEF_QTM_AUTOSCAN_NODE, &mem->node, sizeof(mem->node) },
 #else
