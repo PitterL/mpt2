@@ -557,7 +557,11 @@ ssint mpt_api_chip_test(void)
 #endif
 #endif
 
+#ifdef OBJECT_T25
 	return object_api_t25_pinfault_test();
+#else
+    return 0;
+#endif
 }
 
 void mem_readback(u8 regid)

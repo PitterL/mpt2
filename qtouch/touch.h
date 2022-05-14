@@ -92,7 +92,7 @@ extern "C" {
 	Y1:	PA7		Y(3)		//BTN1
 */
 
-#define DEF_NUM_CHANNELS 2
+#define DEF_NUM_CHANNELS 32
 /* Defines node parameter setting of mutual cap
  * {X-line, Y-line, Charge Share Delay, NODE_RSEL_PRSC(series resistor, prescaler), NODE_G(Analog Gain , Digital Gain),
  * filter level}
@@ -108,21 +108,18 @@ extern "C" {
 		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 
-#define NODE_1_PARAMS                                                                                                  \
-	{                                                                                                                  \
-		X_NONE, Y(2), 2, PRSC_DIV_SEL_4,																				\
-			NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
-	}
-
-#define NODE_2_PARAMS                                                                                                  \
-	{																													\
-		X_NONE, Y(2) | Y(3), 2, PRSC_DIV_SEL_4,																		\
-		NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
-	}
 
 
 #define PTC_SEQ_NODE_CFG1	{	\
-	NODE_0_PARAMS, NODE_1_PARAMS	\
+	NODE_0_PARAMS,	\
+	NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, \
+    NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, \
+    NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, \
+    NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, \
+    NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, \
+    NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, \
+    NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, \
+	NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, 	\
 }
 
 /**********************************************************/
@@ -142,18 +139,16 @@ extern "C" {
 	100, HYST_25, NO_AKS_GROUP                                                                                      \
 }
 
-#define KEY_1_PARAMS                                                                                                   \
-{                                                                                                                  \
-	100, HYST_25, NO_AKS_GROUP                                                                                      \
-}
-
-#define KEY_2_PARAMS                                                                                                   \
-{                                                                                                                  \
-	100, HYST_25, NO_AKS_GROUP                                                                                      \
-}
-
 #define QTLIB_KEY_CONFIGS_SET {	\
-	KEY_0_PARAMS, KEY_1_PARAMS	\
+	KEY_0_PARAMS,	\
+	KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
+    KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
+    KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
+    KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
+    KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
+    KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
+    KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
+	KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
 }
 
 /* De-bounce counter for additional measurements to confirm touch detection
@@ -238,7 +233,7 @@ extern "C" {
  * Range: 0 to (DEF_NUM_CHANNELS-1).
  * Default value: 0
  */
-#define QTM_AUTOSCAN_NODE 1
+#define QTM_AUTOSCAN_NODE 0
 
 /* Touch detection threshold for Low-power node.
  * Range: 10 to 255
