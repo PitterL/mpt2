@@ -10,19 +10,14 @@
 #define T37_H_
 
 /* T37 Memory space */
-#define T37_DATA_SIZE 32	//More than 128 will careful for object_api_t37_set_sensor_data pos overflow
-#define T37_CACHE_PAGES_NUM 3
-#define T37_CACHE_PAGE_SIZE (T37_DATA_SIZE * T37_CACHE_PAGES_NUM)
+#define T37_DATA_COUNT 32	//More than 128 will careful for object_api_t37_set_sensor_data pos overflow
+#define T37_DATA_SIZE (T37_DATA_COUNT << 1) // 16bit data
 
 typedef struct object_t37 {
 	u8 mode;
 	u8 page;
-	u16 data[T37_DATA_SIZE];
+	u16 data[T37_DATA_COUNT];
 } __attribute__ ((packed)) object_t37_t;
-
-typedef struct dbgcache {
-	u16 data[T37_CACHE_PAGE_SIZE];
-}dbgcache_t;
 
 typedef t6_debug_command_t t37_page_status_t;
 

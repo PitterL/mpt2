@@ -154,6 +154,7 @@ void chip_diagnostic(u8 arg)
 			break;
 			default:
 				ptr->dbg.cmd = MXT_DIAGNOSTIC_NONE;
+                ptr->dbg.page = 0;
 		}
 		object_api_t37_set_data_page(ptr->dbg.cmd, ptr->dbg.page);
 	}

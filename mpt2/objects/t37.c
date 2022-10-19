@@ -46,9 +46,6 @@ void copy_page_data(u8 cmd, u8 page, u8 offset, const void* data, u8 len)
 	object_t37_t *mem = (object_t37_t *)ptr->common.mem;
 	const u8 pagesize = T37_DATA_SIZE;
 	u8 maxlen;
-
-	mem->mode = cmd;
-	mem->page = page;
 	
 	maxlen = pagesize - offset;
 	if (len > maxlen) {
@@ -260,9 +257,10 @@ void t37_set_diagnostic_platform_info(u8 cmd, u8 page)
 ssint object_api_t37_set_sensor_data(u8 channel, /*const cap_sample_value_t * const*/ const void * cv)
 {
 	t37_data_t *ptr = &t37_data_status;
+	object_t37_t *mem = (object_t37_t *)ptr->common.mem;
 	const cap_sample_value_t * const cval = (const cap_sample_value_t *)cv;
 	ssint ret = 0;
-
+	
 	u8 cmd = ptr->status.cmd;
 	u8 page = ptr->status.page;
 
@@ -308,6 +306,11 @@ ssint object_api_t37_set_sensor_data(u8 channel, /*const cap_sample_value_t * co
 		default:
 			ret = -1;
 	};
+	
+	if (ret == 0) {
+		mem->mode = cmd;
+		mem->page = page;
+	}
 	
 	return ret;
 }
