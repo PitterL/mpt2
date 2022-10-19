@@ -43,7 +43,7 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 #endif
 	},
 	#endif
-#ifdef PROJECT_TEST_32KEY
+#ifdef PROJECT_TEST_8KEY
     { .node = {	.origin = 0, .size = 32 } },
 #endif
 };
@@ -78,7 +78,7 @@ qtouch_config_t tsl_qtouch_def = {
 	#ifdef EVK_3217_XPLAIN
 	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 2}},
 	#endif
-#ifdef PROJECT_TEST_32KEY
+#ifdef PROJECT_TEST_8KEY
 	.matrix_nodes = {{.origin = 0, .size = 4}, {.origin =  16, .size = 8}},
 #endif
 	#ifdef TOUCH_API_BUTTON

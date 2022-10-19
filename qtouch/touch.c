@@ -313,9 +313,17 @@ qtm_touch_key_control_t qtlib_key_set1
     = {&qtlib_key_grp_data_set1, &qtlib_key_grp_config_set1, &qtlib_key_data_set1[0], &qtlib_key_configs_set1[0]};
 
 // "This is config for special pins of touch panel, be careful to not re-configure PTC pin because it's auto-configured in MPTT"
+#include "arch/pinconf.h"
 static void touch_non_ptc_pin_config(void)
 {
 	// Some None PTC Pin config here
+
+	// PB2 is nearby the sensing pin
+	/*
+	gpio_set_pin_dir(GPIOB, 2, PORT_DIR_OUT);
+	gpio_set_pin_level(GPIOB, 2, false);
+	gpio_set_pin_pull_mode(GPIOB, 2, PORT_PULL_OFF);
+	*/
 }
 
 /*============================================================================

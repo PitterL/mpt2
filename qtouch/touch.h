@@ -88,11 +88,20 @@ extern "C" {
  * Default value: 1
  */
 /*
-	Y0:	PA6		Y(2)		//BTN2
-	Y1:	PA7		Y(3)		//BTN1
+	Y0:	PA4		Y(0)	
+	Y1:	PA5		Y(1)
+    Y2: PA6     Y(2)
+    Y3: PA7     Y(3)
+
+    Y4: PB0     Y(5)
+    Y5: PB1     Y(4)
+    Y6: PB4     Y(13)
+    Y6: PB5     Y(12)
+
+    DS: PC0     Y(6)
 */
 
-#define DEF_NUM_CHANNELS 32
+#define DEF_NUM_CHANNELS 8
 /* Defines node parameter setting of mutual cap
  * {X-line, Y-line, Charge Share Delay, NODE_RSEL_PRSC(series resistor, prescaler), NODE_G(Analog Gain , Digital Gain),
  * filter level}
@@ -104,22 +113,56 @@ extern "C" {
  */
 #define NODE_0_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		X_NONE, Y(3), 2, PRSC_DIV_SEL_4,																			\
-		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
+		Y(6)| /*Y(0)| */Y(1)| Y(2)| Y(3)| Y(5)| Y(4)| Y(13)| Y(12), Y(0), 2, PRSC_DIV_SEL_4,																			\
+		    NODE_GAIN(GAIN_2, GAIN_2), FILTER_LEVEL_16                                                                 \
 	}
 
 
+#define NODE_1_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		Y(6)| Y(0)| /*Y(1)| */Y(2)| Y(3)| Y(5)| Y(4)| Y(13)| Y(12), Y(1), 2, PRSC_DIV_SEL_4,																			\
+		    NODE_GAIN(GAIN_2, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+
+#define NODE_2_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		Y(6)| Y(0)| Y(1)| /*Y(2)| */Y(3)| Y(5)| Y(4)| Y(13)| Y(12), Y(2), 2, PRSC_DIV_SEL_4,																			\
+		    NODE_GAIN(GAIN_2, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+
+#define NODE_3_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		Y(6)| Y(0)| Y(1)| Y(2)| /*Y(3)| */Y(5)| Y(4)| Y(13)| Y(12), Y(3), 2, PRSC_DIV_SEL_4,																			\
+		    NODE_GAIN(GAIN_2, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+
+#define NODE_4_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		Y(6)| Y(0)| Y(1)| Y(2)| Y(3)| /*Y(5)| */Y(4)| Y(13)| Y(12), Y(5), 2, PRSC_DIV_SEL_4,																			\
+		    NODE_GAIN(GAIN_2, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+
+#define NODE_5_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		Y(6)| Y(0)| Y(1)| Y(2)| Y(3)| Y(5)| /*Y(4)| */Y(13)| Y(12), Y(4), 2, PRSC_DIV_SEL_4,																			\
+		    NODE_GAIN(GAIN_2, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+
+#define NODE_6_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		Y(6)| Y(0)| Y(1)| Y(2)| Y(3)| Y(5)| Y(4)| /*Y(13)| */Y(12), Y(13), 2, PRSC_DIV_SEL_4,																			\
+		    NODE_GAIN(GAIN_2, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+
+#define NODE_7_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		Y(6)| Y(0)| Y(1)| Y(2)| Y(3)| Y(5)| Y(4)| Y(13)/*| Y(12)*/, Y(12), 2, PRSC_DIV_SEL_4,																			\
+		    NODE_GAIN(GAIN_2, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
 
 #define PTC_SEQ_NODE_CFG1	{	\
-	NODE_0_PARAMS,	\
-	NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, \
-    NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, \
-    NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, \
-    NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, \
-    NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, \
-    NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, \
-    NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, \
-	NODE_0_PARAMS, NODE_0_PARAMS, NODE_0_PARAMS, 	\
+	NODE_0_PARAMS, NODE_1_PARAMS, NODE_2_PARAMS, NODE_3_PARAMS, \
+    NODE_4_PARAMS, NODE_5_PARAMS, NODE_6_PARAMS, NODE_7_PARAMS, \
 }
 
 /**********************************************************/
@@ -140,15 +183,8 @@ extern "C" {
 }
 
 #define QTLIB_KEY_CONFIGS_SET {	\
-	KEY_0_PARAMS,	\
 	KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
     KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
-    KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
-    KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
-    KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
-    KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
-    KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
-	KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS,	\
 }
 
 /* De-bounce counter for additional measurements to confirm touch detection
