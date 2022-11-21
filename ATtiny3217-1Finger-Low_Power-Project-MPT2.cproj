@@ -26,7 +26,7 @@
     <OverrideVtorValue>exception_table</OverrideVtorValue>
     <BootSegment>2</BootSegment>
     <ResetRule>0</ResetRule>
-    <eraseonlaunchrule>1</eraseonlaunchrule>
+    <eraseonlaunchrule>0</eraseonlaunchrule>
     <EraseKey />
     <AsfFrameworkConfig>
       <framework-data xmlns="">
@@ -245,7 +245,7 @@
       <Value>OBJECT_T44</Value>
       <Value>OBJECT_T5</Value>
       <Value>OBJECT_T6</Value>
-      <Value>xOBJECT_T7</Value>
+      <Value>OBJECT_T7</Value>
       <Value>xOBJECT_T8</Value>
       <Value>xOBJECT_T9</Value>
       <Value>xOBJECT_T9_ORIENT</Value>
