@@ -36,16 +36,13 @@ qbutton_config_t buttons_config[MXT_TOUCH_KEYARRAY_T15_INST] = {
 	{ .node = {	.origin = 0, .size = 11 } },	// Surface slider
 	{ .node = {	.origin = 11, .size = 2 } },	// Button
 	#endif
-	#ifdef EVK_3217_XPLAIN
+	#ifdef EVK_1617_XPLAIN
 	{ .node = {	.origin = 0, .size = 2 },
 #ifdef OBJECT_T15_USE_STATE_CB
 		.set_button_state = button_led_state_change
 #endif
 	},
 	#endif
-#ifdef PROJECT_TEST_8KEY
-    { .node = {	.origin = 0, .size = 32 } },
-#endif
 };
 #endif
 
@@ -75,12 +72,9 @@ qtouch_config_t tsl_qtouch_def = {
 	#ifdef EVK_WATER_SURFACE
 	.matrix_nodes = {{.origin = 0, .size = 5}, {.origin =  5, .size = 8}},
 	#endif
-	#ifdef EVK_3217_XPLAIN
+	#ifdef EVK_1617_XPLAIN
 	.matrix_nodes = {{.origin = 0, .size = 2}, {.origin =  2, .size = 2}},
 	#endif
-#ifdef PROJECT_TEST_8KEY
-	.matrix_nodes = {{.origin = 0, .size = 4}, {.origin =  16, .size = 8}},
-#endif
 	#ifdef TOUCH_API_BUTTON
 	//If define num_button, should filled the buttons_config
 	.buttons = &buttons_config[0],

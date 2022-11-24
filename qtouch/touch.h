@@ -88,8 +88,8 @@ extern "C" {
  * Default value: 1
  */
 /*
-  	Y3: PA7     Y(3)
-  	Y6: PB5     Y(12)
+	Y0:	PA6		Y(2)		//BTN2
+	Y1:	PA7		Y(3)		//BTN1
 */
 
 #define DEF_NUM_CHANNELS 2
@@ -104,18 +104,25 @@ extern "C" {
  */
 #define NODE_0_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		Y(3), Y(12), 2, PRSC_DIV_SEL_4,																			\
-		    NODE_GAIN(GAIN_2, GAIN_2), FILTER_LEVEL_16                                                                 \
+		X_NONE, Y(3), 2, PRSC_DIV_SEL_4,																			\
+		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 
 #define NODE_1_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		Y(12), Y(3), 2, PRSC_DIV_SEL_4,																			\
-		    NODE_GAIN(GAIN_2, GAIN_2), FILTER_LEVEL_16                                                                 \
+		X_NONE, Y(2), 2, PRSC_DIV_SEL_4,																				\
+			NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
 	}
 
+#define NODE_2_PARAMS                                                                                                  \
+	{																													\
+		X_NONE, Y(2) | Y(3), 2, PRSC_DIV_SEL_4,																		\
+		NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
+	}
+
+
 #define PTC_SEQ_NODE_CFG1	{	\
-	NODE_0_PARAMS, NODE_1_PARAMS \
+	NODE_0_PARAMS, NODE_1_PARAMS	\
 }
 
 /**********************************************************/
@@ -135,8 +142,18 @@ extern "C" {
 	100, HYST_25, NO_AKS_GROUP                                                                                      \
 }
 
+#define KEY_1_PARAMS                                                                                                   \
+{                                                                                                                  \
+	100, HYST_25, NO_AKS_GROUP                                                                                      \
+}
+
+#define KEY_2_PARAMS                                                                                                   \
+{                                                                                                                  \
+	100, HYST_25, NO_AKS_GROUP                                                                                      \
+}
+
 #define QTLIB_KEY_CONFIGS_SET {	\
-	KEY_0_PARAMS, KEY_0_PARAMS	\
+	KEY_0_PARAMS, KEY_1_PARAMS	\
 }
 
 /* De-bounce counter for additional measurements to confirm touch detection
@@ -221,7 +238,7 @@ extern "C" {
  * Range: 0 to (DEF_NUM_CHANNELS-1).
  * Default value: 0
  */
-#define QTM_AUTOSCAN_NODE 0
+#define QTM_AUTOSCAN_NODE 1
 
 /* Touch detection threshold for Low-power node.
  * Range: 10 to 255

@@ -271,9 +271,11 @@ void t25_inspect_init(t25_data_t *ptr, u8 testop)
 {	
 	testop &= TEST_MASK;	
 	
+#ifdef OBJECT_T8
 	if (testop & SIGNAL_LIMIT_MASK) {
 		SET_BIT(testop, TEST_SIGNAL_PENDING);
 	}
+#endif
 	
 	ptr->cache.testop = testop;
 }
@@ -384,12 +386,13 @@ ssint object_api_t25_selftest(u8 channel, /*const cap_sample_value_t **/ const v
  */
 ssint object_api_t25_pinfault_test(void)
 {	
-#ifdef OBJECT_T25_PIN_FAULT_ENABLE
 	t25_data_t *ptr = &t25_data_status;
-	object_t25_t *mem = (object_t25_t *) ptr->common.mem;
-	ssint result;
+	ssint result = 0;
+#ifdef OBJECT_T25_PIN_FAULT_ENABLE
+    object_t25_t *mem = (object_t25_t *) ptr->common.mem;
 
 	result = t25_inspect_pinfault(ptr, mem->pindwellus, mem->pinthr);
+#endif
 	if (result == 0) {
 		result = t25_inspect_avdd(ptr);
 	}
@@ -397,10 +400,9 @@ ssint object_api_t25_pinfault_test(void)
 	//Pin Fault Test Failed
 	if (result < 0) {
 		t25_report_status(ptr);
-		return result;
 	}
-#endif
-	return 0;
+	
+    return result;
 }
 
 /**

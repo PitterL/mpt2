@@ -111,6 +111,8 @@
 		(1.8)
 		<1> Fixed the issue that Fuse output in 1.7(output target Fuse data before, and output current Fuse data now)
 		<2> Fixed issue that Page Index in T37 debug data incorrect
+        (1.9)
+        <1> Fixed issue for 1616/1617 T25 selftest stuck issue
 
 		Report ID Object Table Index Object Type Object Instance
 		0 = 0x00                  0           0               0
