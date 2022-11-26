@@ -292,7 +292,11 @@ uint8_t avdd_test(void)
 	val = (uint8_t)gpio_get_adc_value(1, ADC_MUXPOS_INTREF_gc, ADC_SAMPNUM_ACC16_gc, 255);
 	ADC_disable(&ADC1);
 
-	// standard 116
+	// Vref - adcval
+	// 2.9 - 130
+	// 3.3v - 116
+	// 3.8v - 100
+	// 5.9v - 65
 	if (val > 100 && val < 130)	// 2.95v ~ 3.84v
 		return 0;
 
