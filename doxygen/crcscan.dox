@@ -1,0 +1,12 @@
+/*------------------------------------------------------------------------*/ /**
+\defgroup doc_driver_crcscan CRCSCAN Drivers
+
+
+\section doc_driver_crcscan_basic_and_practice CRCSCAN Basics and Best Practice
+
+A Cyclic Redundancy Check (CRC) takes a data stream of bytes from memory 
+and generates a checksum. This can be used to detect errors in memory.
+
+*/
+
+
