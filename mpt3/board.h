@@ -43,6 +43,6 @@ The below definition is used for cupdi package tool.
 	CHG pin map
 */
 #define CHG_PORT GPIOB
-#define CHG_PIN 3
+#define CHG_PIN 2
 
 #endif /* BOARD_H_ */

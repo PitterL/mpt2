@@ -35,8 +35,8 @@ extern "C" {
 #include "qtm_acq_avr_da_0x0037_api.h"
 #include "qtm_touch_key_0x0002_api.h"
 #include "qtm_freq_hop_0x0006_api.h"
-// #include "qtm_surface_cs2t_0x0025_api.h"
-// #include "qtm_gestures_2d_0x0023_api.h"
+#include "qtm_surface_cs2t_0x0025_api.h"
+#include "qtm_gestures_2d_0x0023_api.h"
 
 /*----------------------------------------------------------------------------
  *   prototypes

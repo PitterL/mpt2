@@ -1422,6 +1422,19 @@ void touch_init_sensor(void)
 }
 
 /*============================================================================
+void touch_init_sensor(void)
+------------------------------------------------------------------------------
+Purpose: Mark the sensor init flag of touch processing
+Input  : none
+Output : none
+Notes  :
+============================================================================*/
+void touch_init_sensor(void)
+{
+  SET_BIT(qlib_measurement_state, MEASUREMENT_INIT_SENSOR_REQ);
+}
+
+/*============================================================================
 void ISR_ADC0_RESRDY_vect(void)
 ------------------------------------------------------------------------------
 Purpose:  Interrupt handler for ADC / PTC EOC Interrupt

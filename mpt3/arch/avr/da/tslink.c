@@ -277,7 +277,7 @@ static void trigger_calibration(u8 type, u8 index)
 #ifdef API_SLIDER_MIN_CONTACT
   case API_SLIDER_MIN_CONTACT:
 #endif
-    touch_init_scroller();
+    tslib_init_sliders();
     break;
 #endif /* TOUCH_API_SCROLLER */
 #ifdef TOUCH_API_SURFACE
@@ -305,7 +305,7 @@ static void trigger_calibration(u8 type, u8 index)
 #ifdef API_SURFACE_CS_MIN_CONTACT
   case API_SURFACE_CS_MIN_CONTACT:
 #endif
-    touch_init_surface();
+    tslib_init_surfaces();
     break;
 #endif /* TOUCH_API_SURFACE */
   default:;
@@ -381,9 +381,9 @@ u8 *pre_op(u8 type, void *buf, u8 size, u8 index, u8 rw)
     }
     else if (type == API_SURFACE_CS_FILT_CFG)
     {
-      nb = (nibble_t *)&config_cache_ptr[0];
-      nb->hi = !((nibble_t *)buf->hi & 0x8);
-      nb->lo = (nibble_t *)buf->hi & 0x7);
+      nibble_t *nb = (nibble_t *)&config_cache_ptr[0];
+      nb->hi = !(((nibble_t *)buf)->hi & 0x8);
+      nb->lo = ((nibble_t *)buf)->hi & 0x7;
       return config_cache_ptr;
 #endif
 #ifdef API_SURFACE_CS_MIN_CONTACT
@@ -443,9 +443,9 @@ ssint post_op(u8 type, void *buf, void *cache, u8 size, u8 index, u8 rw, ssint r
     }
     else if (type == API_SURFACE_CS_FILT_CFG)
     {
-      nb = (nibble_t *)cache;
-      (nibble_t *)buf->hi = (nb->lo & 0x7) | (nb->hi ? 0 : 0x8);
-      (nibble_t *)buf->lo = 0;
+      nibble_t *nb = (nibble_t *)cache;
+      ((nibble_t *)buf)->hi = (nb->lo & 0x7) | (nb->hi ? 0 : 0x8);
+      ((nibble_t *)buf)->lo = 0;
 
       return 0;
 #endif
@@ -573,7 +573,7 @@ void tslink_calibrate(void)
   /* CC Calibrate */
   touch_calibrate();
 
-  /* Sofware calibration */
+  /* Software calibration */
   touch_init_sensor();
 }
 
@@ -722,14 +722,13 @@ ssint tslink_read_slider_state(u8 index, /*t9_point_status_t */ void *sts)
 #ifdef TOUCH_API_SURFACE
 ssint tslink_read_surface_state(u8 id, /*t9_point_status_t */ void *sts)
 {
-  const qtm_surface_contact_data_t *qtsf = &qtm_surface_cs_data1;
   t9_point_status_t *t9_sts = (t9_point_status_t *)sts;
 
-  if (GET_SURFACE_CS_DATA_i(qt_surface_status) & TOUCH_ACTIVE)
+  if (GET_SURFACE_CS_DATA_STATUS() & TOUCH_ACTIVE)
   {
     t9_sts->status = MXT_T9_DETECT;
 
-    if (GET_SURFACE_CS_DATA_i(qt_surface_status) & POSITION_CHANGE)
+    if (GET_SURFACE_CS_DATA_STATUS() & POSITION_CHANGE)
       t9_sts->status |= MXT_T9_MOVE;
     else
       t9_sts->status |= MXT_T9_PRESS;
@@ -739,8 +738,8 @@ ssint tslink_read_surface_state(u8 id, /*t9_point_status_t */ void *sts)
     t9_sts->status = 0;
   }
 
-  t9_sts->pos.x = GET_SURFACE_CS_DATA_i(v_position);
-  t9_sts->pos.y = GET_SURFACE_CS_DATA_i(h_position);
+  t9_sts->pos.x = GET_SURFACE_CONTACT_DATA_ni(id, v_position);
+  t9_sts->pos.y = GET_SURFACE_CONTACT_DATA_ni(id, h_position);
 
   return 0;
 }

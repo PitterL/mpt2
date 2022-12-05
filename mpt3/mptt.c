@@ -1401,7 +1401,7 @@ ssint mpt_api_read_slider_state(u8 index, /*t9_point_status_t */void *sts)
 #endif
 
 #ifdef TOUCH_API_SURFACE
-ssint tslink_read_surface_state(u8 id, /*t9_point_status_t */void *sts)
+ssint mpt_api_read_surface_state(u8 id, /*t9_point_status_t */void *sts)
 {
 	return tslink_read_surface_state(id, sts);
 }

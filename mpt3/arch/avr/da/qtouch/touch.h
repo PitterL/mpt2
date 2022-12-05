@@ -74,15 +74,34 @@ extern "C" {
  *----------------------------------------------------------------------------*/
 
 /*
-	Pin map
-	QT7				EXT Board		Nano	PTC
-	Y5-DS:		EX1					PA4		XY(4)
-	Y1-BTN1:	EX3					PD7		XY(23)
-	Y2-SL0:		EX2					PD5		XY(21)
-	Y3-SL1:		EX4					PD0		XY(16)	
-	Y4-SL2:		EX6					PA6		XY(6)
-	Y0-BTN2:	EX8					PD1		XY(17)
+	Pin map when QT8 connected to EXT1
+
+	QT8				EXT Board		Nano		PTC
+	Y9:				EX3					PD7			XY(23)
+	Y8:				EX1					PA4			XY(4)
+	Y7:				EX7					PD6			XY(22)
+	Y6:				EX2					PD5			XY(21)
+	Y5:				EX4					PD0			XY(16)
+	Y4:				EX6					PA6			XY(6)
+	Y3:				EX8					PD1			XY(17)
+	Y2:				EX10				PD3			XY(19)
+	Y1:				EX9					PA7			XY(7)
+	Y0-17:		EX11				PD2			XY(18)	--- if J2 jumped down(default)
+	Y0-5:			EX5					PA5			XY(5)		--- if J2 jumped up
+	DS:				EX12				PD4			XY(20)
 */
+
+#define DS	XY(20)
+#define S0	XY(18)
+#define S1	XY(7)
+#define S2	XY(19)
+#define S3	XY(17)
+#define S4	XY(6)
+#define S5	XY(16)
+#define S6	XY(21)
+#define S7	XY(22)
+#define S8	XY(4)
+#define S9	XY(23)
 
 /**********************************************************/
 /***************** Node Params   ******************/
@@ -92,41 +111,125 @@ extern "C" {
  * Range: 1 to 65535.
  * Default value: 1
  */
-#define DEF_NUM_CHANNEL_NODES (5)
+#define DEF_NUM_CHANNEL_NODES (10)
 
 /* Defines mutual cap node parameter setting
  * {X-line, Y-line, Charge Share Delay, NODE_RSEL_PRSC(series resistor, prescaler), NODE_G(Analog Gain , Digital Gain),
  * filter level}
  */
+ 
+/* Defines node parameter setting
+ * {Shield line, Y-line, Charge Share Delay, Prescaler, NODE_G(Analog Gain , Digital Gain), filter level}
+ */
+#if (DEF_SENSOR_TYPE == NODE_SELFCAP_SHIELD)
 #define NODE_0_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		X(4) | /* X(23) |*/ X(17) | X(21) | X(16) | X(6), Y(23), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_12), NODE_GAIN(GAIN_1, GAIN_1),           \
-		    FILTER_LEVEL_16                                                                                            \
+		DS /*|S0*/ |S1 |S2 |S3 |S4 |S5 |S6 |S7 |S8 |S9, S0, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
 	}
 #define NODE_1_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		X(4) | X(23) | /*X(17) |*/ X(21) | X(16) | X(6), Y(17), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_12), NODE_GAIN(GAIN_1, GAIN_1),           \
-		    FILTER_LEVEL_16                                                                                            \
+		DS |S0 /*|S1*/ |S2 |S3 |S4 |S5 |S6 |S7 |S8 |S9, S1, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
 	}
 #define NODE_2_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		X(4) | X(23) | X(17) | /*X(21) |*/ X(16) | X(6), Y(21), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_12), NODE_GAIN(GAIN_1, GAIN_1),           \
-		    FILTER_LEVEL_16                                                                                            \
+		DS |S0 |S1 /*|S2*/ |S3 |S4 |S5 |S6 |S7 |S8 |S9, S2, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
 	}
 #define NODE_3_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		X(4) | X(23) | X(17) | X(21)/* | X(16)*/ | X(6), Y(16), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_12),                 \
-		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
+		DS |S0 |S1 |S2 /*|S3*/ |S4 |S5 |S6 |S7 |S8 |S9, S3, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
 	}
 #define NODE_4_PARAMS                                                                                                  \
 	{                                                                                                                  \
-		X(4) | X(23) | X(17) | X(21) | X(16)/* | X(6)*/, Y(6), 0, NODE_RSEL_PRSC(RSEL_VAL_0, PRSC_DIV_SEL_12),                 \
-		    NODE_GAIN(GAIN_1, GAIN_1), FILTER_LEVEL_16                                                                 \
+		DS |S0 |S1 |S2 |S3 /*|S4*/ |S5 |S6 |S7 |S8 |S9, S4, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
 	}
+#define NODE_5_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		DS |S0 |S1 |S2 |S3 |S4 /*|S5*/ |S6 |S7 |S8 |S9, S5, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+#define NODE_6_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		DS |S0 |S1 |S2 |S3 |S4 |S5 /*|S6*/ |S7 |S8 |S9, S6, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+#define NODE_7_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		DS |S0 |S1 |S2 |S3 |S4 |S5 |S6 /*|S7*/ |S8 |S9, S7, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+#define NODE_8_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		DS |S0 |S1 |S2 |S3 |S4 |S5 |S6 |S7 /*|S8*/ |S9, S8, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+#define NODE_9_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		DS |S0 |S1 |S2 |S3 |S4 |S5 |S6 |S7 |S8 /*|S9*/, S9, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+#elif (DEF_SENSOR_TYPE == NODE_MUTUAL)
+#define NODE_0_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		S5 |S6 |S7 |S8 |S9, S0, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+#define NODE_1_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		S5 |S6 |S7 |S8 |S9, S1, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+#define NODE_2_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		S5 |S6 |S7 |S8 |S9, S2, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+#define NODE_3_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		S5 |S6 |S7 |S8 |S9, S3, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+#define NODE_4_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		S5 |S6 |S7 |S8 |S9, S4, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+#define NODE_5_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		S0 |S1 |S2 |S3 |S4, S5, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+#define NODE_6_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		S0 |S1 |S2 |S3 |S4, S6, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+#define NODE_7_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		S0 |S1 |S2 |S3 |S4, S7, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+#define NODE_8_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		S0 |S1 |S2 |S3 |S4, S8, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+#define NODE_9_PARAMS                                                                                                  \
+	{                                                                                                                  \
+		S0 |S1 |S2 |S3 |S4, S9, 0, PRSC_DIV_SEL_8,           \
+		    NODE_GAIN(GAIN_1, GAIN_2), FILTER_LEVEL_16                                                                 \
+	}
+#else
+#error "Unsupport sensor type `DEF_SENSOR_TYPE`"
+#endif
 
 #define PTC_SEQ_NODE_CFG1	{	\
-	NODE_0_PARAMS,	NODE_1_PARAMS,	\
-	NODE_2_PARAMS,	NODE_3_PARAMS,	NODE_4_PARAMS \
+	NODE_0_PARAMS,	NODE_1_PARAMS,	NODE_2_PARAMS,	NODE_3_PARAMS,	NODE_4_PARAMS, \
+	NODE_5_PARAMS,	NODE_6_PARAMS,	NODE_7_PARAMS,	NODE_8_PARAMS,	NODE_9_PARAMS \
 }
 
 /**********************************************************/
@@ -145,26 +248,11 @@ extern "C" {
 	{                                                                                                                  \
 		20, HYST_25, AKS_GROUP_1                                                                                       \
 	}
-#define KEY_1_PARAMS                                                                                                   \
-	{                                                                                                                  \
-		20, HYST_25, AKS_GROUP_1                                                                                       \
-	}
-#define KEY_2_PARAMS                                                                                                   \
-	{                                                                                                                  \
-		20, HYST_25, AKS_GROUP_1                                                                                       \
-	}
-#define KEY_3_PARAMS                                                                                                   \
-	{                                                                                                                  \
-		20, HYST_25, AKS_GROUP_1                                                                                       \
-	}
-#define KEY_4_PARAMS                                                                                                   \
-	{                                                                                                                  \
-		20, HYST_25, AKS_GROUP_1                                                                                       \
-	}
+
 
 #define QTLIB_KEY_CONFIGS_SET {	\
-	KEY_0_PARAMS, KEY_1_PARAMS, \
-	KEY_2_PARAMS, KEY_3_PARAMS, KEY_4_PARAMS \
+	KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, \
+	KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS, KEY_0_PARAMS \
 }
 
 /* De-bounce counter for additional measurements to confirm touch detection
@@ -219,7 +307,7 @@ extern "C" {
  * Range: 0-255
  * Default value: 0
  */
-#define DEF_MAX_ON_DURATION 25 //200ms
+#define DEF_MAX_ON_DURATION 250 //200ms
 
 /**********************************************************/
 /***************** Surface Parameters ****************/
@@ -230,12 +318,12 @@ extern "C" {
  * Start key of horizontal axis
  * Range: 0 to 65534
  */
-#define SURFACE_CS_START_KEY_H 3
+#define SURFACE_CS_START_KEY_H 5
 /* Horizontal Number of Channel <0-255>
  * Number of Channels forming horizontal axis
  * Range: 0 to 255
  */
-#define SURFACE_CS_NUM_KEYS_H 3
+#define SURFACE_CS_NUM_KEYS_H 5
 /* Vertical Start Key <0-65534>
  * Start key of vertical axis
  * Range: 0 to 65534
@@ -245,7 +333,7 @@ extern "C" {
  * Number of Channels forming vertical axis
  * Range: 0 to 255
  */
-#define SURFACE_CS_NUM_KEYS_V 3
+#define SURFACE_CS_NUM_KEYS_V 5
 /*  Position Resolution and Deadband Percentage
  *  Full scale position resolution reported for the axis and the deadband Percentage
  *  RESOL_2_BIT - RESOL_12_BIT
@@ -317,7 +405,7 @@ extern "C" {
  *Swipe gestures. Unit: Y-coordinate Example: if VERTICAL_SWIPE_DISTANCE_THRESHOLD is configured as 30, and a user
  *places their finger at y-coordinate 100, they must move to at least y-coordinate 70 to record a down swipe gesture.
  */
-#define VERTICAL_SWIPE_DISTANCE_THRESHOLD 40
+#define VERTICAL_SWIPE_DISTANCE_THRESHOLD 30
 /* 	Tap area <0-255>
  *	The TAP_AREA bounds the finger to an area it must stay within to be considered a tap gesture when the finger is
  *removed and tap and hold gesture if the finger is not removed for sometime. Unit: coordinates Example: if TAP_AREA is

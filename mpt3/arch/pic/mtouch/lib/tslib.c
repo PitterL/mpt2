@@ -52,6 +52,12 @@ touch_ret_t tslib_init(void)
 	/* Initialize keys and assign nodes */
     tslib_init_all_sensors();
 
+    /* Initialize sliders */
+    tslib_init_sliders();
+
+    /* Initialize surfaces */
+    tslib_init_surfaces();
+
 	return (touch_ret);
 }
 
@@ -490,6 +496,42 @@ void tslib_init_all_sensors(void)
             &GET_KEY_SET(), i, GET_ACQ_SET_i(qtm_acq_node_data) + i);
     }
 }
+
+#if TOUCH_API_SCROLLER_H
+/*============================================================================
+void tslib_init_sliders(void)
+------------------------------------------------------------------------------
+Purpose: init all scroller module
+Input  : none
+Output : int16_t
+Notes  : none
+============================================================================*/
+void tslib_init_sliders(void)
+{
+    FIXME:
+}
+#endif
+
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
+/*============================================================================
+void tslib_init_surfaces(void)
+------------------------------------------------------------------------------
+Purpose: init all sensor nodes
+Input  : none
+Output : int16_t
+Notes  : none
+============================================================================*/
+void tslib_init_surfaces(void)
+{
+    // Initialzie surface
+    qtm_init_surface_cs2t(&GET_SURFACE_CS_CTRL());
+
+#ifdef TOUCH_API_GESTURE_2D_H
+    // Initialize gesture 2d
+	qtm_init_gestures_2d();
+#endif
+}
+#endif
 
 /*============================================================================
 void tslib_set_adc_isr_handler(void (* handler)(void))

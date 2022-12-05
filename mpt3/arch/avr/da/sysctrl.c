@@ -43,5 +43,9 @@ void sys_reset(void)
 
 void sys_sleep(sleep_mode_t m)
 {
-   sleep_cpu();
+   if (m == SLEEP_DEEP) {
+      sleep_cpu();
+   } else {
+      
+   }
 }

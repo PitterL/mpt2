@@ -50,6 +50,12 @@ touch_ret_t tslib_init(void)
 	/* Initialize keys and assign nodes */
     tslib_init_all_sensors();
 
+    /* Initialize sliders */
+    tslib_init_sliders();
+
+    /* Initialize surfaces */
+    tslib_init_surfaces();
+
 	return (touch_ret);
 }
 
@@ -494,21 +500,41 @@ void tslib_init_all_sensors(void)
 }
 
 /*============================================================================
-void tslib_init_slider_surfaces(void)
+void tslib_init_sliders(void)
 ------------------------------------------------------------------------------
-Purpose: init all slider surfaces
+Purpose: init sliders' module
 Input  : none
 Output : int16_t
 Notes  : none
 ============================================================================*/
-#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
-void tslib_init_slider_surfaces(void)
+void tslib_init_sliders(void)
 {
+#ifdef TOUCH_API_SCROLLER_H
+    FIXME:
+#endif
+}
+
+/*============================================================================
+void tslib_init_surfaces(void)
+------------------------------------------------------------------------------
+Purpose: init surfaces' module
+Input  : none
+Output : int16_t
+Notes  : none
+============================================================================*/
+void tslib_init_surfaces(void)
+{
+#if (defined(TOUCH_API_SURFACE_CS2T_H) || defined(TOUCH_API_SURFACE_CS_H))
+    // Initialzie surface
     qtm_init_surface_cs2t(&GET_SURFACE_CS_CTRL());
 
+#ifdef TOUCH_API_GESTURE_2D_H
+    // Initialize gesture 2d
 	qtm_init_gestures_2d();
-}
 #endif
+#endif
+}
+
 
 /*============================================================================
 void tslib_set_adc_isr_handler(void (* handler)(void))

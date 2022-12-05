@@ -203,6 +203,9 @@ extern qtm_surface_cs_config_t qtm_surface_cs_config1;
 extern qtm_surface_csnt_data_t qtm_surface_cs_data1;
 #define GET_SURFACE_CS_DATA()  (qtm_surface_cs_data1)
 #define GET_SURFACE_CS_DATA_i(_i)  EXTRACT_I(GET_SURFACE_CS_DATA, _i)
+#ifdef TOUCH_API_SURFACE_CS2T_H 
+#define GET_SURFACE_CS_DATA_STATUS() GET_SURFACE_CS_DATA_i(qt_surface_cs2t_status)
+#endif
 
 /* Contact Data */
 qtm_surface_contact_data_t qtm_surface_contacts[2];
@@ -547,14 +550,24 @@ Notes  : none
 void tslib_init_all_sensors(void);
 
 /*============================================================================
-void tslib_init_slider_surfaces(void)
+void tslib_init_sliders(void)
 ------------------------------------------------------------------------------
-Purpose: init all slider surfaces
+Purpose: init sliders' module
 Input  : none
 Output : int16_t
 Notes  : none
 ============================================================================*/
-void tslib_init_slider_surfaces(void);
+void tslib_init_sliders(void);
+
+/*============================================================================
+void tslib_init_surfaces(void)
+------------------------------------------------------------------------------
+Purpose: init surfaces' module
+Input  : none
+Output : int16_t
+Notes  : none
+============================================================================*/
+void tslib_init_surfaces(void);
 
 /*============================================================================
 void tslib_set_adc_isr_handler(void (* handler)(void))

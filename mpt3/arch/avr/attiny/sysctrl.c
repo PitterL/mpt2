@@ -49,5 +49,7 @@ void sys_clr_wdt(void)
 
 void sys_sleep(sleep_mode_t m)
 {
-   sleep_cpu();
+   if (m == SLEEP_DEEP) {
+      sleep_cpu();
+   }
 }

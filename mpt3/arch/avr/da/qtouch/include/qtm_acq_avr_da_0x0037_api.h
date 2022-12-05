@@ -49,6 +49,9 @@ typedef integer_size_t node_mask_t;
 /* Y line bit position */
 #define Y(n) ((node_mask_t)((node_mask_t)1u << (n)))
 
+/* XY line bit position */
+#define XY(n)	((node_mask_t)((node_mask_t)1u << (n)))
+
 /* Extract Analog / Digital Gain */
 #define NODE_GAIN_ANA(m) ((uint8_t)(((m)&0xF0u) >> 4u))
 #define NODE_GAIN_DIG(m) (uint8_t)((m)&0x0Fu)
