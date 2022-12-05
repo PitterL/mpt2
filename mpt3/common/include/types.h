@@ -61,6 +61,17 @@ typedef union {
 	u8 value;
 } nibble_t;
 
+#ifdef _INTEGRAL_BITS_64
+#define _INTEGRAL_BITS 64
+typedef u64 integer_size_t;
+#elif defined(_INTEGRAL_BITS_32)
+#define _INTEGRAL_BITS 32
+typedef u32 integer_size_t;
+#else
+#error "Undefined \'integal bits \' (64 or 32)"
+#endif
+#define _INTEGRAL_BYTES (_INTEGRAL_BITS / 8)
+
 typedef union {
 	u8 byte[8];
 	u64 value;

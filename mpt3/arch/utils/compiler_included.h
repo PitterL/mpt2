@@ -1181,6 +1181,7 @@ static inline uint64_t convert_byte_array_to_64_bit(uint8_t *data)
 #define BIT(_bit) (1 << (_bit))
 #define BIT8(_bit) (u8)((u8)1 << (_bit))
 #define BIT32(_bit) (u32)((u32)1 << (_bit))
+#define BIT_T(_bit, _t) (_t)((_t)1 << (_bit))
 
 #define L8_TO_LT16(__v0, __v1) ((((short)(__v1)) << 8) | ((short)(__v0)))
 #define L16_TO_LT32(__v0, __v1) ((((short)(__v1)) << 16) | ((short)(__v0)))

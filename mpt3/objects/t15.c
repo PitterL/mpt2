@@ -159,7 +159,7 @@ ssint object_api_t15_set_button_status(/* Slot id */u8 id, u8 pressed)
 	object_t15_t *mem = (object_t15_t *) ptr->common.mem;
 	const qbutton_config_t *btndef;
 	u8 offset, i;
-	u32 status;
+	integer_size_t status;
 	
 	for (i = 0, offset = 0; i < MXT_TOUCH_KEYARRAY_T15_INST; i++) {
 		mem = (object_t15_t *) ptr[i].common.mem;
@@ -176,10 +176,10 @@ ssint object_api_t15_set_button_status(/* Slot id */u8 id, u8 pressed)
 					if (!object_api_t126_node_skipped(id))
 #endif
 					{
-						status |= BIT32(offset);
+						status |= BIT_T(offset, integer_size_t);
 					}
 				} else {
-					status &= ~BIT32(offset);
+					status &= ~BIT_T(offset, integer_size_t);
 				}
 				
 				if (status != ptr[i].button.keystate.value) {

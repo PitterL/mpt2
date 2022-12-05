@@ -18,6 +18,10 @@
 		"libwrapper.h": "c",
 		"txx.h": "c",
 		"mutex.h": "c",
-		"sysctrl.h": "c"
+		"sysctrl.h": "c",
+		"qtm_common_components_api.h": "c",
+		"stdint.h": "c",
+		"string.h": "c",
+		"tswrapper.h": "c"
 	}
 }

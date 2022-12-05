@@ -12,6 +12,10 @@ Copyright (c) 2020- Microchip Inc. All rights reserved.
 
 #include <stdint.h>
 #include "qtm_common_components_api.h"
+#include <common/include/types.h>
+
+typedef integer_size_t node_mask_t;
+#define MAXIMUM_ADC_CHANNEL_NODES _INTEGRAL_BITS
 
 /* PTC Interrupt vector */
 #define QTML_PTC_vect_iar 0x006C
@@ -40,10 +44,10 @@ Copyright (c) 2020- Microchip Inc. All rights reserved.
 
 /* X line bit position */
 #define X_NONE 0u
-#define X(n) ((uint64_t)((uint64_t)1u << (n)))
+#define X(n) ((node_mask_t)((node_mask_t)1u << (n)))
 
 /* Y line bit position */
-#define Y(n) ((uint64_t)((uint64_t)1u << (n)))
+#define Y(n) ((node_mask_t)((node_mask_t)1u << (n)))
 
 /* Extract Analog / Digital Gain */
 #define NODE_GAIN_ANA(m) ((uint8_t)(((m)&0xF0u) >> 4u))
@@ -170,8 +174,8 @@ typedef enum tag_pit_div_t {
 - v3: Tiny1617 => 8PTC pins (Selectable X or Y), Driven shield
 */
 typedef struct {
-	uint64_t node_xmask;        /* Selects the X Pins for this node */
-	uint64_t node_ymask;        /* Selects the Y Pins for this node */
+	node_mask_t node_xmask;        /* Selects the X Pins for this node */
+	node_mask_t node_ymask;        /* Selects the Y Pins for this node */
 	uint8_t  node_csd;          /* Charge Share Delay */
 	uint8_t  node_rsel_prsc;    /* Bits 7:4 = Resistor, Bits 3:0  Prescaler */
 	uint8_t  node_gain;         /* Bits 7:4 = Analog gain, Bits 3:0 = Digital gain */

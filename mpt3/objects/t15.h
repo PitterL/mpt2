@@ -33,10 +33,9 @@ typedef struct object_t15 {
 /* MXT_TOUCH_KEYARRAY_T15 status */
 #define MXT_T15_DETECT		BIT(7)
 
-#define BTN_COUNT_EACH_INSTANCE 32	//Limited max key counts in each instance to 32, if need more, object_api_t15_set_button_status()
 typedef union t15_button_status {
-	u8 data[BTN_COUNT_EACH_INSTANCE >> 3];
-	u32 value;
+	u8 data[_INTEGRAL_BYTES];
+	integer_size_t value;
 }__attribute__ ((packed)) t15_button_status_t;
 
 typedef struct object_t15_result {

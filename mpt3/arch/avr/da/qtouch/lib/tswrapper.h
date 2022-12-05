@@ -9,14 +9,13 @@
 #ifndef LIBLINK_H_
 #define LIBLINK_H_
 
+#include <common/include/types.h>
 #include "../include/touch_api_ptc.h"
 
 typedef uint16_t signal_t;
 typedef uint16_t reference_t;
 typedef int16_t delta_t;
 typedef uint16_t capacitance_t;
-typedef uint64_t node_mask_t;
-#define MAXIMUM_ADC_CHANNEL_NODES 64
 
 typedef qtm_acq_avr_da_node_config_t qtm_acq_node_config_t;
 
