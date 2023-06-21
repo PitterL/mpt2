@@ -330,13 +330,14 @@ ssint object_api_t25_selftest(u8 channel, /*const cap_sample_value_t **/ const v
 				CLR_BIT(testop, TEST_PINFAULT);
 			}
 		}
-	#ifdef OBJECT_T8
 		if (testop & SIGNAL_LIMIT_MASK) {
-			if (object_t8_switch_measure_mode(1) != 0) {
+	#ifdef OBJECT_T8	
+			if (object_t8_switch_measure_mode(1) != 0) 
+	#endif
+			{
 				CLR_BIT(testop, TEST_SIGNAL_PENDING);
 			}
 		}
-    #endif
 	} else {
 		if (!TEST_BIT(testop, TEST_SIGNAL_PENDING)) {
 			if (!(object_api_t6_get_status() & MXT_T6_STATUS_CAL)) {
